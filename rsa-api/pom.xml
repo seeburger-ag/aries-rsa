@@ -21,20 +21,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-      <groupId>org.apache.aries.rsa</groupId>
-      <artifactId>parent</artifactId>
-      <version>1.8-SNAPSHOT</version>
-      <relativePath>../parent/pom.xml</relativePath>
+        <groupId>org.apache.aries.rsa</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.8-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
     
-    <artifactId>discovery</artifactId>
-    <packaging>pom</packaging>
-    <name>Aries Remote Service Admin Discovery</name>
+    <artifactId>rsa-api</artifactId>
+    <packaging>bundle</packaging>
+    <name>Aries Remote Service Admin Compendium APIs</name>
+    
+    <description>
+        The minimal set of OSGi Compendium APIs required by DOSGi.
+        This bundle should be deployed instead of the full OSGi Compendium bundle to prevent issues
+        caused by multiple exports of other OSGi APIs that are not used by DOSGi. See DOSGI-208.
+    </description>
 
-    <modules>
-      <module>local</module>
-      <module>zookeeper</module>
-      <module>zookeeper-server</module>
-      <module>zookeeper-server-config</module>
-    </modules>
 </project>

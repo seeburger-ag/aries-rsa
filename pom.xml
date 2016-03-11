@@ -19,26 +19,26 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.cxf.dosgi</groupId>
-    <artifactId>cxf-dosgi-ri</artifactId>
+    <groupId>org.apache.aries.rsa</groupId>
+    <artifactId>main</artifactId>
     <version>1.8-SNAPSHOT</version>
 
     <packaging>pom</packaging>
-    <name>Distributed OSGI Reference Implementation</name>
- 
+    <name>Aries Remote Service Admin Main</name>
+
     <scm>
-        <connection>scm:git:http://git-wip-us.apache.org/repos/asf/cxf-dosgi.git</connection>
-        <developerConnection>scm:git:http://git-wip-us.apache.org/repos/asf/cxf-dosgi.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <connection>scm:git:http://git-wip-us.apache.org/repos/asf/aries-rsa.git</connection>
+        <developerConnection>scm:git:http://git-wip-us.apache.org/repos/asf/aries-rsa.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
 
     <issueManagement>
         <system>jira</system>
-        <url>https://issues.apache.org/jira/browse/DOSGI</url>
+        <url>https://issues.apache.org/jira/browse/ARIES</url>
     </issueManagement>
 
     <prerequisites>
-        <maven>3.0</maven>
+        <maven>3.2</maven>
     </prerequisites>
 
     <distributionManagement>
@@ -56,37 +56,6 @@
     </distributionManagement>
 
     <inceptionYear>2008</inceptionYear>
-    <mailingLists>
-        <mailingList>
-            <name>Apache CXF User List</name>
-            <subscribe>users-subscribe@cxf.apache.org</subscribe>
-            <unsubscribe>users-unsubscribe@cxf.apache.org</unsubscribe>
-            <post>users@cxf.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/cxf-users</archive>
-        </mailingList>
-        <mailingList>
-            <name>Apache CXF Developer List</name>
-            <subscribe>dev-subscribe@cxf.apache.org</subscribe>
-            <unsubscribe>dev-unsubscribe@cxf.apache.org</unsubscribe>
-            <post>dev@cxf.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/cxf-dev</archive>
-        </mailingList>
-        <mailingList>
-            <name>Apache CXF Commits List</name>
-            <subscribe>commits-subscribe@cxf.apache.org</subscribe>
-            <unsubscribe>commits-unsubscribe@cxf.apache.org</unsubscribe>
-            <post>commits@cxf.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/cxf-commits</archive>
-        </mailingList>
-        <mailingList>
-            <name>Apache CXF Issues List</name>
-            <subscribe>issues-subscribe@cxf.apache.org</subscribe>
-            <unsubscribe>issues-unsubscribe@cxf.apache.org</unsubscribe>
-            <post>issues@cxf.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/cxf-issues</archive>
-        </mailingList>
-    </mailingLists>
-
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -102,13 +71,13 @@
 
     <modules>
         <module>parent</module>
-        <module>felix</module>
-        <module>dsw</module>
+        <module>rsa-api</module>
+        <module>spi</module>
+        <module>rsa</module>
+        <module>topology-manager</module>
+        <module>provider</module>
         <module>discovery</module>
-        <module>samples</module>
-        <module>osgi-api</module>
-        <module>distribution</module>
-        <module>systests2</module>
+        <module>features</module>
     </modules>
 
     <profiles>
@@ -137,6 +106,61 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>rat</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.rat</groupId>
+                        <artifactId>apache-rat-plugin</artifactId>
+                        <version>0.6</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <reportFile>${project.build.directory}/${project.build.finalName}.rat</reportFile>
+                            <excludeSubProjects>true</excludeSubProjects>
+                            <excludes>
+                                <exclude>**/target/**/*</exclude>
+                                <exclude>**/appended-resources/**/*</exclude>
+                                <exclude>**/dependency-reduced-pom.xml</exclude>
+                                <exclude>**/velocity.log</exclude>
+                                <exclude>**/DEPENDENCIES</exclude>
+                                <!-- exclude IntelliJ IDEA generated files -->
+                                <exclude>**/*.iml</exclude>
+                                <exclude>**/*.ipr</exclude>
+                                <exclude>**/*.iws</exclude>
+                                <exclude>**/.idea/**/*</exclude>
+                                <!-- exclude Eclipse IDE generated files -->
+                                <exclude>**/.project</exclude>
+                                <exclude>**/.classpath</exclude>
+                                <exclude>**/.settings/**</exclude>
+                                <exclude>**/eclipse-classes/**/*</exclude>
+                                <!-- manifest files don't support comments so don't contain the ASL2.0 header -->
+                                <exclude>**/APPLICATION.MF</exclude>
+                                <exclude>**/MANIFEST.MF</exclude>
+                                <exclude>**/*.MF</exclude>
+                                <!--RAT doesn't seem to recognize MIT style licenses -->
+                                <exclude>manual/src/styles/print.css</exclude>
+                                <!-- RAT doesn't recognize BSD license in transaction-manager logger -->
+                                <exclude>**/objectweb/howl/log/Logger.java</exclude>
+                                <exclude>.gitignore</exclude>
+                                <exclude>osgi.bnd</exclude>
+                                <exclude>README.md</exclude>
+                                <exclude>*.cfg</exclude>
+                                <exclude>derby.log</exclude>
+                                <exclude>**/*.sql</exclude>
+                            </excludes>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

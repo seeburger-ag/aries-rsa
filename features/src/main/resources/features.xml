@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="cxf-dosgi-${project.version}">
+    <repository>mvn:org.apache.cxf.karaf/apache-cxf/${cxf.version}/xml/features</repository>
+
+    <feature name="aries-rsa-core" version="${project.version}">
+        <bundle>mvn:org.apache.aries.rsa/core/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa/topology-manager/${project.version}</bundle>
+    </feature>
+    
+    <feature name="aries-rsa-provider-tcp" version="${project.version}">
+        <feature>aries-rsa-core</feature>
+        <bundle>mvn:org.apache.aries.rsa.provider/tcp/${project.version}</bundle>
+    </feature>
+    
+    <feature name="aries-rsa-discovery-local" version="${project.version}">
+        <feature>caries-rsa-core</feature>
+        <bundle>mvn:org.apache.aries.rsa.discovery/local/${project.version}</bundle>
+    </feature>
+
+    <feature name="aries-rsa-discovery-zookeeper" version="${project.version}">
+        <feature>aries-rsa-core</feature>
+        <bundle>mvn:org.apache.zookeeper/zookeeper/${zookeeper.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/local/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/zookeeper/${project.version}</bundle>
+    </feature>
+
+    <feature name="aries-rsa-zookeeper-server" version="${project.version}">
+        <bundle>mvn:org.apache.zookeeper/zookeeper/${zookeeper.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/zookeeper-server/${project.version}</bundle>
+    </feature>
+</features>

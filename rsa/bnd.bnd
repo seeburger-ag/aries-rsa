@@ -1,0 +1,5 @@
+Bundle-Activator: org.apache.cxf.dosgi.dsw.service.Activator
+Export-Package: \
+	org.apache.cxf.dosgi.dsw.api,\
+	org.apache.cxf.dosgi.dsw.service,\
+	org.osgi.service.remoteserviceadmin
