@@ -18,16 +18,17 @@
  */
 package org.apache.cxf.dosgi.discovery.zookeeper.util;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -46,54 +47,24 @@ public final class Utils {
     }
 
     /**
-     * Returns the value of a "string+" property as an array of strings.
-     * <p>
-     * A "string+" property can have a value which is either a string,
-     * an array of strings, or a collection of strings.
-     * <p>
-     * If the given value is not of one of the valid types, or is null,
-     * an empty array is returned.
-     *
-     * @param property a "string+" property value
-     * @return the property value as an array of strings, or an empty array
-     */
-    public static String[] getStringPlusProperty(Object property) {
-        if (property instanceof String) {
-            return new String[] {(String)property};
-        } else if (property instanceof String[]) {
-            return (String[])property;
-        } else if (property instanceof Collection) {
-            try {
-                @SuppressWarnings("unchecked")
-                Collection<String> strings = (Collection<String>)property;
-                return strings.toArray(new String[strings.size()]);
-            } catch (ArrayStoreException ase) {
-                // ignore collections with wrong type
-            }
-        }
-        return new String[0];
-    }
-
-    /**
      * Removes nulls and empty strings from the given string array.
      *
      * @param strings an array of strings
      * @return a new array containing the non-null and non-empty
      *         elements of the original array in the same order
      */
-    public static String[] removeEmpty(String[] strings) {
-        String[] result = new String[strings.length];
-        int copied = 0;
+    public static List<String> removeEmpty(List<String> strings) {
+        List<String> result = new ArrayList<String>();
         for (String s : strings) {
             if (s != null && !s.isEmpty()) {
-                result[copied++] = s;
+                result.add(s);
             }
         }
-        return copied == result.length ? result : Arrays.copyOf(result, copied);
+        return result;
     }
 
-    public static String[] getScopes(ServiceReference<?> sref) {
-        return removeEmpty(getStringPlusProperty(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE)));
+    public static List<String> getScopes(ServiceReference<?> sref) {
+        return removeEmpty(StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE)));
     }
 
     // copied from the DSW OSGiUtils class

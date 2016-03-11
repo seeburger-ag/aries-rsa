@@ -1,5 +1,3 @@
-Bundle-Activator: org.apache.cxf.dosgi.dsw.service.Activator
-Export-Package: \
-	org.apache.cxf.dosgi.dsw.api,\
-	org.apache.cxf.dosgi.dsw.service,\
-	org.osgi.service.remoteserviceadmin
+Bundle-Activator: org.apache.aries.rsa.core.Activator
+Private-Package: org.apache.aries.rsa.core
+Export-Package: org.osgi.service.remoteserviceadmin

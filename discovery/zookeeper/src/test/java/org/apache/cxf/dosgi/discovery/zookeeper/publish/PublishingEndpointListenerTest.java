@@ -23,17 +23,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
-import org.apache.cxf.dosgi.endpointdesc.EndpointDescriptionParser;
-import org.apache.cxf.dosgi.endpointdesc.PropertiesMapper;
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.easymock.classextension.EasyMock;
-import org.easymock.classextension.IMocksControl;
+import org.easymock.IMocksControl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -44,6 +42,8 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 import org.osgi.xmlns.rsa.v1_0.PropertyType;
+
+import junit.framework.TestCase;
 
 public class PublishingEndpointListenerTest extends TestCase {
 

@@ -19,9 +19,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.cxf.dosgi</groupId>
-            <artifactId>cxf-dosgi-ri-provider-api</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>spi</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

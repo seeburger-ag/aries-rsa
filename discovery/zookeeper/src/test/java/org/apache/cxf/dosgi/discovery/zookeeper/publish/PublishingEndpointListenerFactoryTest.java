@@ -24,8 +24,8 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.zookeeper.ZooKeeper;
-import org.easymock.classextension.EasyMock;
-import org.easymock.classextension.IMocksControl;
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointListener;

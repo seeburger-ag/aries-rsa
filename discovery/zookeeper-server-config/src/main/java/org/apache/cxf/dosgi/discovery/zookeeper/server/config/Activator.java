@@ -70,7 +70,7 @@ public class Activator implements BundleActivator {
         st.open();
 
         // The following section is done synchronously otherwise it doesn't happen in time for the CT
-        ServiceReference[] refs = context.getServiceReferences(ManagedService.class.getName(),
+        ServiceReference<?>[] refs = context.getServiceReferences(ManagedService.class.getName(),
                 "(service.pid=org.apache.cxf.dosgi.discovery.zookeeper)");
         if (refs == null || refs.length == 0) {
             throw new RuntimeException("This bundle must be started after the bundle with the ZooKeeper "

@@ -39,6 +39,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>spi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>xmlunit</groupId>
             <artifactId>xmlunit</artifactId>
             <version>1.6</version>

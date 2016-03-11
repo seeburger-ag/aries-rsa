@@ -23,14 +23,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.cxf.dosgi.discovery.zookeeper.util.Utils;
-import org.apache.cxf.dosgi.endpointdesc.EndpointDescriptionParser;
-import org.apache.cxf.dosgi.endpointdesc.PropertiesMapper;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -174,7 +175,7 @@ public class PublishingEndpointListener implements EndpointListener {
 
     private static void ensurePath(String path, ZooKeeper zk) throws KeeperException, InterruptedException {
         StringBuilder current = new StringBuilder();
-        String[] parts = Utils.removeEmpty(path.split("/"));
+        List<String> parts = Utils.removeEmpty(Arrays.asList(path.split("/")));
         for (String part : parts) {
             current.append('/');
             current.append(part);

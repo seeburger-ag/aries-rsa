@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.cxf.dosgi.discovery.zookeeper.util.Utils;
-import org.apache.cxf.dosgi.endpointdesc.EndpointDescriptionParser;
-import org.apache.cxf.dosgi.endpointdesc.PropertiesMapper;
 import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;

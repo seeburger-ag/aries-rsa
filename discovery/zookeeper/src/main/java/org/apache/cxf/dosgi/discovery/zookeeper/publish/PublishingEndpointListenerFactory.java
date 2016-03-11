@@ -46,7 +46,7 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
     private final BundleContext bctx;
     private final ZooKeeper zk;
     private final List<PublishingEndpointListener> listeners = new ArrayList<PublishingEndpointListener>();
-    private ServiceRegistration serviceRegistration;
+    private ServiceRegistration<?> serviceRegistration;
 
     public PublishingEndpointListenerFactory(ZooKeeper zk, BundleContext bctx) {
         this.bctx = bctx;

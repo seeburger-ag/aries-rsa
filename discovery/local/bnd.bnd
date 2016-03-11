@@ -1,1 +1,5 @@
-Bundle-Activator: org.apache.cxf.dosgi.discovery.local.internal.Activator
+Bundle-Activator: org.apache.aries.rsa.discovery.local.Activator
+Private-Package: org.apache.aries.rsa.discovery.local
+Export-Package: \
+	org.apache.aries.rsa.discovery.endpoint,\
+	org.osgi.xmlns.rsa.v1_0

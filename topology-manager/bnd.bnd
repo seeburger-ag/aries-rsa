@@ -1,1 +1,1 @@
-Bundle-Activator: org.apache.cxf.dosgi.topologymanager.Activator
+Bundle-Activator: org.apache.aries.rsa.topologymanager.Activator

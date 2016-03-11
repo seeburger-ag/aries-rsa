@@ -23,9 +23,9 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.Map;
 
-import org.apache.cxf.dosgi.dsw.api.DistributionProvider;
-import org.apache.cxf.dosgi.dsw.api.Endpoint;
-import org.apache.cxf.dosgi.dsw.api.IntentUnsatisfiedException;
+import org.apache.aries.rsa.spi.DistributionProvider;
+import org.apache.aries.rsa.spi.Endpoint;
+import org.apache.aries.rsa.spi.IntentUnsatisfiedException;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;

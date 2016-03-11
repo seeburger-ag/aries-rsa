@@ -18,14 +18,14 @@
  */
 package org.apache.cxf.dosgi.discovery.zookeeper.util;
 
-import java.util.Arrays;
+import java.util.List;
 
-import junit.framework.TestCase;
-
-import org.easymock.classextension.EasyMock;
-import org.easymock.classextension.IMocksControl;
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
+
+import junit.framework.TestCase;
 
 public class UtilsTest extends TestCase {
 
@@ -36,57 +36,6 @@ public class UtilsTest extends TestCase {
         // used for the recursive discovery
         assertEquals(Utils.PATH_PREFIX, Utils.getZooKeeperPath(null));
         assertEquals(Utils.PATH_PREFIX, Utils.getZooKeeperPath(""));
-    }
-
-    public void testGetStringPlusProperty() {
-        String[] out = Utils.getStringPlusProperty("MyString");
-        assertEquals(1, out.length);
-        assertEquals("MyString", out[0]);
-
-        out = Utils.getStringPlusProperty(new String[]{"MyString"});
-        assertEquals(1, out.length);
-        assertEquals("MyString", out[0]);
-
-        out = Utils.getStringPlusProperty(Arrays.asList("MyString"));
-        assertEquals(1, out.length);
-        assertEquals("MyString", out[0]);
-
-        out = Utils.getStringPlusProperty(Arrays.asList(1));
-        assertEquals(0, out.length);
-
-        out = Utils.getStringPlusProperty(new Object());
-        assertEquals(0, out.length);
-
-        out = Utils.getStringPlusProperty(null);
-        assertEquals(0, out.length);
-    }
-
-    public void testRemoveEmpty() {
-        String[] out = Utils.removeEmpty(new String[0]);
-        assertEquals(0, out.length);
-
-        out = Utils.removeEmpty(new String[]{null});
-        assertEquals(0, out.length);
-
-        out = Utils.removeEmpty(new String[]{""});
-        assertEquals(0, out.length);
-
-        out = Utils.removeEmpty(new String[]{"hi"});
-        assertEquals(1, out.length);
-        assertEquals("hi", out[0]);
-
-        out = Utils.removeEmpty(new String[]{"", "hi", null});
-        assertEquals(1, out.length);
-        assertEquals("hi", out[0]);
-
-        out = Utils.removeEmpty(new String[]{"hi", null, "", ""});
-        assertEquals(1, out.length);
-        assertEquals("hi", out[0]);
-
-        out = Utils.removeEmpty(new String[]{"", "hi", null, "", "", "bye", null});
-        assertEquals(2, out.length);
-        assertEquals("hi", out[0]);
-        assertEquals("bye", out[1]);
     }
 
     public void testGetScopes() {
@@ -101,10 +50,10 @@ public class UtilsTest extends TestCase {
 
         c.replay();
 
-        String[] ret = Utils.getScopes(sref);
+        List<String> ret = Utils.getScopes(sref);
 
         c.verify();
-        assertEquals(1, ret.length);
-        assertEquals(scopes[0], ret[0]);
+        assertEquals(1, ret.size());
+        assertEquals(scopes[0], ret.get(0));
     }
 }

@@ -20,23 +20,25 @@ package org.apache.cxf.dosgi.discovery.zookeeper.subscribe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 
 import org.apache.cxf.dosgi.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.cxf.dosgi.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.cxf.dosgi.discovery.local.util.Utils.matchFilter;
 
 /**
  * Manages the EndpointListeners and the scopes they are interested in.
@@ -89,7 +91,6 @@ public class InterfaceMonitorManager {
                 endpointListener.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)));
     }
 
-    @SuppressWarnings("unchecked")
     public synchronized void addInterest(ServiceReference<EndpointListener> endpointListener, 
                                          String scope, String objClass) {
         // get or create interest for given scope and add listener to it
@@ -178,6 +179,21 @@ public class InterfaceMonitorManager {
             }
         }
     }
+    
+    private static boolean matchFilter(BundleContext bctx, String filter, EndpointDescription endpoint) {
+        if (filter == null) {
+            return false;
+        }
+    
+        try {
+            Filter f = bctx.createFilter(filter);
+            Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
+            return f.match(dict);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     private void notifyListener(EndpointDescription endpoint, String currentScope, boolean isAdded,
                                 Bundle endpointListenerBundle, EndpointListener endpointListener) {

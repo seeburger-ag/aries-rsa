@@ -21,7 +21,7 @@ package org.apache.aries.rsa.provider.tcp;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.cxf.dosgi.dsw.api.Endpoint;
+import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 

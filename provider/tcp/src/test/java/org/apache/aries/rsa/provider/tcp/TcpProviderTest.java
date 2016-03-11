@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.provider.tcp.myservice.MyService;
 import org.apache.aries.rsa.provider.tcp.myservice.MyServiceImpl;
-import org.apache.cxf.dosgi.dsw.api.Endpoint;
-import org.apache.cxf.dosgi.dsw.api.EndpointHelper;
+import org.apache.aries.rsa.spi.Endpoint;
+import org.apache.aries.rsa.util.EndpointHelper;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;

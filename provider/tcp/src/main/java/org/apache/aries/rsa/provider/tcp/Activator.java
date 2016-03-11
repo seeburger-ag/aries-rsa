@@ -21,7 +21,7 @@ package org.apache.aries.rsa.provider.tcp;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.cxf.dosgi.dsw.api.DistributionProvider;
+import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
