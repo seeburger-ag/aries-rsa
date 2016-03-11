@@ -98,7 +98,9 @@ public class ExportRegistrationImpl implements ExportRegistration {
         }
 
         rsaCore.removeExportRegistration(this);
-        exportReference.close();
+        if (exportReference != null) {
+            exportReference.close();
+        }
         parent.removeInstance();
     }
 
