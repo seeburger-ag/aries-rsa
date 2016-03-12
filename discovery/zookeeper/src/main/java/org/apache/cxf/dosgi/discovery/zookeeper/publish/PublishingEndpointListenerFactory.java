@@ -24,7 +24,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.cxf.dosgi.discovery.zookeeper.ZooKeeperDiscovery;
-import org.apache.cxf.dosgi.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -74,13 +73,13 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
 
     public synchronized void start() {
         Dictionary<String, String> props = new Hashtable<String, String>();
-        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE,
-                  "(&(" + Constants.OBJECTCLASS + "=*)(" + RemoteConstants.ENDPOINT_FRAMEWORK_UUID
-                  + "=" + Utils.getUUID(bctx) + "))");
+        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, 
+                  String.format("(&(%s=*)(%s=))", Constants.OBJECTCLASS, 
+                                RemoteConstants.ENDPOINT_FRAMEWORK_UUID, getUUID(bctx)));
         props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
         serviceRegistration = bctx.registerService(EndpointListener.class.getName(), this, props);
     }
-
+    
     public synchronized void stop() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
@@ -92,6 +91,10 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
             }
             listeners.clear();
         }
+    }
+    
+    private String getUUID(BundleContext bc) {
+        return bc.getProperty(Constants.FRAMEWORK_UUID);
     }
 
     /**

@@ -18,13 +18,6 @@
  */
 package org.apache.cxf.dosgi.discovery.zookeeper.util;
 
-import java.util.List;
-
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
-
 import junit.framework.TestCase;
 
 public class UtilsTest extends TestCase {
@@ -38,22 +31,5 @@ public class UtilsTest extends TestCase {
         assertEquals(Utils.PATH_PREFIX, Utils.getZooKeeperPath(""));
     }
 
-    public void testGetScopes() {
-        IMocksControl c = EasyMock.createNiceControl();
 
-        String[] scopes = new String[]{"myScope=test", ""};
-
-        @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sref = c.createMock(ServiceReference.class);
-        EasyMock.expect(sref.getProperty(EasyMock.eq(EndpointListener.ENDPOINT_LISTENER_SCOPE)))
-            .andReturn(scopes).anyTimes();
-
-        c.replay();
-
-        List<String> ret = Utils.getScopes(sref);
-
-        c.verify();
-        assertEquals(1, ret.size());
-        assertEquals(scopes[0], ret.get(0));
-    }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
+import org.apache.aries.rsa.util.StringPlus;
 import org.apache.cxf.dosgi.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.cxf.dosgi.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.ZooKeeper;
@@ -79,7 +79,7 @@ public class InterfaceMonitorManager {
         if (LOG.isDebugEnabled()) {
             LOG.debug("updated EndpointListener properties: {}", Utils.getProperties(endpointListener));
         }
-        for (String scope : Utils.getScopes(endpointListener)) {
+        for (String scope : getScopes(endpointListener)) {
             String objClass = Utils.getObjectClass(scope);
             LOG.debug("Adding interest in scope {}, objectClass {}", scope, objClass);
             addInterest(endpointListener, scope, objClass);
@@ -230,5 +230,9 @@ public class InterfaceMonitorManager {
      */
     protected synchronized Map<ServiceReference<EndpointListener>, List<String>> getEndpointListenerScopes() {
         return endpointListenerScopes;
+    }
+
+    protected List<String> getScopes(ServiceReference<?> sref) {
+        return Utils.removeEmpty(StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE)));
     }
 }

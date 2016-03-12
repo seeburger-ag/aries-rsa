@@ -19,19 +19,13 @@
 package org.apache.cxf.dosgi.discovery.zookeeper.util;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.aries.rsa.util.StringPlus;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 
 public final class Utils {
 
@@ -61,56 +55,6 @@ public final class Utils {
             }
         }
         return result;
-    }
-
-    public static List<String> getScopes(ServiceReference<?> sref) {
-        return removeEmpty(StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE)));
-    }
-
-    // copied from the DSW OSGiUtils class
-    public static String getUUID(BundleContext bc) {
-        synchronized ("org.osgi.framework.uuid") {
-            String uuid = bc.getProperty("org.osgi.framework.uuid");
-            if (uuid == null) {
-                uuid = UUID.randomUUID().toString();
-                System.setProperty("org.osgi.framework.uuid", uuid);
-            }
-            return uuid;
-        }
-    }
-
-    /**
-     * Puts the given key-value pair in the given dictionary if the key does not
-     * already exist in it or if its existing value is null.
-     *
-     * @param dict a dictionary
-     * @param key the key
-     * @param value the default value to set
-     */
-    public static void setDefault(Dictionary<String, String> dict, String key, String value) {
-        if (dict.get(key) == null) {
-            dict.put(key, value);
-        }
-    }
-
-    /**
-     * Converts the given Dictionary to a Map.
-     *
-     * @param dict a dictionary
-     * @param <K> the key type
-     * @param <V> the value type
-     * @return the converted map, or an empty map if the given dictionary is null
-     */
-    public static <K, V> Map<K, V> toMap(Dictionary<K, V> dict) {
-        Map<K, V> map = new HashMap<K, V>();
-        if (dict != null) {
-            Enumeration<K> keys = dict.keys();
-            while (keys.hasMoreElements()) {
-                K key = keys.nextElement();
-                map.put(key, dict.get(key));
-            }
-        }
-        return map;
     }
 
     public static String getObjectClass(String scope) {

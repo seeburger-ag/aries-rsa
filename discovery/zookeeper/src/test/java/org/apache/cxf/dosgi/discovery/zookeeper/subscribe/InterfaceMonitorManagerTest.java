@@ -18,7 +18,8 @@
  */
 package org.apache.cxf.dosgi.discovery.zookeeper.subscribe;
 
-import java.util.ArrayList;
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,24 +33,60 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 
-import static org.junit.Assert.assertEquals;
-
 public class InterfaceMonitorManagerTest {
 
     @Test
     public void testEndpointListenerTrackerCustomizer() {
         IMocksControl c = EasyMock.createNiceControl();
-
         BundleContext ctx = c.createMock(BundleContext.class);
+        ServiceReference<EndpointListener> sref = createService(c);
+        ServiceReference<EndpointListener> sref2 = createService(c);
         ZooKeeper zk = c.createMock(ZooKeeper.class);
+        InterfaceMonitorManager eltc = new InterfaceMonitorManager(ctx, zk);
 
-        @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sref = c.createMock(ServiceReference.class);
-        @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sref2 = c.createMock(ServiceReference.class);
+        c.replay();
 
+        // sref has no scope -> nothing should happen
+        assertEquals(0, eltc.getEndpointListenerScopes().size());
+        assertEquals(0, eltc.getInterests().size());
+
+        eltc.addInterest(sref, "(objectClass=mine)", "mine");
+        assertScopeIncludes(sref, eltc);
+        assertEquals(1, eltc.getEndpointListenerScopes().size());
+        assertEquals(1, eltc.getInterests().size());
+
+        eltc.addInterest(sref, "(objectClass=mine)", "mine");
+        assertScopeIncludes(sref, eltc);
+        assertEquals(1, eltc.getEndpointListenerScopes().size());
+        assertEquals(1, eltc.getInterests().size());
+
+        eltc.addInterest(sref2, "(objectClass=mine)", "mine");
+        assertScopeIncludes(sref, eltc);
+        assertScopeIncludes(sref2, eltc);
+        assertEquals(2, eltc.getEndpointListenerScopes().size());
+        assertEquals(1, eltc.getInterests().size());
+
+        eltc.removeInterest(sref);
+        assertScopeIncludes(sref2, eltc);
+        assertEquals(1, eltc.getEndpointListenerScopes().size());
+        assertEquals(1, eltc.getInterests().size());
+
+        eltc.removeInterest(sref);
+        assertScopeIncludes(sref2, eltc);
+        assertEquals(1, eltc.getEndpointListenerScopes().size());
+        assertEquals(1, eltc.getInterests().size());
+
+        eltc.removeInterest(sref2);
+        assertEquals(0, eltc.getEndpointListenerScopes().size());
+        assertEquals(0, eltc.getInterests().size());
+
+        c.verify();
+    }
+
+    @SuppressWarnings("unchecked")
+    private ServiceReference<EndpointListener> createService(IMocksControl c) {
         final Map<String, ?> p = new HashMap<String, Object>();
-
+        ServiceReference<EndpointListener> sref = c.createMock(ServiceReference.class);
         EasyMock.expect(sref.getPropertyKeys()).andAnswer(new IAnswer<String[]>() {
             public String[] answer() throws Throwable {
                 return p.keySet().toArray(new String[p.size()]);
@@ -62,78 +99,14 @@ public class InterfaceMonitorManagerTest {
                 return p.get(key);
             }
         }).anyTimes();
-
-        EasyMock.expect(sref2.getPropertyKeys()).andAnswer(new IAnswer<String[]>() {
-            public String[] answer() throws Throwable {
-                return p.keySet().toArray(new String[p.size()]);
-            }
-        }).anyTimes();
-
-        EasyMock.expect(sref2.getProperty((String)EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                String key = (String)(EasyMock.getCurrentArguments()[0]);
-                return p.get(key);
-            }
-        }).anyTimes();
-
-        final List<IMocksControl> controls = new ArrayList<IMocksControl>();
-
-        InterfaceMonitorManager eltc = new InterfaceMonitorManager(ctx, zk);
-
-        c.replay();
-
-        // sref has no scope -> nothing should happen
-
-        assertEquals(0, eltc.getEndpointListenerScopes().size());
-        assertEquals(0, eltc.getInterests().size());
-
-        //p.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, );
-
-        eltc.addInterest(sref, "(objectClass=mine)", "mine");
-
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref).size());
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref).get(0));
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.addInterest(sref, "(objectClass=mine)", "mine");
-
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref).size());
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref).get(0));
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.addInterest(sref2, "(objectClass=mine)", "mine");
-
-        assertEquals(2, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref).size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref2).size());
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref).get(0));
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref2).get(0));
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.removeInterest(sref);
-
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref2).size());
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref2).get(0));
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.removeInterest(sref);
-
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getEndpointListenerScopes().get(sref2).size());
-        assertEquals("(objectClass=mine)", eltc.getEndpointListenerScopes().get(sref2).get(0));
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.removeInterest(sref2);
-
-        assertEquals(0, eltc.getEndpointListenerScopes().size());
-        assertEquals(0, eltc.getInterests().size());
-
-        c.verify();
-        for (IMocksControl control : controls) {
-            control.verify();
-        }
+        return sref;
     }
+
+    private void assertScopeIncludes(ServiceReference<EndpointListener> sref, InterfaceMonitorManager eltc) {
+        List<String> srefScope = eltc.getEndpointListenerScopes().get(sref);
+        assertEquals(1, srefScope.size());
+        assertEquals("(objectClass=mine)", srefScope.get(0));
+        
+    }
+
 }
