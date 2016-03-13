@@ -45,7 +45,7 @@ public class LocalDiscovery implements BundleListener {
 
     // this is effectively a set which allows for multiple service descriptions with the
     // same interface name but different properties and takes care of itself with respect to concurrency
-    ConcurrentHashMap<EndpointDescription, Bundle> endpointDescriptions =
+    Map<EndpointDescription, Bundle> endpointDescriptions =
         new ConcurrentHashMap<EndpointDescription, Bundle>();
     Map<EndpointListener, Collection<String>> listenerToFilters =
         new HashMap<EndpointListener, Collection<String>>();

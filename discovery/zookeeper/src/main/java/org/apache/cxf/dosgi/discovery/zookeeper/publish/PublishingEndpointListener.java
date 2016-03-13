@@ -93,7 +93,7 @@ public class PublishingEndpointListener implements EndpointListener {
     private void addEndpoint(EndpointDescription endpoint) throws URISyntaxException, KeeperException,
                                                                   InterruptedException, IOException {
         Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint.getId());
+        String endpointKey = getKey(endpoint);
         Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
 
         // process plugins
@@ -109,8 +109,8 @@ public class PublishingEndpointListener implements EndpointListener {
         for (String name : interfaces) {
             String path = Utils.getZooKeeperPath(name);
             String fullPath = path + '/' + endpointKey;
-            LOG.debug("Creating ZooKeeper node: {}", fullPath);
-            ensurePath(path, zk);
+            LOG.info("Creating ZooKeeper node for service with path {}", fullPath);
+            createPath(path, zk);
             List<PropertyType> propsOut = new PropertiesMapper().fromProps(props);
             EndpointDescriptionType epd = new EndpointDescriptionType();
             epd.getProperty().addAll(propsOut);
@@ -159,8 +159,7 @@ public class PublishingEndpointListener implements EndpointListener {
 
     private void removeEndpoint(EndpointDescription endpoint) throws UnknownHostException, URISyntaxException {
         Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint.getId());
-
+        String endpointKey = getKey(endpoint);
         for (String name : interfaces) {
             String path = Utils.getZooKeeperPath(name);
             String fullPath = path + '/' + endpointKey;
@@ -173,7 +172,7 @@ public class PublishingEndpointListener implements EndpointListener {
         }
     }
 
-    private static void ensurePath(String path, ZooKeeper zk) throws KeeperException, InterruptedException {
+    private static void createPath(String path, ZooKeeper zk) throws KeeperException, InterruptedException {
         StringBuilder current = new StringBuilder();
         List<String> parts = Utils.removeEmpty(Arrays.asList(path.split("/")));
         for (String part : parts) {
@@ -187,16 +186,10 @@ public class PublishingEndpointListener implements EndpointListener {
         }
     }
 
-    static String getKey(String endpoint) throws URISyntaxException {
-        URI uri = new URI(endpoint);
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(uri.getHost());
-        sb.append("#");
-        sb.append(uri.getPort());
-        sb.append("#");
-        sb.append(uri.getPath().replace('/', '#'));
-        return sb.toString();
+    private static String getKey(EndpointDescription endpoint) throws URISyntaxException {
+        URI uri = new URI(endpoint.getId());
+        return new StringBuilder().append(uri.getHost()).append("#").append(uri.getPort())
+            .append("#").append(uri.getPath().replace('/', '#')).toString();
     }
 
     public void close() {

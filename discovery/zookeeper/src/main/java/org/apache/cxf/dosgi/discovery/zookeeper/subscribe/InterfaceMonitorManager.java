@@ -26,6 +26,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.aries.rsa.util.StringPlus;
 import org.apache.cxf.dosgi.discovery.zookeeper.ZooKeeperDiscovery;
@@ -47,8 +49,8 @@ import org.slf4j.LoggerFactory;
  * These events are then forwarded to all interested EndpointListeners.
  */
 public class InterfaceMonitorManager {
-
     private static final Logger LOG = LoggerFactory.getLogger(InterfaceMonitorManager.class);
+    private static final Pattern OBJECTCLASS_PATTERN = Pattern.compile(".*\\(objectClass=([^)]+)\\).*");
 
     private final BundleContext bctx;
     private final ZooKeeper zk;
@@ -77,10 +79,10 @@ public class InterfaceMonitorManager {
 
         LOG.info("updating EndpointListener interests: {}", endpointListener);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("updated EndpointListener properties: {}", Utils.getProperties(endpointListener));
+            LOG.debug("updated EndpointListener properties: {}", getProperties(endpointListener));
         }
         for (String scope : getScopes(endpointListener)) {
-            String objClass = Utils.getObjectClass(scope);
+            String objClass = getObjectClass(scope);
             LOG.debug("Adding interest in scope {}, objectClass {}", scope, objClass);
             addInterest(endpointListener, scope, objClass);
         }
@@ -234,5 +236,26 @@ public class InterfaceMonitorManager {
 
     protected List<String> getScopes(ServiceReference<?> sref) {
         return Utils.removeEmpty(StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE)));
+    }
+    
+    public static String getObjectClass(String scope) {
+        Matcher m = OBJECTCLASS_PATTERN.matcher(scope);
+        return m.matches() ? m.group(1) : null;
+    }
+
+    /**
+     * Returns a service's properties as a map.
+     *
+     * @param serviceReference a service reference
+     * @return the service's properties as a map
+     */
+    public static Map<String, Object> getProperties(ServiceReference<?> serviceReference) {
+        String[] keys = serviceReference.getPropertyKeys();
+        Map<String, Object> props = new HashMap<String, Object>(keys.length);
+        for (String key : keys) {
+            Object val = serviceReference.getProperty(key);
+            props.put(key, val);
+        }
+        return props;
     }
 }

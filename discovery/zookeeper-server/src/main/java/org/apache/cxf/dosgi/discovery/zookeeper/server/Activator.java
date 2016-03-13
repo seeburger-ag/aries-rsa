@@ -32,7 +32,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) throws Exception {
         zkStarter = new ZookeeperStarter(context);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
-        props.put(Constants.SERVICE_PID, "org.apache.cxf.dosgi.discovery.zookeeper.server");
+        props.put(Constants.SERVICE_PID, "org.apache.aries.rsa.discovery.zookeeper.server");
         context.registerService(org.osgi.service.cm.ManagedService.class.getName(), zkStarter, props);
     }
 

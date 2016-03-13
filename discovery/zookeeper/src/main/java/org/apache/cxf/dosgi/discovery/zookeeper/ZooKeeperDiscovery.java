@@ -49,7 +49,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     private PublishingEndpointListenerFactory endpointListenerFactory;
     private ServiceTracker<EndpointListener, EndpointListener> endpointListenerTracker;
     private InterfaceMonitorManager imManager;
-    private ZooKeeper zk;
+    private ZooKeeper zkClient;
     private boolean closed;
     private boolean started;
 
@@ -68,7 +68,11 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
             // config is null if it doesn't exist, is being deleted or has not yet been loaded
             // in which case we just stop running
             if (!closed && configuration != null) {
-                createZookeeper(configuration);
+                try {
+                    createZookeeper(configuration);
+                } catch (IOException e) {
+                    throw new ConfigurationException(null, "Error starting zookeeper client", e);
+                }
             }
         }
     }
@@ -83,9 +87,9 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
             return;
         }
         LOG.debug("starting ZookeeperDiscovery");
-        endpointListenerFactory = new PublishingEndpointListenerFactory(zk, bctx);
+        endpointListenerFactory = new PublishingEndpointListenerFactory(zkClient, bctx);
         endpointListenerFactory.start();
-        imManager = new InterfaceMonitorManager(bctx, zk);
+        imManager = new InterfaceMonitorManager(bctx, zkClient);
         endpointListenerTracker = new EndpointListenerTracker(bctx, imManager);
         endpointListenerTracker.open();
         started = true;
@@ -106,23 +110,19 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         if (imManager != null) {
             imManager.close();
         }
-        if (zk != null) {
+        if (zkClient != null) {
             try {
-                zk.close();
+                zkClient.close();
             } catch (InterruptedException e) {
                 LOG.error("Error closing ZooKeeper", e);
             }
         }
     }
 
-    protected void createZooKeeper(String host, String port, int timeout) {
-        LOG.debug("ZooKeeper configuration: connecting to {}:{} with timeout {}",
+    protected ZooKeeper createZooKeeper(String host, String port, int timeout) throws IOException {
+        LOG.info("ZooKeeper discovery connecting to {}:{} with timeout {}",
                 new Object[]{host, port, timeout});
-        try {
-            zk = new ZooKeeper(host + ":" + port, timeout, this);
-        } catch (IOException e) {
-            LOG.error("Failed to start the ZooKeeper Discovery component.", e);
-        }
+        return new ZooKeeper(host + ":" + port, timeout, this);
     }
 
     /* Callback for ZooKeeper */
@@ -139,7 +139,11 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         case Expired:
             LOG.info("Connection to ZooKeeper expired. Trying to create a new connection");
             stop(false);
-            createZookeeper(curConfiguration);
+            try {
+                createZookeeper(curConfiguration);
+            } catch (IOException e) {
+                LOG.error("Error starting zookeeper client", e);
+            }
             break;
 
         default:
@@ -148,11 +152,11 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         }
     }
 
-    private void createZookeeper(Dictionary<String, ?> config) {
+    private void createZookeeper(Dictionary<String, ?> config) throws IOException {
         String host = (String)getWithDefault(config, "zookeeper.host", "localhost");
         String port = (String)getWithDefault(config, "zookeeper.port", "2181");
         int timeout = Integer.parseInt((String)getWithDefault(config, "zookeeper.timeout", "3000"));
-        createZooKeeper(host, port, timeout);
+        zkClient = createZooKeeper(host, port, timeout);
     }
     
     public Object getWithDefault(Dictionary<String, ?> config, String key, Object defaultValue) {

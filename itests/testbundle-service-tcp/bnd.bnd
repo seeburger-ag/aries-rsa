@@ -1,0 +1,3 @@
+Bundle-Activator: org.apache.aries.rsa.itests.tcp.service.Activator
+Export-Package: org.apache.aries.rsa.itests.tcp.api
+Private-Package: org.apache.aries.rsa.itests.tcp.service

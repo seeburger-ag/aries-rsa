@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class Activator implements BundleActivator {
 
     private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
-    private static final String ZOOKEEPER_PORT = "org.apache.cxf.dosgi.discovery.zookeeper.port";
-    private static final String PID = "org.apache.cxf.dosgi.discovery.zookeeper.server";
+    private static final String ZOOKEEPER_PORT = "org.apache.aries.rsa.discovery.zookeeper.port";
+    private static final String PID = "org.apache.aries.rsa.discovery.zookeeper.server";
     private ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> st;
 
     public void start(BundleContext context) throws Exception {

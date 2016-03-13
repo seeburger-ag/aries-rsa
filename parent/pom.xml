@@ -30,7 +30,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <baseline>1.8.0</baseline>
         <baseline.skip>true</baseline.skip>
-        <zookeeper.version>3.4.8</zookeeper.version>
+        <zookeeper.version>3.4.7</zookeeper.version>
         <rsa.version>1.0.0</rsa.version>
         <slf4j.version>1.7.14</slf4j.version>
         <log4j.version>1.2.6</log4j.version>
@@ -58,7 +58,7 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jcl</artifactId>
+            <artifactId>slf4j-jdk14</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -97,7 +97,7 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-jcl</artifactId>
+                <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
             <dependency>
@@ -124,6 +124,41 @@
                 <version>3.2</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+            <exclusions>
+                <exclusion>
+                   <groupId>com.sun.jdmk</groupId>
+                   <artifactId>jmxtools</artifactId>
+                </exclusion>
+                <exclusion>
+                   <groupId>com.sun.jmx</groupId>
+                   <artifactId>jmxri</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jline</artifactId>
+                    <groupId>jline</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>netty</artifactId>
+                    <groupId>io.netty</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         </dependencies>
     </dependencyManagement>
 

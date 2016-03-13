@@ -73,9 +73,10 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
 
     public synchronized void start() {
         Dictionary<String, String> props = new Hashtable<String, String>();
+        String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
         props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, 
-                  String.format("(&(%s=*)(%s=))", Constants.OBJECTCLASS, 
-                                RemoteConstants.ENDPOINT_FRAMEWORK_UUID, getUUID(bctx)));
+                  String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
+                                RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
         props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
         serviceRegistration = bctx.registerService(EndpointListener.class.getName(), this, props);
     }
@@ -91,10 +92,6 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
             }
             listeners.clear();
         }
-    }
-    
-    private String getUUID(BundleContext bc) {
-        return bc.getProperty(Constants.FRAMEWORK_UUID);
     }
 
     /**

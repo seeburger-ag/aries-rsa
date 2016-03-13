@@ -3,6 +3,7 @@ package org.apache.cxf.dosgi.discovery.zookeeper;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.zookeeper.ZooKeeper;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.Assert;
@@ -19,10 +20,11 @@ public class ZookeeperDiscoveryTest {
         BundleContext bctx = c.createMock(BundleContext.class);
         ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bctx) {
             @Override
-            protected void createZooKeeper(String host, String port, int timeout) {
+            protected ZooKeeper createZooKeeper(String host, String port, int timeout) {
                 Assert.assertEquals("localhost", host);
                 Assert.assertEquals("2181", port);
                 Assert.assertEquals(3000, timeout);
+                return null;
             }  
         };
         
@@ -36,10 +38,11 @@ public class ZookeeperDiscoveryTest {
         BundleContext bctx = c.createMock(BundleContext.class);
         ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bctx) {
             @Override
-            protected void createZooKeeper(String host, String port, int timeout) {
+            protected ZooKeeper createZooKeeper(String host, String port, int timeout) {
                 Assert.assertEquals("myhost", host);
                 Assert.assertEquals("1", port);
                 Assert.assertEquals(1000, timeout);
+                return null;
             }  
         };
         

@@ -13,7 +13,7 @@
     </feature>
     
     <feature name="aries-rsa-discovery-local" version="${project.version}">
-        <feature>caries-rsa-core</feature>
+        <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.discovery/local/${project.version}</bundle>
     </feature>
 

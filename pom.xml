@@ -78,6 +78,7 @@
         <module>provider</module>
         <module>discovery</module>
         <module>features</module>
+        <module>itests</module>
     </modules>
 
     <profiles>

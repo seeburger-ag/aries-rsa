@@ -19,18 +19,11 @@
 package org.apache.cxf.dosgi.discovery.zookeeper.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.osgi.framework.ServiceReference;
 
 public final class Utils {
 
     static final String PATH_PREFIX = "/osgi/service_registry";
-    static final Pattern OBJECTCLASS_PATTERN = Pattern.compile(".*\\(objectClass=([^)]+)\\).*");
 
     private Utils() {
         // never constructed
@@ -57,24 +50,5 @@ public final class Utils {
         return result;
     }
 
-    public static String getObjectClass(String scope) {
-        Matcher m = OBJECTCLASS_PATTERN.matcher(scope);
-        return m.matches() ? m.group(1) : null;
-    }
 
-    /**
-     * Returns a service's properties as a map.
-     *
-     * @param serviceReference a service reference
-     * @return the service's properties as a map
-     */
-    public static Map<String, Object> getProperties(ServiceReference<?> serviceReference) {
-        String[] keys = serviceReference.getPropertyKeys();
-        Map<String, Object> props = new HashMap<String, Object>(keys.length);
-        for (String key : keys) {
-            Object val = serviceReference.getProperty(key);
-            props.put(key, val);
-        }
-        return props;
-    }
 }
