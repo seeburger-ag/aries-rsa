@@ -22,14 +22,22 @@ package org.apache.aries.rsa.itests.felix;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
+import org.apache.aries.rsa.itests.tcp.api.EchoService;
+import org.apache.aries.rsa.provider.tcp.TCPProvider;
+import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -44,6 +52,8 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 
 @RunWith(PaxExam.class)
 public class TestDiscoveryExport {
@@ -61,6 +71,9 @@ public class TestDiscoveryExport {
 
     @Inject
     ConfigurationAdmin configAdmin;
+    
+    @Inject
+    DistributionProvider tcpProvider;
 
     @Configuration
     public static Option[] configure() throws Exception {
@@ -98,6 +111,16 @@ public class TestDiscoveryExport {
         updateZkClientConfig(zkPort, configAdmin);
         ZooKeeper zk = new ZooKeeper("localhost:" + zkPort, 1000, new DummyWatcher());
         assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
+        List<String> children = zk.getChildren(GREETER_ZOOKEEPER_NODE, false);
+        EndpointDescriptionParser parser = new EndpointDescriptionParser();
+        String path = children.get(0);
+        byte[] data = zk.getData(GREETER_ZOOKEEPER_NODE + "/" + path, false, null);
+        List<EndpointDescriptionType> epdList = parser.getEndpointDescriptions(new ByteArrayInputStream(data));
+        Map<String, Object> props = new PropertiesMapper().toProps(epdList.get(0).getProperty());
+        EndpointDescription epd = new EndpointDescription(props);
+        EchoService service = (EchoService)tcpProvider.importEndpoint(EchoService.class.getClassLoader(), bundleContext, new Class[]{EchoService.class}, epd);
+        String answer = service.echo("test");
+        Assert.assertEquals("test", answer);
         zk.close();
     }
 
