@@ -21,6 +21,8 @@ package org.apache.aries.rsa.itests.felix;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
+import static org.ops4j.pax.exam.CoreOptions.vmOption;
+import static org.ops4j.pax.exam.CoreOptions.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,7 +38,6 @@ import javax.inject.Inject;
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.itests.tcp.api.EchoService;
-import org.apache.aries.rsa.provider.tcp.TCPProvider;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -77,6 +78,11 @@ public class TestDiscoveryExport {
 
     @Configuration
     public static Option[] configure() throws Exception {
+        String localRepo = System.getProperty("maven.repo.local");
+
+        if (localRepo == null) {
+            localRepo = System.getProperty("org.ops4j.pax.url.mvn.localRepository");
+        }
         return new Option[] {
                 CoreOptions.junitBundles(),
                 systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
@@ -90,7 +96,7 @@ public class TestDiscoveryExport {
                 mavenBundle().groupId("org.apache.aries.rsa.discovery").artifactId("zookeeper").versionAsInProject(),
                 mavenBundle().groupId("org.apache.aries.rsa.discovery").artifactId("zookeeper-server").versionAsInProject(),
                 mavenBundle().groupId("org.apache.aries.rsa.itests").artifactId("testbundle-tcp-service").versionAsInProject(),
-//              
+                when(localRepo != null).useOptions(vmOption("-Dorg.ops4j.pax.url.mvn.localRepository=" + localRepo))
                 //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
         };
     }
