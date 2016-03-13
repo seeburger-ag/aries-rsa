@@ -33,6 +33,7 @@
 
     <modules>
         <module>felix</module>
+        <module>testbundle-service-tcp</module>
     </modules>
 
     <dependencyManagement>
