@@ -23,12 +23,12 @@
 
     <parent>
       <groupId>org.apache.aries.rsa</groupId>
-      <artifactId>parent</artifactId>
+      <artifactId>org.apache.aries.rsa.parent</artifactId>
       <version>1.8-SNAPSHOT</version>
       <relativePath>../parent/pom.xml</relativePath>
     </parent>
     
-    <artifactId>provider</artifactId>
+    <artifactId>org.apache.aries.rsa.provider</artifactId>
     <packaging>pom</packaging>
     
     <name>Aries Remote Service Admin Provider</name>

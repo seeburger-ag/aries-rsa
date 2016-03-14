@@ -107,12 +107,13 @@ public class RsaTestBase {
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("zkPort").value("15201"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
-                         mvn("org.apache.aries.rsa", "core"), mvn("org.apache.aries.rsa", "spi"),
-                         mvn("org.apache.aries.rsa", "topology-manager"),
-                         mvn("org.apache.aries.rsa.provider", "tcp"),
-                         mvn("org.apache.aries.rsa.discovery", "local"),
+                         mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"), 
+                         mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
+                         mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
+                         mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp"),
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local"),
                          mvn("org.apache.zookeeper", "zookeeper"),
-                         mvn("org.apache.aries.rsa.discovery", "zookeeper")
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper")
                          //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
             );
     }

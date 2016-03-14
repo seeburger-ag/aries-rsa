@@ -23,50 +23,16 @@
 
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>org.apache.aries.rsa.parent</artifactId>
         <version>1.8-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
-    <artifactId>spi</artifactId>
+    <artifactId>org.apache.aries.rsa.spi</artifactId>
     <packaging>bundle</packaging>
     <name>Aries Remote Service Admin Service Provider Interface</name>
 
     <properties>
         <topDirectoryLocation>../..</topDirectoryLocation>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymockclassextension</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>1.7.14</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
 </project>

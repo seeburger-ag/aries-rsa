@@ -16,13 +16,13 @@
 
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>itests</artifactId>
+        <artifactId>org.apache.aries.rsa.itests</artifactId>
         <version>1.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>org.apache.aries.rsa.itests</groupId>
-    <artifactId>felix</artifactId>
+    <artifactId>org.apache.aries.rsa.itests.felix</artifactId>
     <packaging>jar</packaging>
 
     <name>Aries Remote Service Admin itests felix</name>
@@ -41,31 +41,31 @@
         
         <dependency>
             <groupId>org.apache.aries.rsa</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>org.apache.aries.rsa.core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa</groupId>
-            <artifactId>spi</artifactId>
+            <artifactId>org.apache.aries.rsa.spi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa</groupId>
-            <artifactId>topology-manager</artifactId>
+            <artifactId>org.apache.aries.rsa.topology-manager</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
-            <artifactId>local</artifactId>
+            <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
-            <artifactId>zookeeper</artifactId>
+            <artifactId>org.apache.aries.rsa.discovery.zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.provider</groupId>
-            <artifactId>tcp</artifactId>
+            <artifactId>org.apache.aries.rsa.provider.tcp</artifactId>
             <version>${project.version}</version>
         </dependency>
 

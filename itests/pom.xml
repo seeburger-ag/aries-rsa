@@ -16,12 +16,12 @@
 
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>org.apache.aries.rsa.parent</artifactId>
         <version>1.8-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>itests</artifactId>
+    <artifactId>org.apache.aries.rsa.itests</artifactId>
     <packaging>pom</packaging>
 
     <name>Aries Remote Service Admin itests</name>

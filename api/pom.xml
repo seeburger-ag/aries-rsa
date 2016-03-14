@@ -22,12 +22,12 @@
 
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>org.apache.aries.rsa.parent</artifactId>
         <version>1.8-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     
-    <artifactId>rsa-api</artifactId>
+    <artifactId>org.apache.aries.rsa.api</artifactId>
     <packaging>bundle</packaging>
     <name>Aries Remote Service Admin Compendium APIs</name>
     

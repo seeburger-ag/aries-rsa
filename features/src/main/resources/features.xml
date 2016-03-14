@@ -2,26 +2,26 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="aries-rsa-${project.version}">
 
     <feature name="aries-rsa-core" version="${project.version}">
-        <bundle>mvn:org.apache.aries.rsa/spi/${project.version}</bundle>
-        <bundle>mvn:org.apache.aries.rsa/core/${project.version}</bundle>
-        <bundle>mvn:org.apache.aries.rsa/topology-manager/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.spi/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.core/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.topology-manager/${project.version}</bundle>
     </feature>
     
     <feature name="aries-rsa-provider-tcp" version="${project.version}">
         <feature>aries-rsa-core</feature>
-        <bundle>mvn:org.apache.aries.rsa.provider/tcp/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.tcp/${project.version}</bundle>
     </feature>
     
     <feature name="aries-rsa-discovery-local" version="${project.version}">
         <feature>aries-rsa-core</feature>
-        <bundle>mvn:org.apache.aries.rsa.discovery/local/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
     </feature>
 
     <feature name="aries-rsa-discovery-zookeeper" version="${project.version}">
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.zookeeper/zookeeper/${zookeeper.version}</bundle>
-        <bundle>mvn:org.apache.aries.rsa.discovery/local/${project.version}</bundle>
-        <bundle>mvn:org.apache.aries.rsa.discovery/zookeeper/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.zookeeper/${project.version}</bundle>
     </feature>
 
 </features>
