@@ -19,17 +19,10 @@ package org.apache.aries.rsa.itests.felix;
  */
 
 
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.CoreOptions.streamBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
-import static org.ops4j.pax.exam.CoreOptions.vmOption;
-import static org.ops4j.pax.exam.CoreOptions.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +30,7 @@ import javax.inject.Inject;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
-import org.apache.aries.rsa.itests.tcp.api.EchoService;
+import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -50,71 +43,35 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 
 @RunWith(PaxExam.class)
-public class TestDiscoveryExport {
+public class TestDiscoveryExport extends RsaTestBase {
+    private static final String GREETER_ZOOKEEPER_NODE = "/osgi/service_registry/org/apache/aries/rsa/examples/echotcp/api/EchoService";
 
-    private final class DummyWatcher implements Watcher {
-        @Override
-        public void process(WatchedEvent event) {
-        }
-    }
-
-    private static final String GREETER_ZOOKEEPER_NODE = "/osgi/service_registry/org/apache/aries/rsa/itests/tcp/api/EchoService";
-
-    @Inject
-    BundleContext bundleContext;
-
-    @Inject
-    ConfigurationAdmin configAdmin;
-    
     @Inject
     DistributionProvider tcpProvider;
 
     @Configuration
     public static Option[] configure() throws Exception {
-        String localRepo = System.getProperty("maven.repo.local");
 
-        if (localRepo == null) {
-            localRepo = System.getProperty("org.ops4j.pax.url.mvn.localRepository");
-        }
         return new Option[] {
                 CoreOptions.junitBundles(),
                 systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
-                mavenBundle().groupId("org.apache.felix").artifactId("org.apache.felix.configadmin").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa").artifactId("core").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa").artifactId("spi").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa").artifactId("topology-manager").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa.provider").artifactId("tcp").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa.discovery").artifactId("local").versionAsInProject(),
-                mavenBundle().groupId("org.apache.zookeeper").artifactId("zookeeper").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa.discovery").artifactId("zookeeper").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa.discovery").artifactId("zookeeper-server").versionAsInProject(),
-                mavenBundle().groupId("org.apache.aries.rsa.itests").artifactId("testbundle-tcp-service").versionAsInProject(),
-                when(localRepo != null).useOptions(vmOption("-Dorg.ops4j.pax.url.mvn.localRepository=" + localRepo))
+                RsaTestBase.rsaTcpZookeeper(),
+                mvn("org.apache.felix", "org.apache.felix.scr"),
+                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
+                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service"),
+                localRepo(),
+                streamBundle(configBundleServer())
                 //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
         };
-    }
-    
-    public void testInstalled() throws Exception {
-        for (Bundle bundle : bundleContext.getBundles()) {
-            System.out.println(bundle.getBundleId() + " " + bundle.getSymbolicName() + " " + bundle.getState() + " " + bundle.getVersion());
-        }
     }
 
     @Test
     public void testDiscoveryExport() throws Exception {
-        final int zkPort = 12051;
-        //getFreePort(); does not seem to work 
-        System.out.println("*** Port for ZooKeeper Server: " + zkPort);
-        updateZkServerConfig(zkPort, configAdmin);
-        Thread.sleep(1000); // To avoid exceptions in clients
-        updateZkClientConfig(zkPort, configAdmin);
+        String zkPort = bundleContext.getProperty("zkPort");
         ZooKeeper zk = new ZooKeeper("localhost:" + zkPort, 1000, new DummyWatcher());
         assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
         List<String> children = zk.getChildren(GREETER_ZOOKEEPER_NODE, false);
@@ -143,28 +100,11 @@ public class TestDiscoveryExport {
         }
         Assert.assertNotNull("ZooKeeper node " + zNode + " was not found", stat);
     }
-
-    protected void updateZkClientConfig(final int zkPort, ConfigurationAdmin cadmin) throws IOException {
-        Dictionary<String, Object> cliProps = new Hashtable<String, Object>();
-        cliProps.put("zookeeper.host", "127.0.0.1");
-        cliProps.put("zookeeper.port", "" + zkPort);
-        cadmin.getConfiguration("org.apache.aries.rsa.discovery.zookeeper", null).update(cliProps);
-    }
-
-    protected void updateZkServerConfig(final int zkPort, ConfigurationAdmin cadmin) throws IOException {
-        Dictionary<String, Object> svrProps = new Hashtable<String, Object>();
-        svrProps.put("clientPort", zkPort);
-        cadmin.getConfiguration("org.apache.aries.rsa.discovery.zookeeper.server", null).update(svrProps);
-    }
     
-    protected int getFreePort() throws IOException {
-        ServerSocket socket = new ServerSocket();
-        try {
-            socket.setReuseAddress(true); // enables quickly reopening socket on same port
-            socket.bind(new InetSocketAddress(0)); // zero finds a free port
-            return socket.getLocalPort();
-        } finally {
-            socket.close();
+    private final class DummyWatcher implements Watcher {
+        @Override
+        public void process(WatchedEvent event) {
         }
     }
+
 }

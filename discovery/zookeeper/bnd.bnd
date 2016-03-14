@@ -1,1 +1,2 @@
-Bundle-Activator:  org.apache.cxf.dosgi.discovery.zookeeper.Activator
+Bundle-Activator: org.apache.aries.rsa.discovery.zookeeper.Activator
+

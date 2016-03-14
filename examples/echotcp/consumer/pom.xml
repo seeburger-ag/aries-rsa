@@ -17,22 +17,23 @@
   specific language governing permissions and limitations
   under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
-      <groupId>org.apache.aries.rsa</groupId>
-      <artifactId>parent</artifactId>
-      <version>1.8-SNAPSHOT</version>
-      <relativePath>../parent/pom.xml</relativePath>
+        <groupId>org.apache.aries.rsa.examples</groupId>
+        <artifactId>org.apache.aries.rsa.examples.echotcp</artifactId>
+        <version>1.8-SNAPSHOT</version>
     </parent>
-    
-    <artifactId>discovery</artifactId>
-    <packaging>pom</packaging>
-    <name>Aries Remote Service Admin Discovery</name>
+    <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+    <artifactId>org.apache.aries.rsa.examples.echotcp.consumer</artifactId>
+    <packaging>bundle</packaging>
 
-    <modules>
-      <module>local</module>
-      <module>zookeeper</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

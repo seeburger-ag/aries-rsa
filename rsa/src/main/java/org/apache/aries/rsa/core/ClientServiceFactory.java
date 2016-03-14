@@ -21,7 +21,6 @@ package org.apache.aries.rsa.core;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -85,9 +84,6 @@ public class ClientServiceFactory implements ServiceFactory {
     }
 
     public void ungetService(Bundle requestingBundle, ServiceRegistration sreg, Object serviceObject) {
-        String[] interfaces = (String[])sreg.getReference().getProperty(org.osgi.framework.Constants.OBJECTCLASS);
-        LOG.info("Releasing a client object, interfaces: {}", Arrays.toString(interfaces));
-
         synchronized (this) {
             serviceCounter--;
             LOG.debug("Services still provided by this ServiceFactory: {}", serviceCounter);

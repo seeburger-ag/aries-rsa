@@ -34,6 +34,12 @@
             <version>1.8.8</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        
+        <dependency>
             <groupId>org.apache.aries.rsa</groupId>
             <artifactId>core</artifactId>
             <version>${project.version}</version>
@@ -58,21 +64,33 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.aries.rsa.discovery</groupId>
-            <artifactId>zookeeper-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.aries.rsa.provider</groupId>
             <artifactId>tcp</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.aries.rsa.itests</groupId>
-            <artifactId>testbundle-tcp-service</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.consumer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        
 
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
@@ -99,19 +117,18 @@
             <artifactId>pax-exam-link-mvn</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.ops4j.pax.url</groupId>
             <artifactId>pax-url-aether</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
             <version>5.0.1</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
