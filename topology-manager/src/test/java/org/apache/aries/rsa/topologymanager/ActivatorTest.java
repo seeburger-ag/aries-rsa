@@ -18,6 +18,12 @@
  */
 package org.apache.aries.rsa.topologymanager;
 
+import static org.easymock.EasyMock.createNiceControl;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.newCapture;
+
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
 import org.easymock.Capture;
@@ -35,14 +41,14 @@ import org.osgi.framework.ServiceReference;
 public class ActivatorTest {
 
     @Test
-    public void testStart() throws Exception {
-        IMocksControl c = EasyMock.createNiceControl();
+    public void testDoStart() throws Exception {
+        IMocksControl c = createNiceControl();
         BundleContext context = c.createMock(BundleContext.class);
-        EasyMock.expect(context.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid");
-        context.addServiceListener(EasyMock.isA(TopologyManagerExport.class));
-        EasyMock.expectLastCall();
-        final Capture<String> filter = EasyMock.newCapture();
-        EasyMock.expect(context.createFilter(EasyMock.capture(filter)))
+        expect(context.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid");
+        context.addServiceListener(isA(TopologyManagerExport.class));
+        expectLastCall();
+        final Capture<String> filter = newCapture();
+        expect(context.createFilter(EasyMock.capture(filter)))
             .andAnswer(new IAnswer<Filter>() {
                 public Filter answer() throws Throwable {
                     return FrameworkUtil.createFilter(filter.getValue());
@@ -50,8 +56,8 @@ public class ActivatorTest {
             }).times(2);
         ServiceReference<?> sref = c.createMock(ServiceReference.class);
         Bundle bundle = c.createMock(Bundle.class);
-        EasyMock.expect(sref.getBundle()).andReturn(bundle).anyTimes();
-        EasyMock.expect(context.getServiceReferences((String)null, Activator.DOSGI_SERVICES))
+        expect(sref.getBundle()).andReturn(bundle).anyTimes();
+        expect(context.getServiceReferences((String)null, Activator.DOSGI_SERVICES))
             .andReturn(new ServiceReference[]{sref});
 
         c.replay();
