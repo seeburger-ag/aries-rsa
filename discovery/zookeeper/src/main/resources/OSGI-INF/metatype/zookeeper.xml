@@ -31,4 +31,13 @@
 	 <Designate pid="org.apache.aries.rsa.discovery.zookeeper.server">
 	 	<Object ocdref="zookeeper.server"/>
 	 </Designate>
+     
+     <OCD description="" name="Zookeeper dicovery config" id="zookeeper.discovery">
+        <AD id="zookeeper.host" required="false" type="String" default="localhost" description=""/>
+        <AD id="zookeeper.port" required="false" type="String" default="2181" description=""/>
+        <AD id="zookeeper.timeout" required="false" type="String" default="3000" description=""/>
+     </OCD>
+     <Designate pid="org.apache.aries.rsa.discovery.zookeeper">
+        <Object ocdref="zookeeper.discovery"/>
+     </Designate>
 </MetaData>

@@ -22,6 +22,20 @@
         <bundle>mvn:org.apache.zookeeper/zookeeper/${zookeeper.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.zookeeper/${project.version}</bundle>
+        
+        <!-- Create config with defaults from metatype -->
+        <config name="org.apache.aries.rsa.discovery.zookeeper">
+        </config>
     </feature>
+    
+    <feature name="aries-rsa-discovery-zookeeper-server" version="${project.version}">
+        <feature>aries-rsa-discovery-zookeeper</feature>
+
+        <!-- Create config with defaults from metatype -->
+        <config name="org.apache.aries.rsa.discovery.zookeeper.server">
+        </config>
+        
+    </feature>
+    
 
 </features>

@@ -20,7 +20,6 @@ package org.apache.aries.rsa.itests.felix;
 
 
 import static org.ops4j.pax.exam.CoreOptions.streamBundle;
-import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -32,6 +31,7 @@ import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.spi.DistributionProvider;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -40,7 +40,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
-import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -55,17 +54,11 @@ public class TestDiscoveryExport extends RsaTestBase {
 
     @Configuration
     public static Option[] configure() throws Exception {
-
         return new Option[] {
-                CoreOptions.junitBundles(),
-                systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                 RsaTestBase.rsaTcpZookeeper(),
-                mvn("org.apache.felix", "org.apache.felix.scr"),
-                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
-                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service"),
+                RsaTestBase.echoTcpService(),
                 localRepo(),
                 streamBundle(configBundleServer())
-                //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
         };
     }
 
@@ -74,17 +67,29 @@ public class TestDiscoveryExport extends RsaTestBase {
         String zkPort = bundleContext.getProperty("zkPort");
         ZooKeeper zk = new ZooKeeper("localhost:" + zkPort, 1000, new DummyWatcher());
         assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
-        List<String> children = zk.getChildren(GREETER_ZOOKEEPER_NODE, false);
-        EndpointDescriptionParser parser = new EndpointDescriptionParser();
-        String path = children.get(0);
-        byte[] data = zk.getData(GREETER_ZOOKEEPER_NODE + "/" + path, false, null);
-        List<EndpointDescriptionType> epdList = parser.getEndpointDescriptions(new ByteArrayInputStream(data));
+        String endpointPath = getEndpointPath(zk, GREETER_ZOOKEEPER_NODE);
+        EndpointDescription epd = getEndpointDescription(zk, endpointPath);
+        zk.close();
+
+        EchoService service = (EchoService)tcpProvider
+            .importEndpoint(EchoService.class.getClassLoader(), 
+                            bundleContext, new Class[]{EchoService.class}, epd);
+        Assert.assertEquals("test", service.echo("test"));
+    }
+
+    private EndpointDescription getEndpointDescription(ZooKeeper zk, String endpointPath)
+        throws KeeperException, InterruptedException {
+        byte[] data = zk.getData(endpointPath, false, null);
+        ByteArrayInputStream is = new ByteArrayInputStream(data);
+        List<EndpointDescriptionType> epdList = new EndpointDescriptionParser().getEndpointDescriptions(is);
         Map<String, Object> props = new PropertiesMapper().toProps(epdList.get(0).getProperty());
         EndpointDescription epd = new EndpointDescription(props);
-        EchoService service = (EchoService)tcpProvider.importEndpoint(EchoService.class.getClassLoader(), bundleContext, new Class[]{EchoService.class}, epd);
-        String answer = service.echo("test");
-        Assert.assertEquals("test", answer);
-        zk.close();
+        return epd;
+    }
+
+    private String getEndpointPath(ZooKeeper zk, String servicePath) throws KeeperException, InterruptedException {
+        List<String> children = zk.getChildren(servicePath, false);
+        return servicePath + "/" + children.iterator().next();
     }
 
     private void assertNodeExists(ZooKeeper zk, String zNode, int timeout) {

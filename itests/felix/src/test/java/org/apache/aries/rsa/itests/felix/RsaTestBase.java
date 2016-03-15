@@ -11,11 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 import javax.inject.Inject;
 
+import org.apache.aries.rsa.itests.felix.helpers.ZookeeperDiscoveryConfigurer;
+import org.apache.aries.rsa.itests.felix.helpers.ZookeeperServerConfigurer;
+import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.OptionalCompositeOption;
@@ -53,29 +54,6 @@ public class RsaTestBase {
         }
     }
 
-    protected int configureZookeeper() throws IOException, InterruptedException {
-        final int zkPort = 12051;
-        // getFreePort(); does not seem to work
-        System.out.println("*** Port for ZooKeeper Server: " + zkPort);
-        updateZkServerConfig(zkPort, configAdmin);
-        Thread.sleep(1000); // To avoid exceptions in zookeeper client
-        updateZkClientConfig(zkPort, configAdmin);
-        return zkPort;
-    }
-
-    protected void updateZkClientConfig(final int zkPort, ConfigurationAdmin cadmin) throws IOException {
-        Dictionary<String, Object> cliProps = new Hashtable<String, Object>();
-        cliProps.put("zookeeper.host", "127.0.0.1");
-        cliProps.put("zookeeper.port", "" + zkPort);
-        cadmin.getConfiguration("org.apache.aries.rsa.discovery.zookeeper", null).update(cliProps);
-    }
-
-    protected void updateZkServerConfig(final int zkPort, ConfigurationAdmin cadmin) throws IOException {
-        Dictionary<String, Object> svrProps = new Hashtable<String, Object>();
-        svrProps.put("clientPort", zkPort);
-        cadmin.getConfiguration("org.apache.aries.rsa.discovery.zookeeper.server", null).update(svrProps);
-    }
-
     protected int getFreePort() throws IOException {
         ServerSocket socket = new ServerSocket();
         try {
@@ -85,6 +63,23 @@ public class RsaTestBase {
         } finally {
             socket.close();
         }
+    }
+
+    static Option echoTcpConsumer() {
+        return CoreOptions.composite(
+        mvn("org.apache.felix", "org.apache.felix.scr"),
+        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
+        // Consumer is needed to trigger service import. Pax exam inject does not work for it
+        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.consumer")
+        );
+    }
+
+    static Option echoTcpService() {
+        return CoreOptions.composite(
+        mvn("org.apache.felix", "org.apache.felix.scr"),
+        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
+        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
+        );
     }
 
     static InputStream configBundleConsumer() {

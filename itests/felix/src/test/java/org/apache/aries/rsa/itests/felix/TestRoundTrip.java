@@ -19,6 +19,7 @@ package org.apache.aries.rsa.itests.felix;
  */
 
 
+import static org.junit.Assert.assertEquals;
 import static org.ops4j.pax.exam.CoreOptions.streamBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 
@@ -27,7 +28,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -53,9 +53,7 @@ public class TestRoundTrip extends RsaTestBase {
     private static Option[] remoteConfig() throws IOException {
         return new Option[] {
             rsaTcpZookeeper(),
-            mvn("org.apache.felix", "org.apache.felix.scr"),
-            mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
-            mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service"),
+            echoTcpService(),
             streamBundle(RsaTestBase.configBundleServer()),
             systemProperty("zkPort").value("15201")
         };
@@ -66,11 +64,7 @@ public class TestRoundTrip extends RsaTestBase {
         startRemote();
         return new Option[] {
                 rsaTcpZookeeper(),
-                mvn("org.apache.felix", "org.apache.felix.scr"),
-                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
-                
-                // Consumer is needed to trigger service import. Pax exam inject does not work for it
-                mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.consumer"),
+                RsaTestBase.echoTcpConsumer(),
                 streamBundle(RsaTestBase.configBundleConsumer()),
                 
         };
@@ -78,8 +72,7 @@ public class TestRoundTrip extends RsaTestBase {
 
     @Test
     public void testCall() throws Exception {
-        String answer = echoService.echo("test");
-        Assert.assertEquals("test", answer);
+        assertEquals("test", echoService.echo("test"));
     }
 
     public static void shutdownRemote() {

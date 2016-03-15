@@ -27,8 +27,8 @@ import junit.framework.TestCase;
 import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter;
 import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter.MyZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
-import org.easymock.classextension.EasyMock;
-import org.easymock.classextension.IMocksControl;
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
 import org.osgi.framework.BundleContext;
 
 import static org.easymock.EasyMock.expect;

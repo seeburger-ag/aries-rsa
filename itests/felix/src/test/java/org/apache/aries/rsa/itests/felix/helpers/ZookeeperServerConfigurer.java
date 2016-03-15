@@ -1,4 +1,4 @@
-package org.apache.aries.rsa.itests.felix;
+package org.apache.aries.rsa.itests.felix.helpers;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
