@@ -76,14 +76,11 @@ public class InterfaceMonitorManager {
             LOG.debug("Skipping our own EndpointListener");
             return;
         }
-
-        LOG.info("updating EndpointListener interests: {}", endpointListener);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("updated EndpointListener properties: {}", getProperties(endpointListener));
-        }
-        for (String scope : getScopes(endpointListener)) {
+        List<String> scopes = getScopes(endpointListener);
+        LOG.debug("adding Interests: {}", scopes);
+        
+        for (String scope : scopes) {
             String objClass = getObjectClass(scope);
-            LOG.debug("Adding interest in scope {}, objectClass {}", scope, objClass);
             addInterest(endpointListener, scope, objClass);
         }
     }

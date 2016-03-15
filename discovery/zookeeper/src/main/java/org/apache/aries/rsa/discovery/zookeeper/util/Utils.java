@@ -42,6 +42,9 @@ public final class Utils {
      */
     public static List<String> removeEmpty(List<String> strings) {
         List<String> result = new ArrayList<String>();
+        if (strings == null) {
+            return result;
+        }
         for (String s : strings) {
             if (s != null && !s.isEmpty()) {
                 result.add(s);
