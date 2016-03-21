@@ -42,8 +42,8 @@
                     <localURLs>${local.index.policy}</localURLs>
                     <includeTransitive>true</includeTransitive>
                     <scopes>
-				        <scope>runtime</scope>
-    				</scopes>
+                        <scope>runtime</scope>
+                    </scopes>
                 </configuration>
                 <executions>
                     <execution>
