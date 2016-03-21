@@ -10,7 +10,7 @@
     <artifactId>repository</artifactId>
     <packaging>pom</packaging>
     <properties>
-        <local.index.policy>ALLOWED</local.index.policy>
+        <local.url.policy>REQUIRED</local.url.policy>
     </properties>
     <profiles>
         <profile>
@@ -39,7 +39,7 @@
                 <artifactId>bnd-indexer-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <localURLs>${local.index.policy}</localURLs>
+                    <localURLs>${local.url.policy}</localURLs>
                     <includeTransitive>true</includeTransitive>
                     <scopes>
                         <scope>runtime</scope>
