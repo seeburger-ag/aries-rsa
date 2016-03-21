@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>org.apache.aries.rsa.parent</artifactId>
         <version>1.8-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
@@ -37,10 +37,13 @@
             <plugin>
                 <groupId>biz.aQute.bnd</groupId>
                 <artifactId>bnd-indexer-maven-plugin</artifactId>
-                <version>${bnd.version}</version>
+                <version>3.1.0</version>
                 <configuration>
                     <localURLs>${local.index.policy}</localURLs>
                     <includeTransitive>true</includeTransitive>
+                    <scopes>
+				        <scope>runtime</scope>
+    				</scopes>
                 </configuration>
                 <executions>
                     <execution>
@@ -56,27 +59,40 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.aries.rsa</groupId>
-            <artifactId>rsa</artifactId>
+            <artifactId>org.apache.aries.rsa.core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.topology-manager</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.provider</groupId>
-            <artifactId>tcp</artifactId>
+            <artifactId>org.apache.aries.rsa.provider.tcp</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.service</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.aries.rsa.discovery</groupId>
-            <artifactId>zookeeper-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.rsa.discovery</groupId>
-            <artifactId>zookeeper-server-config</artifactId>
+            <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
+            <artifactId>org.apache.aries.rsa.examples.echotcp.consumer</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
