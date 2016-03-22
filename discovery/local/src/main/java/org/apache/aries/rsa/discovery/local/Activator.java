@@ -20,22 +20,59 @@ package org.apache.aries.rsa.discovery.local;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
+    private ServiceTracker<EndpointListener, EndpointListener> listenerTracker;
+    private LocalDiscovery localDiscovery;
 
-    private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
-
-    LocalDiscovery localDiscovery;
-
-    public synchronized void start(BundleContext context) {
-        localDiscovery = new LocalDiscovery(context);
-        LOG.info("Local D-OSGi service discovery started");
+    public void start(BundleContext context) {
+        localDiscovery = new LocalDiscovery();
+        listenerTracker = new EPListenerTracker(context, localDiscovery);
+        listenerTracker.open();
+        localDiscovery.processExistingBundles(context.getBundles());
+        context.addBundleListener(localDiscovery);
     }
 
-    public synchronized void stop(BundleContext context) {
-        localDiscovery.shutDown();
-        LOG.info("Local D-OSGi service discovery stopped");
+    public void stop(BundleContext context) {
+        listenerTracker.close();
+        context.removeBundleListener(localDiscovery);
     }
+
+    private final class EPListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+        private final LocalDiscovery localDiscovery;
+    
+        private EPListenerTracker(BundleContext context, LocalDiscovery localDiscovery) {
+            super(context, EndpointListener.class, null);
+            this.localDiscovery = localDiscovery;
+        }
+    
+        @Override
+        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
+            EndpointListener service = super.addingService(reference);
+            localDiscovery.addListener(reference, service);
+            return service;
+        }
+    
+        @Override
+        public void modifiedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+            super.modifiedService(reference, service);
+            localDiscovery.removeListener(service);
+    
+            // This may cause duplicate registrations of remote services,
+            // but that's fine and should be filtered out on another level.
+            // See Remote Service Admin spec section 122.6.3
+            localDiscovery.addListener(reference, service);
+        }
+    
+        @Override
+        public void removedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+            super.removedService(reference, service);
+            localDiscovery.removeListener(service);
+        }
+    }
+
+    
 }

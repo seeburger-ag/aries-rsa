@@ -32,14 +32,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionBundleParser;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.osgi.util.tracker.ServiceTracker;
 
 public class LocalDiscovery implements BundleListener {
 
@@ -51,50 +50,14 @@ public class LocalDiscovery implements BundleListener {
         new HashMap<EndpointListener, Collection<String>>();
     Map<String, Collection<EndpointListener>> filterToListeners =
         new HashMap<String, Collection<EndpointListener>>();
-    final BundleContext bundleContext;
 
     EndpointDescriptionBundleParser bundleParser;
-    ServiceTracker<EndpointListener, EndpointListener> listenerTracker;
 
-    public LocalDiscovery(BundleContext bc) {
+    public LocalDiscovery() {
         this.bundleParser = new EndpointDescriptionBundleParser();
-        bundleContext = bc;
-
-        listenerTracker = new ServiceTracker<EndpointListener, EndpointListener>(bundleContext, 
-            EndpointListener.class, null) {
-
-            @Override
-            public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-                EndpointListener service = super.addingService(reference);
-                addListener(reference, service);
-                return service;
-            }
-
-            @Override
-            public void modifiedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
-                super.modifiedService(reference, service);
-                removeListener(service);
-
-                // This may cause duplicate registrations of remote services,
-                // but that's fine and should be filtered out on another level.
-                // See Remote Service Admin spec section 122.6.3
-                addListener(reference, service);
-            }
-
-            @Override
-            public void removedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
-                super.removedService(reference, service);
-                removeListener(service);
-            }
-        };
-        listenerTracker.open();
-
-        bundleContext.addBundleListener(this);
-        processExistingBundles();
     }
 
-    private void processExistingBundles() {
-        Bundle[] bundles = bundleContext.getBundles();
+    public void processExistingBundles(Bundle[] bundles) {
         if (bundles == null) {
             return;
         }
@@ -158,17 +121,12 @@ public class LocalDiscovery implements BundleListener {
         synchronized (listenerToFilters) {
             for (Entry<String, Collection<EndpointListener>> entry : filterToListeners.entrySet()) {
                 String filter = entry.getKey();
-                if (LocalDiscovery.matchFilter(bundleContext, filter, endpoint)) {
+                if (LocalDiscovery.matchFilter(filter, endpoint)) {
                     matched.put(filter, new ArrayList<EndpointListener>(entry.getValue()));
                 }
             }
         }
         return matched;
-    }
-
-    public void shutDown() {
-        bundleContext.removeBundleListener(this);
-        listenerTracker.close();
     }
 
     // BundleListener method
@@ -222,7 +180,7 @@ public class LocalDiscovery implements BundleListener {
 
     private void triggerCallbacks(EndpointListener endpointListener, String filter,
             EndpointDescription endpoint, boolean added) {
-        if (!LocalDiscovery.matchFilter(bundleContext, filter, endpoint)) {
+        if (!LocalDiscovery.matchFilter(filter, endpoint)) {
             return;
         }
 
@@ -241,13 +199,13 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    private static boolean matchFilter(BundleContext bctx, String filter, EndpointDescription endpoint) {
+    private static boolean matchFilter(String filter, EndpointDescription endpoint) {
         if (filter == null) {
             return false;
         }
     
         try {
-            Filter f = bctx.createFilter(filter);
+            Filter f = FrameworkUtil.createFilter(filter);
             Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
             return f.match(dict);
         } catch (Exception e) {

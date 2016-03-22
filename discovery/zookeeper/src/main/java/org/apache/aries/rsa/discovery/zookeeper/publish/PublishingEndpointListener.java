@@ -70,8 +70,6 @@ public class PublishingEndpointListener implements EndpointListener {
     }
 
     public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        LOG.info("Local EndpointDescription added: {}", endpoint);
-
         synchronized (endpoints) {
             if (closed) {
                 return;
@@ -105,7 +103,7 @@ public class PublishingEndpointListener implements EndpointListener {
                 }
             }
         }
-
+        LOG.info("Exporting endpoint to zookeeper: {}", endpoint);
         for (String name : interfaces) {
             String path = Utils.getZooKeeperPath(name);
             String fullPath = path + '/' + endpointKey;
