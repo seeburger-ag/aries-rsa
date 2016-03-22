@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -58,6 +59,11 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
 
     protected BundleContext getAPIContext() {
         Bundle apiBundle = FrameworkUtil.getBundle(DistributionProvider.class);
+        try {
+            apiBundle.start();
+        } catch (BundleException e) {
+            LOG.error(e.getMessage(), e);
+        }
         BundleContext apiContext = apiBundle.getBundleContext();
         return apiContext;
     }

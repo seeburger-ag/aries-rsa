@@ -84,6 +84,12 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>slf4j-api</artifactId>
+            		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
@@ -94,6 +100,11 @@
             <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
             <artifactId>org.apache.aries.rsa.examples.echotcp.consumer</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.ops4j.pax.logging</groupId>
+        	<artifactId>pax-logging-service</artifactId>
+        	<version>1.8.5</version>
         </dependency>
     </dependencies>
 </project>
