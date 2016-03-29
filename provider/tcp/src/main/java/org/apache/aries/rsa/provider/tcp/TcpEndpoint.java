@@ -30,19 +30,27 @@ public class TcpEndpoint implements Endpoint {
     private TCPServer tcpServer;
     
     public TcpEndpoint(Object service, Map<String, Object> effectiveProperties) {
-        Integer port = getInt(effectiveProperties, "port", 0);
-        String localip = LocalHostUtil.getLocalIp();
-        int numThreads = getInt(effectiveProperties, "numThreads", 10);
-        tcpServer = new TCPServer(service, localip, port, numThreads);
-        effectiveProperties.put(RemoteConstants.ENDPOINT_ID, "tcp://" + localip + ":" + tcpServer.getPort());
+        Integer port = getInt(effectiveProperties, "port", "0");
+        String hostName = getString(effectiveProperties, "hostname", System.getProperty("aries.rsa.hostname"));
+        if (hostName == null) {
+            hostName = LocalHostUtil.getLocalIp();
+        }
+        int numThreads = getInt(effectiveProperties, "numThreads", "10");
+        tcpServer = new TCPServer(service, hostName, port, numThreads);
+        String endpointId = String.format("tcp://%s:%s",hostName, tcpServer.getPort());
+        effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
         this.epd = new EndpointDescription(effectiveProperties);
     }
     
 
-    private Integer getInt(Map<String, Object> effectiveProperties, String key, int defaultValue) {
+    private Integer getInt(Map<String, Object> effectiveProperties, String key, String defaultValue) {
+        return Integer.parseInt(getString(effectiveProperties, key, defaultValue));
+    }
+    
+    private String getString(Map<String, Object> effectiveProperties, String key, String defaultValue) {
         String value = (String)effectiveProperties.get(key);
-        return value != null ? Integer.parseInt(value) : defaultValue;
+        return value != null ? value : defaultValue;
     }
 
     @Override
