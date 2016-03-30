@@ -46,11 +46,9 @@ public interface DistributionProvider {
      * @param interfaces interfaces of the service to proxy
      * @param endpoint description of the remote endpoint
      * @return service proxy to be given to the requesting bundle
-     * @throws IntentUnsatisfiedException
      */
     Object importEndpoint(ClassLoader cl,
                           BundleContext consumerContext, 
                           Class[] interfaces, 
-                          EndpointDescription endpoint)
-        throws IntentUnsatisfiedException;
+                          EndpointDescription endpoint);
 }

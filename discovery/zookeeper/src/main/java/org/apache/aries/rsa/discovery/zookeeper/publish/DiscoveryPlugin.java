@@ -26,11 +26,11 @@ import java.util.Map;
  * It can be useful for situations where a host name or port number needs to be changed in cases where the host running
  * the service is known differently from the outside to what the local Java process thinks it is.
  * Extra service properties can also be added to the registration which can be useful to refine the remote service
- * lookup process. <p/>
+ * lookup process. <p>
  *
  * DiscoveryPlugins use the OSGi WhiteBoard pattern. To add one to the system, register an instance under this interface
  * with the OSGi Service Registry. All registered DiscoveryPlugin instances are visited and given a chance to
- * process the information before it is pushed into ZooKeeper. <p/>
+ * process the information before it is pushed into ZooKeeper. <p>
  *
  * Note that the changes made using this plugin do not modify the local service registration.
  *

@@ -39,7 +39,7 @@ public interface ExportPolicy {
      * if the original service or the additional properties contain the
      * non empty property service.exported.interfaces. 
      * 
-     * @param service to export
+     * @param sref service to export
      * @return additional properties for exported Service (must not be null)
      */
     Map<String, ?> additionalParameters(ServiceReference<?> sref);

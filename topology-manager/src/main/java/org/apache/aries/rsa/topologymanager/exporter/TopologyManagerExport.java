@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages exported endpoints of DOSGi services and notifies EndpointListeners of changes.
- *
+ * <ul>
  * <li> Tracks local RemoteServiceAdmin instances by using a ServiceTracker
  * <li> Uses a ServiceListener to track local OSGi services
  * <li> When a service is published that is supported by DOSGi the
@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
  *      the EndpointListeners are notified
  * <li> When a service is unpublished the EndpointListeners are notified.
  *      The endpoints are not closed as the ExportRegistration takes care of this
+ * </ul>
  */
 public class TopologyManagerExport implements ServiceListener {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerExport.class);

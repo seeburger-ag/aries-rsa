@@ -96,6 +96,8 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
 
     /**
      * Only for the test case!
+     * 
+     * @return 
      */
     protected List<PublishingEndpointListener> getListeners() {
         synchronized (listeners) {
