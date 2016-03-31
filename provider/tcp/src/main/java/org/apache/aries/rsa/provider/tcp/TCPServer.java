@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -82,14 +83,44 @@ public class TCPServer implements Closeable, Runnable {
     }
 
     private Object invoke(String methodName, Object[] args)
-        throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        throws IllegalAccessException, InvocationTargetException, SecurityException {
         Class<?>[] parameterTypesAr = getTypes(args);
-        Method method = service.getClass().getMethod(methodName, parameterTypesAr);
+        Method method = null;
         try {
+            method = getMethod(methodName, parameterTypesAr);
             return method.invoke(service, args);
         } catch (Throwable e) {
             return e;
         }
+    }
+
+    private Method getMethod(String methodName, Class<?>[] parameterTypesAr) {
+        try {
+            return service.getClass().getMethod(methodName, parameterTypesAr);
+        } catch (NoSuchMethodException e) {
+            Method[] methods = service.getClass().getMethods();
+            for (Method method : methods) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
+                if (allParamsMatch(method.getParameterTypes(), parameterTypesAr)) {
+                    return method;
+                }
+            }
+            throw new IllegalArgumentException(String.format("No method found that matches name %s, types %s", 
+                                                             methodName, Arrays.toString(parameterTypesAr)));
+        }
+    }
+
+    private boolean allParamsMatch(Class<?>[] methodParamTypes, Class<?>[] parameterTypesAr) {
+        int c = 0;
+        for (Class<?> type : methodParamTypes) {
+            if (!type.isAssignableFrom(parameterTypesAr[c])) {
+                return false;
+            }
+            c++;
+        }
+        return true;
     }
 
     private Class<?>[] getTypes(Object[] args) {

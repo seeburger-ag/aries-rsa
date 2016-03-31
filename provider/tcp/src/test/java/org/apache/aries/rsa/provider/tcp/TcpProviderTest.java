@@ -19,7 +19,9 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,14 +67,28 @@ public class TcpProviderTest {
         Assert.assertEquals(msg, result);
     }
     
+    @Test(expected=RuntimeException.class)
+    public void testCallException() throws IOException, InterruptedException {
+        myServiceProxy.call("throw exception");
+    }
+    
     @Test
     public void testCall() throws IOException, InterruptedException {
-        myServiceProxy.call("test");
+        myServiceProxy.echo("test");
     }
     
     @Test
     public void testCallOneway() throws IOException, InterruptedException {
         myServiceProxy.callOneWay("test");
+    }
+    
+    /**
+     * Test for ARIES-1515
+     */
+    @Test
+    public void testCallWithInterfaceBasedParam() throws IOException, InterruptedException {
+        List<String> msgList = new ArrayList<String>();
+        myServiceProxy.callWithList(msgList);
     }
     
     @After

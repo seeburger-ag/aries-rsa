@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import java.util.List;
+
 public class MyServiceImpl implements MyService {
 
     @Override
@@ -27,10 +29,18 @@ public class MyServiceImpl implements MyService {
 
     @Override
     public void call(String msg) {
+        if ("throw exception".equals(msg)) {
+            throw new IllegalArgumentException("Throwing expected exception");
+        }
     }
 
     @Override
     public void callOneWay(String msg) {
+    }
+
+    @Override
+    public void callWithList(List<String> msg) {
+
     }
 
 }
