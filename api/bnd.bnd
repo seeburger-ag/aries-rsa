@@ -1,6 +1,0 @@
-Import-Package:\
-	org.osgi.service.remoteserviceadmin,\
-	org.osgi.service.event
-Export-Package:\
-	org.osgi.service.remoteserviceadmin,\
-	org.osgi.service.event
