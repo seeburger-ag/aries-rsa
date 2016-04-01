@@ -50,7 +50,6 @@ public class TcpProviderTest {
         TCPProvider provider = new TCPProvider();
         Map<String, Object> props = new HashMap<String, Object>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
-        props.put("port", TcpEndpointTest.PORT);
         props.put("hostname", "localhost");
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
