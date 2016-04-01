@@ -14,7 +14,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 public class TcpEndpointTest {
 
-    private static final String PORT = "45346";
+    static final String PORT = "45346";
 
     @Test
     public void testEndpointProperties() throws IOException {
