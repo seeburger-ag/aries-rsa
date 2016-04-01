@@ -101,6 +101,7 @@ public class RsaTestBase {
                          localRepo(),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("zkPort").value("15201"),
+                         systemProperty("aries.rsa.hostname").value("localhost"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"), 
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
