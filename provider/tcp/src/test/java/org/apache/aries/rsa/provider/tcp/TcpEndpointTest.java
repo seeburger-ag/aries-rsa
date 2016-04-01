@@ -14,17 +14,19 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 public class TcpEndpointTest {
 
+    private static final String PORT = "45346";
+
     @Test
     public void testEndpointProperties() throws IOException {
         Object service = new MyServiceImpl();
         Map<String, Object> props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[]{MyService.class.getName()});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
-        props.put("port", "45346");
+        props.put("port", PORT);
         props.put("hostname", "myhost");
         TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
         EndpointDescription epd = tcpEndpoint.description();
-        Assert.assertEquals("tcp://myhost:45346", epd.getId());
+        Assert.assertEquals("tcp://myhost:" + PORT, epd.getId());
         tcpEndpoint.close();
     }
     

@@ -32,20 +32,20 @@ import org.apache.aries.rsa.provider.tcp.myservice.MyServiceImpl;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.util.EndpointHelper;
 import org.easymock.EasyMock;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 public class TcpProviderTest {
 
     private static final int NUM_CALLS = 100;
-    private MyService myServiceProxy;
-    private Endpoint ep;
+    private static MyService myServiceProxy;
+    private static Endpoint ep;
     
-    @Before
-    public void createServerAndProxy() {
+    @BeforeClass
+    public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
         TCPProvider provider = new TCPProvider();
         Map<String, Object> props = new HashMap<String, Object>();
@@ -91,8 +91,8 @@ public class TcpProviderTest {
         myServiceProxy.callWithList(msgList);
     }
     
-    @After
-    public void close() throws IOException {
+    @AfterClass
+    public static void close() throws IOException {
         ep.close();
     }
 
