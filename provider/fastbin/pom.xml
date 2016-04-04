@@ -1,0 +1,217 @@
+<!--
+
+     Copyright 2005-2014 Red Hat, Inc.
+
+     Red Hat licenses this file to you under the Apache License, version
+     2.0 (the "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+     implied.  See the License for the specific language governing
+     permissions and limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric-project</artifactId>
+        <version>1.2.0.redhat-133</version>
+    </parent>
+
+
+    <artifactId>org.apache.aries.rsa.provider.fastbin</artifactId>
+    <packaging>bundle</packaging>
+
+    <name>Fabric8 :: Distributed OSGi</name>
+
+    <properties>
+        <fuse.osgi.export>
+            io.fabric8.dosgi.api
+        </fuse.osgi.export>
+        <fuse.osgi.import.before.defaults>
+            !org.objectweb.asm,
+            org.eclipse.osgi*;resolution:=optional
+        </fuse.osgi.import.before.defaults>
+        <fuse.osgi.import.additional>
+        </fuse.osgi.import.additional>
+        <fuse.osgi.private.pkg>
+            io.fabric8.dosgi*,
+        </fuse.osgi.private.pkg>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <repositories>
+        <repository>
+        <id>ecf</id>
+        <url>http://build.ecf-project.org/maven/3.13.0</url>
+        <releases>
+           <enabled>true</enabled>
+        </releases>
+        <snapshots>
+          <enabled>false</enabled>
+        </snapshots>
+     </repository>
+    </repositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <scope>provided</scope>
+            <version>4.2.0</version>
+        </dependency>
+
+            <!-- latest version -->
+        <!--<dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.remoteserviceadmin</artifactId>
+            <version>1.1.0</version>
+        </dependency>-->
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.enterprise</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fusesource.hawtdispatch</groupId>
+            <artifactId>hawtdispatch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.fusesource.hawtbuf</groupId>
+            <artifactId>hawtbuf</artifactId>
+        </dependency>
+
+        <!-- this is only needed you you want to use the ProtobufSerializationStrategy -->
+        <dependency>
+            <groupId>org.fusesource.hawtbuf</groupId>
+            <artifactId>hawtbuf-proto</artifactId>
+            <version>${hawtbuf-version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>16.0.1</version>
+            <type>bundle</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <version>1.9.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.spi</artifactId>
+            <scope>provided</scope>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>3.0.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>1.21.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.fusesource.hawtbuf</groupId>
+                <artifactId>hawtbuf-protoc</artifactId>
+                <version>${hawtbuf-version}</version>
+                <configuration>
+                    <type>alt</type>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse
+                    m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.fusesource.hawtbuf
+                                        </groupId>
+                                        <artifactId>
+                                            hawtbuf-protoc
+                                        </artifactId>
+                                        <versionRange>
+                                            [1.6,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore />
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <version>1.9-SNAPSHOT</version>
+    <groupId>org.apache.aries.rsa.provider</groupId>
+</project>

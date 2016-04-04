@@ -27,10 +27,10 @@
       <version>1.9-SNAPSHOT</version>
       <relativePath>../parent/pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>org.apache.aries.rsa.provider</artifactId>
     <packaging>pom</packaging>
-    
+
     <name>Aries Remote Service Admin Provider</name>
 
     <properties>
@@ -39,5 +39,6 @@
 
     <modules>
       <module>tcp</module>
+      <module>fastbin</module>
     </modules>
 </project>
