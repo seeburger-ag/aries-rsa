@@ -25,7 +25,7 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
-    private ServiceTracker<EndpointListener, EndpointListener> listenerTracker;
+    private ServiceTracker listenerTracker;
     private LocalDiscovery localDiscovery;
 
     public void start(BundleContext context) {
@@ -41,38 +41,38 @@ public class Activator implements BundleActivator {
         context.removeBundleListener(localDiscovery);
     }
 
-    private final class EPListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+    private final class EPListenerTracker extends ServiceTracker {
         private final LocalDiscovery localDiscovery;
-    
+
         private EPListenerTracker(BundleContext context, LocalDiscovery localDiscovery) {
-            super(context, EndpointListener.class, null);
+            super(context, EndpointListener.class.getName(), null);
             this.localDiscovery = localDiscovery;
         }
-    
+
         @Override
-        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-            EndpointListener service = super.addingService(reference);
+        public EndpointListener addingService(ServiceReference reference) {
+            EndpointListener service = (EndpointListener)super.addingService(reference);
             localDiscovery.addListener(reference, service);
             return service;
         }
-    
+
         @Override
-        public void modifiedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void modifiedService(ServiceReference reference, Object service) {
             super.modifiedService(reference, service);
-            localDiscovery.removeListener(service);
-    
+            localDiscovery.removeListener((EndpointListener)service);
+
             // This may cause duplicate registrations of remote services,
             // but that's fine and should be filtered out on another level.
             // See Remote Service Admin spec section 122.6.3
-            localDiscovery.addListener(reference, service);
+            localDiscovery.addListener(reference, (EndpointListener)service);
         }
-    
+
         @Override
-        public void removedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void removedService(ServiceReference reference, Object service) {
             super.removedService(reference, service);
-            localDiscovery.removeListener(service);
+            localDiscovery.removeListener((EndpointListener)service);
         }
     }
 
-    
+
 }

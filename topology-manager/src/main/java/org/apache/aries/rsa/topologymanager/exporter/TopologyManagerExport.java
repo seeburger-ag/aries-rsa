@@ -86,7 +86,7 @@ public class TopologyManagerExport implements ServiceListener {
             export(serviceRef);
         }
     };
-    
+
     public void remove(RemoteServiceAdmin rsa) {
         rsaSet.remove(rsa);
         endpointRepo.removeRemoteServiceAdmin(rsa);
@@ -121,7 +121,7 @@ public class TopologyManagerExport implements ServiceListener {
                 // already handled by this remoteServiceAdmin
                 LOG.debug("already handled by this remoteServiceAdmin -> skipping");
             } else {
-                
+
                 exportServiceUsingRemoteServiceAdmin(sref, remoteServiceAdmin, addProps);
             }
         }
@@ -138,8 +138,8 @@ public class TopologyManagerExport implements ServiceListener {
         return bundle == null ? null : bundle.getSymbolicName();
     }
 
-    private void exportServiceUsingRemoteServiceAdmin(final ServiceReference<?> sref,
-                                                      final RemoteServiceAdmin remoteServiceAdmin, 
+    private void exportServiceUsingRemoteServiceAdmin(final ServiceReference sref,
+                                                      final RemoteServiceAdmin remoteServiceAdmin,
                                                       Map<String, ?> addProps) {
         // abort if the service was unregistered by the time we got here
         // (we check again at the end, but this optimization saves unnecessary heavy processing)
@@ -151,7 +151,7 @@ public class TopologyManagerExport implements ServiceListener {
         // do the export
         LOG.debug("exporting {}...", sref);
         // TODO: additional parameter Map?
-        Collection<ExportRegistration> exportRegs = remoteServiceAdmin.exportService(sref, addProps);
+        Collection<ExportRegistration> exportRegs = remoteServiceAdmin.exportService(sref, (Map<String, Object>)addProps);
         // process successful/failed registrations
         List<EndpointDescription> endpoints = new ArrayList<EndpointDescription>();
         for (ExportRegistration reg : exportRegs) {

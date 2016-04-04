@@ -53,10 +53,10 @@ public class Activator implements BundleActivator {
     private TopologyManagerExport exportManager;
     private TopologyManagerImport importManager;
     private EndpointListenerNotifier notifier;
-    private ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> rsaTracker;
+    private ServiceTracker rsaTracker;
     private ThreadPoolExecutor exportExecutor;
-    private ServiceTracker<EndpointListener, EndpointListener> epListenerTracker;
-    private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
+    private ServiceTracker epListenerTracker;
+    private ServiceTracker policyTracker;
 
     public void start(final BundleContext bc) throws Exception {
         Dictionary<String, String> props = new Hashtable<String, String>();
@@ -64,11 +64,11 @@ public class Activator implements BundleActivator {
         bc.registerService(ExportPolicy.class, new DefaultExportPolicy(), props);
 
         Filter policyFilter = exportPolicyFilter(bc);
-        policyTracker = new ServiceTracker<ExportPolicy, ExportPolicy>(bc, policyFilter, null) {
+        policyTracker = new ServiceTracker(bc, policyFilter, null) {
 
             @Override
-            public ExportPolicy addingService(ServiceReference<ExportPolicy> reference) {
-                ExportPolicy policy = super.addingService(reference);
+            public ExportPolicy addingService(ServiceReference reference) {
+                ExportPolicy policy = (ExportPolicy)super.addingService(reference);
                 if (exportManager == null) {
                     doStart(bc, policy);
                 }
@@ -76,7 +76,7 @@ public class Activator implements BundleActivator {
             }
 
             @Override
-            public void removedService(ServiceReference<ExportPolicy> reference, ExportPolicy service) {
+            public void removedService(ServiceReference reference, Object service) {
                 if (exportManager != null) {
                     doStop(bc);
                 }
@@ -138,43 +138,43 @@ public class Activator implements BundleActivator {
             LOG.error("Error in filter {}. This should not occur!", DOSGI_SERVICES);
         }
     }
-    
-    private final class EndpointListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+
+    private final class EndpointListenerTracker extends ServiceTracker {
         private EndpointListenerTracker(BundleContext context) {
-            super(context, EndpointListener.class, null);
+            super(context, EndpointListener.class.getName(), null);
         }
 
         @Override
-        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-            EndpointListener listener = super.addingService(reference);
+        public EndpointListener addingService(ServiceReference reference) {
+            EndpointListener listener = (EndpointListener)super.addingService(reference);
             notifier.add(listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
             return listener;
         }
 
         @Override
-        public void modifiedService(ServiceReference<EndpointListener> reference,
-                                    EndpointListener listener) {
+        public void modifiedService(ServiceReference reference,
+                                    Object listener) {
             super.modifiedService(reference, listener);
-            notifier.add(listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
+            notifier.add((EndpointListener)listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
         }
 
         @Override
-        public void removedService(ServiceReference<EndpointListener> reference,
-                                   EndpointListener listener) {
-            notifier.remove(listener);
+        public void removedService(ServiceReference reference,
+                                   Object listener) {
+            notifier.remove((EndpointListener)listener);
             super.removedService(reference, listener);
         }
     }
 
-    private final class RSATracker extends ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> {
-        private RSATracker(BundleContext context, Class<RemoteServiceAdmin> clazz,
-                           ServiceTrackerCustomizer<RemoteServiceAdmin, RemoteServiceAdmin> customizer) {
-            super(context, clazz, customizer);
+    private final class RSATracker extends ServiceTracker {
+        private RSATracker(BundleContext context, Class clazz,
+                           ServiceTrackerCustomizer customizer) {
+            super(context, clazz.getName(), customizer);
         }
 
         @Override
-        public RemoteServiceAdmin addingService(ServiceReference<RemoteServiceAdmin> reference) {
-            RemoteServiceAdmin rsa = super.addingService(reference);
+        public RemoteServiceAdmin addingService(ServiceReference reference) {
+            RemoteServiceAdmin rsa = (RemoteServiceAdmin)super.addingService(reference);
             LOG.debug("New RemoteServiceAdmin {} detected, trying to import and export services with it", rsa);
             importManager.add(rsa);
             exportManager.add(rsa);
@@ -182,10 +182,10 @@ public class Activator implements BundleActivator {
         }
 
         @Override
-        public void removedService(ServiceReference<RemoteServiceAdmin> reference,
-                                   RemoteServiceAdmin rsa) {
-            exportManager.remove(rsa);
-            importManager.remove(rsa);
+        public void removedService(ServiceReference reference,
+                                   Object rsa) {
+            exportManager.remove((RemoteServiceAdmin)rsa);
+            importManager.remove((RemoteServiceAdmin)rsa);
             super.removedService(reference, rsa);
         }
     }

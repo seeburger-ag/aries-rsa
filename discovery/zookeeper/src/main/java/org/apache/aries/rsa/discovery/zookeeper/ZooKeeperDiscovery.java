@@ -47,7 +47,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     private final BundleContext bctx;
 
     private PublishingEndpointListenerFactory endpointListenerFactory;
-    private ServiceTracker<EndpointListener, EndpointListener> endpointListenerTracker;
+    private ServiceTracker endpointListenerTracker;
     private InterfaceMonitorManager imManager;
     private ZooKeeper zkClient;
     private boolean closed;
@@ -59,7 +59,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         this.bctx = bctx;
     }
 
-    public synchronized void updated(Dictionary<String, ?> configuration) throws ConfigurationException {
+    public synchronized void updated(Dictionary configuration) throws ConfigurationException {
         LOG.debug("Received configuration update for Zookeeper Discovery: {}", configuration);
         // make changes only if config actually changed, to prevent unnecessary ZooKeeper reconnections
         if (!ZooKeeperDiscovery.toMap(configuration).equals(ZooKeeperDiscovery.toMap(curConfiguration))) {
@@ -158,12 +158,12 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         int timeout = Integer.parseInt((String)getWithDefault(config, "zookeeper.timeout", "3000"));
         zkClient = createZooKeeper(host, port, timeout);
     }
-    
+
     public Object getWithDefault(Dictionary<String, ?> config, String key, Object defaultValue) {
         Object value = config.get(key);
         return value != null ? value : defaultValue;
     }
-    
+
     /**
      * Converts the given Dictionary to a Map.
      *

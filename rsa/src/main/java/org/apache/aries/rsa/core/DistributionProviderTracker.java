@@ -34,20 +34,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
-public class DistributionProviderTracker extends ServiceTracker<DistributionProvider, ServiceRegistration> {
+public class DistributionProviderTracker extends ServiceTracker {
     private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
 
     public DistributionProviderTracker(BundleContext context) {
-        super(context, DistributionProvider.class, null);
+        super(context, DistributionProvider.class.getName(), null);
     }
 
     @Override
-    public ServiceRegistration addingService(ServiceReference<DistributionProvider> reference) {
+    public ServiceRegistration addingService(ServiceReference reference) {
         LOG.debug("RemoteServiceAdmin Implementation is starting up");
-        DistributionProvider provider = context.getService(reference);
+        DistributionProvider provider = (DistributionProvider)context.getService(reference);
         BundleContext apiContext = getAPIContext();
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context, 
-                                                                    apiContext, 
+        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context,
+                                                                    apiContext,
                                                                     provider);
         RemoteServiceadminFactory rsaf = new RemoteServiceadminFactory(rsaCore);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
@@ -67,13 +67,12 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         BundleContext apiContext = apiBundle.getBundleContext();
         return apiContext;
     }
-    
+
     @Override
-    public void removedService(ServiceReference<DistributionProvider> reference,
-                               ServiceRegistration reg) {
+    public void removedService(ServiceReference reference,
+                               Object service) {
         LOG.debug("RemoteServiceAdmin Implementation is shutting down now");
-        reg.unregister();
-        super.removedService(reference, reg);
+        super.removedService(reference, service);
     }
 
 }

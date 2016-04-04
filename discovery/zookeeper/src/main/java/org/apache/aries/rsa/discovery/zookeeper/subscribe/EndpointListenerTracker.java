@@ -27,29 +27,29 @@ import org.osgi.util.tracker.ServiceTracker;
  * Tracks interest in EndpointListeners. Delegates to InterfaceMonitorManager to manage
  * interest in the scopes of each EndpointListener.
  */
-public class EndpointListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+public class EndpointListenerTracker extends ServiceTracker {
     private final InterfaceMonitorManager imManager;
 
     public EndpointListenerTracker(BundleContext bctx, InterfaceMonitorManager imManager) {
-        super(bctx, EndpointListener.class, null);
+        super(bctx, EndpointListener.class.getName(), null);
         this.imManager = imManager;
     }
 
     @Override
-    public EndpointListener addingService(ServiceReference<EndpointListener> endpointListener) {
+    public EndpointListener addingService(ServiceReference endpointListener) {
         imManager.addInterest(endpointListener);
         return null;
     }
 
     @Override
-    public void modifiedService(ServiceReference<EndpointListener> endpointListener, EndpointListener service) {
+    public void modifiedService(ServiceReference endpointListener, Object service) {
         // called when an EndpointListener updates its service properties,
         // e.g. when its interest scope is expanded/reduced
         imManager.addInterest(endpointListener);
     }
 
     @Override
-    public void removedService(ServiceReference<EndpointListener> endpointListener, EndpointListener service) {
+    public void removedService(ServiceReference endpointListener, Object service) {
         imManager.removeInterest(endpointListener);
     }
 

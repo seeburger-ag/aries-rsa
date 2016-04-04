@@ -72,7 +72,7 @@ public class ZookeeperStarter implements org.osgi.service.cm.ManagedService {
     }
 
     @SuppressWarnings("unchecked")
-    public synchronized void updated(Dictionary<String, ?> dict) throws ConfigurationException {
+    public synchronized void updated(Dictionary dict) throws ConfigurationException {
         LOG.debug("Received configuration update for Zookeeper Server: " + dict);
         try {
             if (dict != null) {
