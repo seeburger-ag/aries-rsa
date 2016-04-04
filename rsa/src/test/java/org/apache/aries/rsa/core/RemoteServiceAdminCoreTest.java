@@ -50,6 +50,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
@@ -196,7 +197,7 @@ public class RemoteServiceAdminCoreTest {
         Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
         EasyMock.replay(svcObject);
 
-        EasyMock.expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
+        EasyMock.expect((Runnable)bc.getService(sref)).andReturn(svcObject).anyTimes();
         EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
         EasyMock.expect(bc.createFilter("(service.id=51)"))
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
@@ -304,7 +305,7 @@ public class RemoteServiceAdminCoreTest {
         Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
         EasyMock.replay(svcObject);
 
-        EasyMock.expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
+        EasyMock.expect((Runnable)bc.getService(sref)).andReturn(svcObject).anyTimes();
         EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
         EasyMock.replay(bc);
 

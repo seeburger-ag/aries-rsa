@@ -112,7 +112,7 @@ public class EventProducerTest {
         EasyMock.expect(bc.getBundle()).andReturn(bundle).anyTimes();
         EasyMock.expect(bc.getAllServiceReferences(EventAdmin.class.getName(), null))
             .andReturn(new ServiceReference[] {eaSref}).anyTimes();
-        EasyMock.expect(bc.getService(eaSref)).andReturn(ea).anyTimes();
+        EasyMock.expect((EventAdmin)bc.getService(eaSref)).andReturn(ea).anyTimes();
         Endpoint endpoint = EasyMock.mock(Endpoint.class);
         EasyMock.expect(endpoint.description()).andReturn(epd);
         EasyMock.replay(endpoint);
@@ -179,7 +179,7 @@ public class EventProducerTest {
         EasyMock.expect(bc.getBundle()).andReturn(bundle).anyTimes();
         EasyMock.expect(bc.getAllServiceReferences(EventAdmin.class.getName(), null))
             .andReturn(new ServiceReference[] {eaSref}).anyTimes();
-        EasyMock.expect(bc.getService(eaSref)).andReturn(ea).anyTimes();
+        EasyMock.expect((EventAdmin)bc.getService(eaSref)).andReturn(ea).anyTimes();
         EasyMock.replay(bc);
         EventProducer eventProducer = new EventProducer(bc);
 
