@@ -210,11 +210,11 @@ public class RemoteServiceAdminCoreTest {
         eProps.put("service.imported.configs", new String[] {"org.apache.cxf.ws"});
         final EndpointDescription epd = new EndpointDescription(eProps);
         Endpoint er = new Endpoint() {
-            
+
             @Override
             public void close() throws IOException {
             }
-            
+
             @Override
             public EndpointDescription description() {
                 return epd;
@@ -223,7 +223,7 @@ public class RemoteServiceAdminCoreTest {
 
         DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
         EasyMock.expect(handler.exportService(anyObject(),
-                                              anyObject(BundleContext.class), 
+                                              anyObject(BundleContext.class),
                                               anyObject(Map.class), isA(Class[].class))).andReturn(er);
         EasyMock.replay(handler);
 
@@ -315,7 +315,7 @@ public class RemoteServiceAdminCoreTest {
 
         DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
         EasyMock.expect(handler.exportService(anyObject(),
-                                              anyObject(BundleContext.class), 
+                                              anyObject(BundleContext.class),
                                               anyObject(Map.class), isA(Class[].class))).andThrow(new TestException());
         EasyMock.replay(handler);
 
@@ -364,7 +364,7 @@ public class RemoteServiceAdminCoreTest {
     @SuppressWarnings("serial")
     private static class TestException extends RuntimeException {
     }
-    
+
     @Test
     public void testOverlayProperties() {
         Map<String, Object> sProps = new HashMap<String, Object>();
@@ -396,7 +396,7 @@ public class RemoteServiceAdminCoreTest {
         assertEquals("Should not be possible to override the service.id property",
                 17L, sProps.get(Constants.SERVICE_ID));
     }
-    
+
     @Test
     public void testOverlayProperties2() {
         Map<String, Object> original = new HashMap<String, Object>();
@@ -495,7 +495,7 @@ public class RemoteServiceAdminCoreTest {
         }
         assertEquals("newValue", copy.get("MyProp"));
     }
-    
+
     @Test
     public void testCreateEndpointProps() {
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);

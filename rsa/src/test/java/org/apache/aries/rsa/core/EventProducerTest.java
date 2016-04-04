@@ -42,8 +42,8 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class EventProducerTest {
-    
-    
+
+
     @Test
     public void testPublishNotification() throws Exception {
         RemoteServiceAdminCore remoteServiceAdminCore = EasyMock.createNiceMock(RemoteServiceAdminCore.class);
