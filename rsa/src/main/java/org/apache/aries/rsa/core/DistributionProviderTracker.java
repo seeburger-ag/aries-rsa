@@ -18,6 +18,9 @@
  */
 package org.apache.aries.rsa.core;
 
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.REMOTE_CONFIGS_SUPPORTED;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.REMOTE_INTENTS_SUPPORTED;
+
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -28,7 +31,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
@@ -52,15 +54,15 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
                                                                     provider);
         RemoteServiceadminFactory rsaf = new RemoteServiceadminFactory(rsaCore);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
-        Object value = reference.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED);
-        value = value == null ? "" : value;
-        props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, value);
-
-        value = reference.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED);
-        value = value == null ? "" : value;
-        props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, value);
+        props.put(REMOTE_INTENTS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_INTENTS_SUPPORTED));
+        props.put(REMOTE_CONFIGS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_CONFIGS_SUPPORTED));
         LOG.info("Registering RemoteServiceAdmin for provider " + provider.getClass().getName());
         return context.registerService(RemoteServiceAdmin.class.getName(), rsaf, props);
+    }
+
+    private Object getPropertyNullSafe(ServiceReference<DistributionProvider> reference, String key) {
+        Object value = reference.getProperty(key);
+        return value == null ? "" : value;
     }
 
     protected BundleContext getAPIContext() {
