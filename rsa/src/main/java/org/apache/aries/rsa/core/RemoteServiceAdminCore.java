@@ -104,7 +104,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
         List<String> interfaceNames = getInterfaceNames(serviceProperties);
 
-        if (isImportedService(serviceReference)) {
+        if (isImportedService(serviceReference) || !isExportConfigSupported(serviceProperties)) {
             return Collections.emptyList();
         }
 
@@ -122,6 +122,28 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         } finally {
             unlock(key);
         }
+    }
+
+    private boolean isExportConfigSupported(Map<String, Object> serviceProperties)
+    {
+        if (provider == null) {
+            return false;
+        }
+        List<String> exportedConfigs = StringPlus.normalize(serviceProperties.get(RemoteConstants.SERVICE_EXPORTED_CONFIGS));
+        if (exportedConfigs == null || exportedConfigs.isEmpty()) {
+            return true;
+        }
+        String[] supportedTypes = provider.getSupportedTypes();
+        if (supportedTypes == null || supportedTypes.length == 0) {
+            //if not set, all services should be accepted
+            return true;
+        }
+        for (String supportedType : supportedTypes)
+        {
+            if (exportedConfigs.contains(supportedType))
+                return true;
+        }
+        return false;
     }
 
     private void store(Map<String, Object> key, List<ExportRegistration> exportRegs) {
