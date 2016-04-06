@@ -138,10 +138,10 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             //if not set, all services should be accepted
             return true;
         }
-        for (String supportedType : supportedTypes)
-        {
-            if (exportedConfigs.contains(supportedType))
+        for (String supportedType : supportedTypes) {
+            if (exportedConfigs.contains(supportedType)) {
                 return true;
+            }
         }
         return false;
     }
