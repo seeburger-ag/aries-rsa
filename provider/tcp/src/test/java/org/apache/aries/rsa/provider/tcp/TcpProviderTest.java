@@ -51,6 +51,7 @@ public class TcpProviderTest {
         Map<String, Object> props = new HashMap<String, Object>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put("hostname", "localhost");
+        props.put("numThreads", "10");
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
