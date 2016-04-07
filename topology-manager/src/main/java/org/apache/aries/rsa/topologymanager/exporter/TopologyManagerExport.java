@@ -160,7 +160,7 @@ public class TopologyManagerExport implements ServiceListener {
                 LOG.debug("TopologyManager: export succeeded for {}, endpoint {}", sref, endpoint);
                 endpoints.add(endpoint);
             } else {
-                LOG.error("TopologyManager: export failed for {}", sref);
+                LOG.error("TopologyManager: export failed for {}", sref, reg.getException());
                 reg.close();
             }
         }
