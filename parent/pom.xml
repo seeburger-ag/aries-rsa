@@ -33,6 +33,8 @@
         <rsa.version>1.0.0</rsa.version>
         <slf4j.version>1.7.14</slf4j.version>
         <log4j.version>1.2.6</log4j.version>
+        <hawtdispatch.version>1.21</hawtdispatch.version>
+        <hawtbuf.version>1.11</hawtbuf.version>
         <exam.version>4.8.0</exam.version>
         <cxf.resources.base.path />
         <cxf.checkstyle.extension />
@@ -104,7 +106,22 @@
                 <artifactId>org.apache.aries.rsa.spi</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            
+            <dependency>
+                <groupId>org.fusesource.hawtdispatch</groupId>
+                <artifactId>hawtdispatch</artifactId>
+                <version>${hawtdispatch.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fusesource.hawtbuf</groupId>
+                <artifactId>hawtbuf</artifactId>
+                <version>${hawtbuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fusesource.hawtbuf</groupId>
+                <artifactId>hawtbuf-proto</artifactId>
+                <version>${hawtbuf.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>

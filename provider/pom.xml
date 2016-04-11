@@ -39,5 +39,6 @@
 
     <modules>
       <module>tcp</module>
+      <module>fastbin</module>
     </modules>
 </project>

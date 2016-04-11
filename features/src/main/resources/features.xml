@@ -11,7 +11,14 @@
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.tcp/${project.version}</bundle>
     </feature>
-    
+
+    <feature name="aries-rsa-provider-fastbin" version="${project.version}">
+        <feature>aries-rsa-core</feature>
+        <bundle>mvn:org.fusesource.hawtdispatch/hawtdispatch/${hawtdispatch.version}</bundle>
+        <bundle>mvn:org.fusesource.hawtbuf/hawtbuf/${hawtbuf.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.fastbin/${project.version}</bundle>
+    </feature>
+
     <feature name="aries-rsa-discovery-local" version="${project.version}">
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
