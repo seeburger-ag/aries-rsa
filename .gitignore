@@ -9,3 +9,4 @@
 target/
 velocity.log
 *.md.html
+.idea/
