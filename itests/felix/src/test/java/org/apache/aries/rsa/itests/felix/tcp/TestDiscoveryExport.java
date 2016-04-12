@@ -1,4 +1,4 @@
-package org.apache.aries.rsa.itests.felix;
+package org.apache.aries.rsa.itests.felix.tcp;
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -19,8 +19,6 @@ package org.apache.aries.rsa.itests.felix;
  */
 
 
-import static org.ops4j.pax.exam.CoreOptions.streamBundle;
-
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +28,7 @@ import javax.inject.Inject;
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
+import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -55,26 +54,31 @@ public class TestDiscoveryExport extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                RsaTestBase.rsaTcpZookeeper(),
-                RsaTestBase.echoTcpService(),
+                rsaCoreZookeeper(),
+                rsaTcp(),
+                echoTcpService(),
                 localRepo(),
-                streamBundle(configBundleServer())
+                configZKConsumer(),
+                configZKServer()
         };
     }
 
     @Test
     public void testDiscoveryExport() throws Exception {
-        String zkPort = bundleContext.getProperty("zkPort");
-        ZooKeeper zk = new ZooKeeper("localhost:" + zkPort, 1000, new DummyWatcher());
-        assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
-        String endpointPath = getEndpointPath(zk, GREETER_ZOOKEEPER_NODE);
-        EndpointDescription epd = getEndpointDescription(zk, endpointPath);
-        zk.close();
-
+        EndpointDescription epd = getEndpoint();
         EchoService service = (EchoService)tcpProvider
             .importEndpoint(EchoService.class.getClassLoader(), 
                             bundleContext, new Class[]{EchoService.class}, epd);
         Assert.assertEquals("test", service.echo("test"));
+    }
+
+    private EndpointDescription getEndpoint() throws Exception {
+        ZooKeeper zk = new ZooKeeper("localhost:" + ZK_PORT, 1000, new DummyWatcher());
+        assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
+        String endpointPath = getEndpointPath(zk, GREETER_ZOOKEEPER_NODE);
+        EndpointDescription epd = getEndpointDescription(zk, endpointPath);
+        zk.close();
+        return epd;
     }
 
     private EndpointDescription getEndpointDescription(ZooKeeper zk, String endpointPath)
@@ -83,8 +87,7 @@ public class TestDiscoveryExport extends RsaTestBase {
         ByteArrayInputStream is = new ByteArrayInputStream(data);
         List<EndpointDescriptionType> epdList = new EndpointDescriptionParser().getEndpointDescriptions(is);
         Map<String, Object> props = new PropertiesMapper().toProps(epdList.get(0).getProperty());
-        EndpointDescription epd = new EndpointDescription(props);
-        return epd;
+        return new EndpointDescription(props);
     }
 
     private String getEndpointPath(ZooKeeper zk, String servicePath) throws KeeperException, InterruptedException {

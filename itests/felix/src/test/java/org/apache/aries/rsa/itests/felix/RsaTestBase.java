@@ -6,35 +6,32 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.ops4j.pax.exam.CoreOptions.vmOption;
 import static org.ops4j.pax.exam.CoreOptions.when;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 import javax.inject.Inject;
 
-import org.apache.aries.rsa.itests.felix.helpers.ZookeeperDiscoveryConfigurer;
-import org.apache.aries.rsa.itests.felix.helpers.ZookeeperServerConfigurer;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.OptionalCompositeOption;
-import org.ops4j.pax.tinybundles.core.TinyBundles;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 public class RsaTestBase {
+    protected static final String ZK_PORT = "15201";
 
     @Inject
-    BundleContext bundleContext;
+    protected BundleContext bundleContext;
 
     @Inject
     ConfigurationAdmin configAdmin;
 
-    static OptionalCompositeOption localRepo() {
+    protected static OptionalCompositeOption localRepo() {
         String localRepo = System.getProperty("maven.repo.local");
         if (localRepo == null) {
             localRepo = System.getProperty("org.ops4j.pax.url.mvn.localRepository");
@@ -43,7 +40,7 @@ public class RsaTestBase {
             .useOptions(vmOption("-Dorg.ops4j.pax.url.mvn.localRepository=" + localRepo));
     }
 
-    static MavenArtifactProvisionOption mvn(String groupId, String artifactId) {
+    protected static MavenArtifactProvisionOption mvn(String groupId, String artifactId) {
         return mavenBundle().groupId(groupId).artifactId(artifactId).versionAsInProject();
     }
 
@@ -65,40 +62,27 @@ public class RsaTestBase {
         }
     }
 
-    static Option echoTcpConsumer() {
+    protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
         mvn("org.apache.felix", "org.apache.felix.scr"),
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
-        // Consumer is needed to trigger service import. Pax exam inject does not work for it
+        // Consumer is needed to trigger service import. Pax exam inject does not trigger it
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.consumer")
         );
     }
 
-    static Option echoTcpService() {
-        return CoreOptions.composite(
+    protected static Option echoTcpService() {
+        return composite(
         mvn("org.apache.felix", "org.apache.felix.scr"),
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
         );
     }
 
-    static InputStream configBundleConsumer() {
-        return TinyBundles.bundle()
-            .add(ZookeeperDiscoveryConfigurer.class)
-            .set(Constants.BUNDLE_ACTIVATOR, ZookeeperDiscoveryConfigurer.class.getName())
-            .build(TinyBundles.withBnd());
-    }
-
-    static InputStream configBundleServer() {
-        return TinyBundles.bundle()
-            .add(ZookeeperServerConfigurer.class)
-            .set(Constants.BUNDLE_ACTIVATOR, ZookeeperServerConfigurer.class.getName())
-            .build(TinyBundles.withBnd());
-    }
-
-    static Option rsaTcpZookeeper() {
+    protected static Option rsaCoreZookeeper() {
         return composite(junitBundles(), 
                          localRepo(),
+                         systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("zkPort").value("15201"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
@@ -106,12 +90,38 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"), 
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
-                         mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local"),
                          mvn("org.apache.zookeeper", "zookeeper"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper")
                          //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
             );
+    }
+
+    protected static Option rsaTcp() {
+        return mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp");
+    }
+
+    protected static Option rsaFastBin() {
+        return composite(mvn("org.fusesource.hawtbuf", "hawtbuf"),
+                       mvn("org.fusesource.hawtdispatch", "hawtdispatch"),
+                       mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
+    }
+
+    protected static Option configZKConsumer() {
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper")
+            .put("zookeeper.host", "127.0.0.1")
+            .put("zookeeper.port", ZK_PORT)
+            .asOption();
+    }
+    
+    protected static Option configZKServer() {
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server")
+            .put("clientPort", ZK_PORT).asOption();
+    } 
+    
+    protected static Option configFastBin(String port) {
+        return newConfiguration("org.apache.aries.rsa.provider.fastbin")
+            .put("uri", "tcp://0.0.0.0:" + port).asOption();
     }
 
 }
