@@ -32,22 +32,20 @@ import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Version;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class EventProducerTest {
-
-
+    
+    
     @Test
     public void testPublishNotification() throws Exception {
-        RemoteServiceAdminCore remoteServiceAdminCore = EasyMock.createNiceMock(RemoteServiceAdminCore.class);
-        EasyMock.replay(remoteServiceAdminCore);
+        RemoteServiceAdminCore rsaCore = EasyMock.createNiceMock(RemoteServiceAdminCore.class);
+        EasyMock.replay(rsaCore);
 
         final EndpointDescription epd = EasyMock.createNiceMock(EndpointDescription.class);
         EasyMock.expect(epd.getServiceId()).andReturn(Long.MAX_VALUE).anyTimes();
@@ -69,30 +67,12 @@ public class EventProducerTest {
         EasyMock.expect(bundle.getHeaders()).andReturn(headers).anyTimes();
         EasyMock.replay(bundle);
 
-        EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        RemoteServiceAdminListener rsal = EasyMock.createNiceMock(RemoteServiceAdminListener.class);
+        rsal.remoteAdminEvent((RemoteServiceAdminEvent) EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
-                Event event = (Event) EasyMock.getCurrentArguments()[0];
-
-                Assert.assertEquals("org/osgi/service/remoteserviceadmin/EXPORT_REGISTRATION", event.getTopic());
-                Assert.assertSame(bundle, event.getProperty("bundle"));
-                Assert.assertEquals(42L, event.getProperty("bundle.id"));
-                Assert.assertEquals("test.bundle", event.getProperty("bundle.symbolicname"));
-                Assert.assertEquals(new Version(1, 2, 3, "test"), event.getProperty("bundle.version"));
-                Assert.assertNull(event.getProperty("cause"));
-                Assert.assertEquals(epd, event.getProperty("export.registration"));
-
-                Assert.assertEquals(Long.MAX_VALUE, event.getProperty("service.remote.id"));
-                Assert.assertEquals(uuid, event.getProperty("service.remote.uuid"));
-                Assert.assertEquals("foo://bar", event.getProperty("service.remote.uri"));
-                Assert.assertTrue(Arrays.equals(interfaces.toArray(new String[] {}),
-                                                (String[]) event.getProperty("objectClass")));
-
-                Assert.assertNotNull(event.getProperty("timestamp"));
-
-                RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) event.getProperty("event");
+                RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) EasyMock.getCurrentArguments()[0];
                 Assert.assertNull(rsae.getException());
                 Assert.assertEquals(RemoteServiceAdminEvent.EXPORT_REGISTRATION, rsae.getType());
                 Assert.assertSame(bundle, rsae.getSource());
@@ -103,24 +83,27 @@ public class EventProducerTest {
                 return null;
             }
         });
-        EasyMock.replay(ea);
+        EasyMock.replay(rsal);
 
-        ServiceReference eaSref = EasyMock.createNiceMock(ServiceReference.class);
-        EasyMock.replay(eaSref);
+        ServiceReference rsalSref = EasyMock.createNiceMock(ServiceReference.class);
+        EasyMock.expect(rsalSref.getBundle()).andReturn(bundle).anyTimes();
+        EasyMock.replay(rsalSref);
 
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
         EasyMock.expect(bc.getBundle()).andReturn(bundle).anyTimes();
-        EasyMock.expect(bc.getAllServiceReferences(EventAdmin.class.getName(), null))
-            .andReturn(new ServiceReference[] {eaSref}).anyTimes();
-        EasyMock.expect((EventAdmin)bc.getService(eaSref)).andReturn(ea).anyTimes();
+        EasyMock.expect(bc.getServiceReferences(RemoteServiceAdminListener.class.getName(), null))
+                .andReturn(new ServiceReference[] {rsalSref}).anyTimes();
+        EasyMock.expect(bc.getService(rsalSref)).andReturn(rsal).anyTimes();
         Endpoint endpoint = EasyMock.mock(Endpoint.class);
         EasyMock.expect(endpoint.description()).andReturn(epd);
         EasyMock.replay(endpoint);
         EasyMock.replay(bc);
         EventProducer eventProducer = new EventProducer(bc);
 
-        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, remoteServiceAdminCore);
+        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, rsaCore);
         eventProducer.publishNotification(ereg);
+
+        EasyMock.verify(rsaCore, sref, bundle, rsal, rsalSref, bc);
     }
 
     @Test
@@ -142,48 +125,39 @@ public class EventProducerTest {
 
         final Exception exportException = new Exception();
 
-        EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        RemoteServiceAdminListener rsal = EasyMock.createNiceMock(RemoteServiceAdminListener.class);
+        rsal.remoteAdminEvent((RemoteServiceAdminEvent) EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
-                Event event = (Event) EasyMock.getCurrentArguments()[0];
-
-                Assert.assertEquals("org/osgi/service/remoteserviceadmin/EXPORT_ERROR", event.getTopic());
-                Assert.assertSame(bundle, event.getProperty("bundle"));
-                Assert.assertEquals(42L, event.getProperty("bundle.id"));
-                Assert.assertEquals("test.bundle", event.getProperty("bundle.symbolicname"));
-                Assert.assertEquals(new Version("0"), event.getProperty("bundle.version"));
-                Assert.assertSame(exportException, event.getProperty("cause"));
-                Assert.assertEquals(endpoint, event.getProperty("export.registration"));
-                Assert.assertTrue(Arrays.equals(new String[] {"org.foo.Bar"},
-                                                (String[]) event.getProperty("objectClass")));
-
-                RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) event.getProperty("event");
+                RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) EasyMock.getCurrentArguments()[0];
                 Assert.assertSame(exportException, rsae.getException());
                 Assert.assertEquals(RemoteServiceAdminEvent.EXPORT_ERROR, rsae.getType());
                 Assert.assertSame(bundle, rsae.getSource());
-                ExportReference er = rsae.getExportReference();
-                Assert.assertSame(endpoint, er.getExportedEndpoint());
-                Assert.assertSame(sref, er.getExportedService());
+                Assert.assertNull(rsae.getImportReference());
+                Assert.assertNull(rsae.getExportReference());
 
                 return null;
             }
         });
-        EasyMock.replay(ea);
+        EasyMock.replay(rsal);
 
-        ServiceReference eaSref = EasyMock.createNiceMock(ServiceReference.class);
-        EasyMock.replay(eaSref);
+        ServiceReference rsalSref = EasyMock.createNiceMock(ServiceReference.class);
+        EasyMock.expect(rsalSref.getBundle()).andReturn(bundle).anyTimes();
+        EasyMock.replay(rsalSref);
 
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
+
         EasyMock.expect(bc.getBundle()).andReturn(bundle).anyTimes();
-        EasyMock.expect(bc.getAllServiceReferences(EventAdmin.class.getName(), null))
-            .andReturn(new ServiceReference[] {eaSref}).anyTimes();
-        EasyMock.expect((EventAdmin)bc.getService(eaSref)).andReturn(ea).anyTimes();
+        EasyMock.expect(bc.getServiceReferences(RemoteServiceAdminListener.class.getName(), null))
+                .andReturn(new ServiceReference[] {rsalSref}).anyTimes();
+        EasyMock.expect(bc.getService(rsalSref)).andReturn(rsal).anyTimes();
         EasyMock.replay(bc);
         EventProducer eventProducer = new EventProducer(bc);
 
         ExportRegistrationImpl ereg = new ExportRegistrationImpl(rsaCore, exportException);
         eventProducer.publishNotification(Arrays.<ExportRegistration>asList(ereg));
+
+        EasyMock.verify(rsaCore, sref, bundle, rsal, rsalSref, bc);
     }
 }

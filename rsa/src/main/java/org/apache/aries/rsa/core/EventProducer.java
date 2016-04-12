@@ -24,7 +24,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
@@ -35,11 +37,9 @@ public class EventProducer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventProducer.class);
     private final BundleContext bctx;
-    private final EventAdminHelper eaHelper;
 
     public EventProducer(BundleContext bc) {
         bctx = bc;
-        eaHelper = new EventAdminHelper(bctx);
     }
 
     protected void publishNotification(List<ExportRegistration> erl) {
@@ -49,35 +49,41 @@ public class EventProducer {
     }
 
     protected void publishNotification(ExportRegistration er) {
-        int type = er.getException() == null
-            ? RemoteServiceAdminEvent.EXPORT_REGISTRATION
-            : RemoteServiceAdminEvent.EXPORT_ERROR;
-        notify(type, null, er);
+        if (er.getException() == null) {
+            notify(RemoteServiceAdminEvent.EXPORT_REGISTRATION, er.getExportReference(), null);
+        } else {
+            notify(RemoteServiceAdminEvent.EXPORT_ERROR, (ExportReference) null, er.getException());
+        }
     }
 
     protected void publishNotification(ImportRegistration ir) {
-        int type = ir.getException() == null
-            ? RemoteServiceAdminEvent.IMPORT_REGISTRATION
-            : RemoteServiceAdminEvent.IMPORT_ERROR;
-        notify(type, ir, null);
+        if (ir.getException() == null) {
+            notify(RemoteServiceAdminEvent.IMPORT_REGISTRATION, ir.getImportReference(), null);
+        } else {
+            notify(RemoteServiceAdminEvent.IMPORT_ERROR, (ImportReference) null, ir.getException());
+        }
     }
 
     public void notifyRemoval(ExportRegistration er) {
-        notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, null, er);
+        notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, er.getExportReference(), null);
     }
 
     public void notifyRemoval(ImportRegistration ir) {
-        notify(RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, ir, null);
+        notify(RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, ir.getImportReference(), null);
     }
 
-    // only one of ir or er must be set, and the other must be null
-    private void notify(int type, ImportRegistration ir, ExportRegistration er) {
+    private void notify(int type, ExportReference er, Throwable ex) {
         try {
-            RemoteServiceAdminEvent event = ir != null
-                ? new RemoteServiceAdminEvent(type, bctx.getBundle(), ir.getImportReference(), ir.getException())
-                : new RemoteServiceAdminEvent(type, bctx.getBundle(), er.getExportReference(), er.getException());
+            RemoteServiceAdminEvent event = new RemoteServiceAdminEvent(type, bctx.getBundle(), er, ex);
             notifyListeners(event);
-            eaHelper.notifyEventAdmin(event);
+        } catch (IllegalStateException ise) {
+            LOG.debug("can't send notifications since bundle context is no longer valid");
+        }
+    }
+    private void notify(int type, ImportReference ir, Throwable ex) {
+        try {
+            RemoteServiceAdminEvent event = new RemoteServiceAdminEvent(type, bctx.getBundle(), ir, ex);
+            notifyListeners(event);
         } catch (IllegalStateException ise) {
             LOG.debug("can't send notifications since bundle context is no longer valid");
         }
