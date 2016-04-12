@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="aries-rsa-${project.version}">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="aries-rsa-${project.version}">
 
     <feature name="aries-rsa-core" version="${project.version}">
-        <feature>eventadmin</feature>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.spi/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.core/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.topology-manager/${project.version}</bundle>
+        <conditional>
+            <condition>eventadmin</condition>
+            <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.eapub/${project.version}</bundle>
+        </conditional>
     </feature>
     
     <feature name="aries-rsa-provider-tcp" version="${project.version}">

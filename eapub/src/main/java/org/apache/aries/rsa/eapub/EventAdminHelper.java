@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.core;
+package org.apache.aries.rsa.eapub;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +29,11 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EventAdminHelper {
+public class EventAdminHelper implements RemoteServiceAdminListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventAdminHelper.class);
 
@@ -55,7 +56,8 @@ public class EventAdminHelper {
         return new Event(topic, props);
     }
 
-    public void notifyEventAdmin(RemoteServiceAdminEvent rsae) {
+    @Override
+    public void remoteAdminEvent(RemoteServiceAdminEvent rsae) {
         String topic = remoteServiceAdminEventTypeToString(rsae.getType());
 
         Map<String, Object> props = new HashMap<String, Object>();
@@ -63,7 +65,7 @@ public class EventAdminHelper {
 
         EndpointDescription endpoint = null;
         if (rsae.getImportReference() != null) {
-            endpoint = ((ImportRegistrationImpl)rsae.getImportReference()).getImportedEndpointAlways();
+            endpoint = rsae.getImportReference().getImportedEndpoint();
             setIfNotNull(props, "import.registration", endpoint);
         } else if (rsae.getExportReference() != null) {
             endpoint = rsae.getExportReference().getExportedEndpoint();
