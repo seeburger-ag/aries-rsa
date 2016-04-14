@@ -39,8 +39,8 @@ public class ActivatorTest {
         IMocksControl c = EasyMock.createControl();
         BundleContext context = c.createMock(BundleContext.class);
         ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
-        expect(context.registerService(EasyMock.eq(DistributionProvider.class), EasyMock.anyObject(DistributionProvider.class), EasyMock.anyObject(Dictionary.class))).andReturn(sreg );
-        
+        expect(context.registerService(EasyMock.eq(DistributionProvider.class.getName()), EasyMock.anyObject(DistributionProvider.class), EasyMock.anyObject(Dictionary.class))).andReturn(sreg );
+
         c.replay();
         Activator activator = new Activator();
         activator.start(context);

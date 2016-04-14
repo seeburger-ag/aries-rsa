@@ -39,15 +39,15 @@ public class EndpointRepositoryTest {
     @Test
     public void testAddRemove() throws InvalidSyntaxException {
         EndpointDescription ep1 = createEndpoint("my");
-        
+
         IMocksControl c = EasyMock.createControl();
-        ServiceReference<?> sref = createService(c);
+        ServiceReference sref = createService(c);
         RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);
         EndpointListener notifier = c.createMock(EndpointListener.class);
-        
+
         notifier.endpointAdded(ep1, null);
         EasyMock.expectLastCall();
-        
+
         c.replay();
         EndpointRepository repo = new EndpointRepository();
         repo.setNotifier(notifier);
@@ -64,8 +64,8 @@ public class EndpointRepositoryTest {
         c.verify();
     }
 
-    private ServiceReference<?> createService(IMocksControl c) {
-        ServiceReference<?> sref = c.createMock(ServiceReference.class);
+    private ServiceReference createService(IMocksControl c) {
+        ServiceReference sref = c.createMock(ServiceReference.class);
         Bundle bundle = c.createMock(Bundle.class);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("myBundle");
         EasyMock.expect(sref.getBundle()).andReturn(bundle);
@@ -73,7 +73,7 @@ public class EndpointRepositoryTest {
     }
 
     public EndpointDescription createEndpoint(String iface) {
-        Map<String, Object> props = new Hashtable<String, Object>(); 
+        Map<String, Object> props = new Hashtable<String, Object>();
         props.put("objectClass", new String[]{iface});
         props.put(RemoteConstants.ENDPOINT_ID, iface);
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "any");

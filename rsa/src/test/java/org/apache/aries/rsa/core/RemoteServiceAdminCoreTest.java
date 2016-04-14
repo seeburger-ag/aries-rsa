@@ -195,8 +195,8 @@ public class RemoteServiceAdminCoreTest {
         EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
         EasyMock.expect(bc.createFilter("(service.id=51)"))
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
+        EasyMock.expect(bc.getProperty("org.osgi.framework.uuid")).andReturn("1111");
+        EasyMock.expect(bc.getServiceReference(PackageAdmin.class.getName())).andReturn(null);
         EasyMock.replay(bc);
 
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);
@@ -304,8 +304,8 @@ public class RemoteServiceAdminCoreTest {
         EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
         EasyMock.expect(bc.createFilter("(service.id=51)"))
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
+        EasyMock.expect(bc.getProperty("org.osgi.framework.uuid")).andReturn("1111");
+        EasyMock.expect(bc.getServiceReference(PackageAdmin.class.getName())).andReturn(null);
         EasyMock.replay(bc);
 
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);
@@ -354,8 +354,8 @@ public class RemoteServiceAdminCoreTest {
         EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
         EasyMock.expect(bc.createFilter("(service.id=51)"))
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
+        EasyMock.expect(bc.getProperty("org.osgi.framework.uuid")).andReturn("1111");
+        EasyMock.expect(bc.getServiceReference(PackageAdmin.class.getName())).andReturn(null);
         EasyMock.replay(bc);
 
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);
@@ -608,6 +608,7 @@ public class RemoteServiceAdminCoreTest {
     @Test
     public void testCreateEndpointProps() {
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
+        Activator.frameworkUUID = "some_uuid1";
         EasyMock.expect(bc.getProperty("org.osgi.framework.uuid")).andReturn("some_uuid1");
         EasyMock.replay(bc);
 

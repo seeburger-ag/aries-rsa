@@ -100,7 +100,7 @@ public class LocalDiscoveryTest {
         final Map<String, Object> props = new Hashtable<String, Object>();
         props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sr = EasyMock.createMock(ServiceReference.class);
+        ServiceReference sr = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
         EasyMock.expect(sr.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
@@ -150,7 +150,7 @@ public class LocalDiscoveryTest {
         final Map<String, Object> props = new Hashtable<String, Object>();
         props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, new String[] {"(objectClass=org.example.ClassA)"});
         @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sr = EasyMock.createMock(ServiceReference.class);
+        ServiceReference sr = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
         EasyMock.expect(sr.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
@@ -235,7 +235,7 @@ public class LocalDiscoveryTest {
         final Map<String, Object> props = new Hashtable<String, Object>();
         props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, "(objectClass=Aaaa)");
         @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sr = EasyMock.createMock(ServiceReference.class);
+        ServiceReference sr = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
         EasyMock.expect(sr.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
@@ -258,7 +258,7 @@ public class LocalDiscoveryTest {
 
         // Add another one with the same scope filter
         @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sr2 = EasyMock.createMock(ServiceReference.class);
+        ServiceReference sr2 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr2.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
         EasyMock.expect(sr2.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
@@ -283,7 +283,7 @@ public class LocalDiscoveryTest {
         final Map<String, Object> props2 = new Hashtable<String, Object>();
         props2.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, Arrays.asList("(objectClass=X)", "(objectClass=Y)"));
         @SuppressWarnings("unchecked")
-        ServiceReference<EndpointListener> sr3 = EasyMock.createMock(ServiceReference.class);
+        ServiceReference sr3 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr3.getPropertyKeys()).andReturn(props2.keySet().toArray(new String[] {})).anyTimes();
         EasyMock.expect(sr3.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {

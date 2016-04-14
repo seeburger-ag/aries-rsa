@@ -44,7 +44,7 @@ public class ActivatorTest {
     public void testDoStart() throws Exception {
         IMocksControl c = createNiceControl();
         BundleContext context = c.createMock(BundleContext.class);
-        expect(context.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid");
+        expect(context.getProperty("org.osgi.framework.uuid")).andReturn("myid");
         context.addServiceListener(isA(TopologyManagerExport.class));
         expectLastCall();
         final Capture<String> filter = newCapture();
@@ -54,7 +54,7 @@ public class ActivatorTest {
                     return FrameworkUtil.createFilter(filter.getValue());
                 }
             }).times(2);
-        ServiceReference<?> sref = c.createMock(ServiceReference.class);
+        ServiceReference sref = c.createMock(ServiceReference.class);
         Bundle bundle = c.createMock(Bundle.class);
         expect(sref.getBundle()).andReturn(bundle).anyTimes();
         expect(context.getServiceReferences((String)null, Activator.DOSGI_SERVICES))
@@ -62,9 +62,10 @@ public class ActivatorTest {
 
         c.replay();
         Activator activator = new Activator();
+        activator.start(context);
         activator.doStart(context, new DefaultExportPolicy());
         c.verify();
-        
+
         c.reset();
         c.replay();
         activator.doStop(context);

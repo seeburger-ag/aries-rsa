@@ -70,7 +70,7 @@ public class TopologyManagerExport implements ServiceListener {
     // track all service registrations so we can export any services that are configured to be exported
     // ServiceListener events may be delivered out of order, concurrently, re-entrant, etc. (see spec or docs)
     public void serviceChanged(ServiceEvent event) {
-        ServiceReference<?> sref = event.getServiceReference();
+        ServiceReference sref = event.getServiceReference();
         if (event.getType() == ServiceEvent.REGISTERED) {
             LOG.debug("Received REGISTERED ServiceEvent: {}", event);
             export(sref);
@@ -82,7 +82,7 @@ public class TopologyManagerExport implements ServiceListener {
 
     public void add(RemoteServiceAdmin rsa) {
         rsaSet.add(rsa);
-        for (ServiceReference<?> serviceRef : endpointRepo.getServicesToBeExportedFor(rsa)) {
+        for (ServiceReference serviceRef : endpointRepo.getServicesToBeExportedFor(rsa)) {
             export(serviceRef);
         }
     };
@@ -92,7 +92,7 @@ public class TopologyManagerExport implements ServiceListener {
         endpointRepo.removeRemoteServiceAdmin(rsa);
     };
 
-    private void export(final ServiceReference<?> sref) {
+    private void export(final ServiceReference sref) {
         execService.execute(new Runnable() {
             public void run() {
                 doExport(sref);
@@ -100,7 +100,7 @@ public class TopologyManagerExport implements ServiceListener {
         });
     }
 
-    private void doExport(final ServiceReference<?> sref) {
+    private void doExport(final ServiceReference sref) {
         Map<String, ?> addProps = policy.additionalParameters(sref);
         if (!shouldExport(sref, addProps)) {
             LOG.debug("Skipping service {}", sref);
@@ -127,7 +127,7 @@ public class TopologyManagerExport implements ServiceListener {
         }
     }
 
-    private boolean shouldExport(ServiceReference<?> sref, Map<String, ?> addProps) {
+    private boolean shouldExport(ServiceReference sref, Map<String, ?> addProps) {
         String exported = (String)sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
         String addExported = (String)addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
         String effectiveExported = addExported != null ? addExported : exported;

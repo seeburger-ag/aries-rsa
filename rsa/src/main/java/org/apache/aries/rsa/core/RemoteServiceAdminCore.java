@@ -76,6 +76,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         this.apictx = apiContext;
         this.eventProducer = new EventProducer(bctx);
         this.provider = provider;
+
         // listen for exported services being unregistered so we can close the export
         this.exportedServiceListener = new ServiceListener() {
             public void serviceChanged(ServiceEvent event) {
@@ -194,13 +195,13 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     private ExportRegistration exportService(List<String> interfaceNames,
-            ServiceReference<?> serviceReference, Map<String, Object> serviceProperties) {
+            ServiceReference serviceReference, Map<String, Object> serviceProperties) {
         LOG.info("interfaces selected for export: " + interfaceNames);
         try {
             Class<?>[] interfaces = getInterfaces(interfaceNames, serviceReference.getBundle());
             Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
             BundleContext serviceContext = serviceReference.getBundle().getBundleContext();
-            
+
             // TODO unget service when export is destroyed
             Object serviceO = serviceContext.getService(serviceReference);
             Endpoint endpoint = provider.exportService(serviceO, serviceContext, eprops, interfaces);
@@ -209,8 +210,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             return new ExportRegistrationImpl(this, e);
         }
     }
-    
-    private Class<?>[] getInterfaces(List<String> interfaceNames, 
+
+    private Class<?>[] getInterfaces(List<String> interfaceNames,
                                          Bundle serviceBundle) throws ClassNotFoundException {
         List<Class<?>> interfaces = new ArrayList<>();
         for (String interfaceName : interfaceNames) {
@@ -306,7 +307,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         return copy;
     }
 
-    private boolean isImportedService(ServiceReference<?> sref) {
+    private boolean isImportedService(ServiceReference sref) {
         return sref.getProperty(RemoteConstants.SERVICE_IMPORTED) != null;
     }
 
@@ -358,16 +359,16 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
                 LOG.info("No matching handler can be found for remote endpoint {}.", endpoint.getId());
                 return null;
             }
-            
+
             // TODO: somehow select the interfaces that should be imported ---> job of the TopologyManager?
             List<String> matchingInterfaces = endpoint.getInterfaces();
-            
+
             if (matchingInterfaces.size() == 0) {
                 LOG.info("No matching interfaces found for remote endpoint {}.", endpoint.getId());
                 return null;
             }
-            
-            LOG.info("Importing service {} with interfaces {} using handler {}.", 
+
+            LOG.info("Importing service {} with interfaces {} using handler {}.",
                      endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
 
             ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.get(0), endpoint, provider);
@@ -380,7 +381,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             return imReg;
         }
     }
-    
+
     private List<String> determineConfigTypesForImport(EndpointDescription endpoint) {
         List<String> remoteConfigurationTypes = endpoint.getConfigurationTypes();
 
@@ -410,13 +411,13 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
             ClientServiceFactory csf = new ClientServiceFactory(endpoint, handler, imReg);
             imReg.setClientServiceFactory(csf);
-            
+
             /**
              *  Export the factory using the api context as it has very few imports.
              *  If the bundle publishing the factory does not import the service interface
              *  package then the factory is visible for all consumers which we want.
              */
-            ServiceRegistration<?> csfReg = apictx.registerService(interfaceName, csf, serviceProps);
+            ServiceRegistration csfReg = apictx.registerService(interfaceName, csf, serviceProps);
             imReg.setImportedServiceRegistration(csfReg);
         } catch (Exception ex) {
             // Only logging at debug level as this might be written to the log at the TopologyManager
@@ -432,7 +433,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
      *
      * @param sref the service whose exports should be removed and closed
      */
-    protected void removeServiceExports(ServiceReference<?> sref) {
+    protected void removeServiceExports(ServiceReference sref) {
         List<ExportRegistration> regs = new ArrayList<ExportRegistration>(1);
         synchronized (exportedServices) {
             for (Iterator<Collection<ExportRegistration>> it = exportedServices.values().iterator(); it.hasNext();) {
@@ -544,7 +545,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         for (String key : serviceProperties.keySet()) {
             keysLowerCase.put(key.toLowerCase(), key);
         }
-    
+
         for (Map.Entry<String, Object> e : additionalProperties.entrySet()) {
             String key = e.getKey();
             String lowerKey = key.toLowerCase();
@@ -572,7 +573,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
      * @param serviceReference a service reference
      * @return the service's properties as a map
      */
-    private Map<String, Object> getProperties(ServiceReference<?> serviceReference) {
+    private Map<String, Object> getProperties(ServiceReference serviceReference) {
         String[] keys = serviceReference.getPropertyKeys();
         Map<String, Object> props = new HashMap<String, Object>(keys.length);
         for (String key : keys) {
@@ -581,15 +582,15 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         }
         return props;
     }
-    
-    protected Map<String, Object> createEndpointProps(Map<String, Object> effectiveProps, 
+
+    protected Map<String, Object> createEndpointProps(Map<String, Object> effectiveProps,
                                                       Class<?>[] ifaces) {
         Map<String, Object> props = new HashMap<String, Object>();
         copyEndpointProperties(effectiveProps, props);
         props.remove(org.osgi.framework.Constants.SERVICE_ID);
         EndpointHelper.addObjectClass(props, ifaces);
         props.put(RemoteConstants.ENDPOINT_SERVICE_ID, effectiveProps.get(org.osgi.framework.Constants.SERVICE_ID));
-        String frameworkUUID = bctx.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID);
+        String frameworkUUID = Activator.frameworkUUID;
         props.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, frameworkUUID);
         for (Class<?> iface : ifaces) {
             String pkg = iface.getPackage().getName();

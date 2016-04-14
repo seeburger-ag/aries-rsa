@@ -87,7 +87,7 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
      */
     private final Map<String /* filter */, List<ImportRegistration>> importedServices
         = new HashMap<String, List<ImportRegistration>>();
-    
+
 
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new HashSet<RemoteServiceAdmin>();
@@ -96,10 +96,10 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         listenerHook = new ListenerHookImpl(bc, this);
     }
-    
+
     public void start() {
-        bctx.registerService(RemoteServiceAdminListener.class, this, null);
-        bctx.registerService(ListenerHook.class, listenerHook, null);
+        bctx.registerService(RemoteServiceAdminListener.class.getName(), this, null);
+        bctx.registerService(ListenerHook.class.getName(), listenerHook, null);
         endpointListenerManager.start();
     }
 
@@ -187,7 +187,7 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
             }
         }
     }
-    
+
     public void remove(RemoteServiceAdmin rsa) {
         rsaSet.remove(rsa);
     }

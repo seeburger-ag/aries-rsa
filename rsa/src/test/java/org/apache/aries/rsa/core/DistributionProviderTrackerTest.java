@@ -44,7 +44,7 @@ public class DistributionProviderTrackerTest {
         IMocksControl c = EasyMock.createControl();
         DistributionProvider provider = c.createMock(DistributionProvider.class);
 
-        ServiceReference<DistributionProvider> providerRef = c.createMock(ServiceReference.class);
+        ServiceReference providerRef = c.createMock(ServiceReference.class);
         EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn("");
         EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn("");
 
@@ -85,7 +85,7 @@ public class DistributionProviderTrackerTest {
         IMocksControl c = EasyMock.createControl();
         DistributionProvider provider = c.createMock(DistributionProvider.class);
 
-        ServiceReference<DistributionProvider> providerRef = c.createMock(ServiceReference.class);
+        ServiceReference providerRef = c.createMock(ServiceReference.class);
         EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn(null);
         EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn(null);
 

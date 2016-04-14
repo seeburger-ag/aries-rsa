@@ -29,7 +29,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +55,11 @@ public class ClientServiceFactory implements ServiceFactory {
     public Object getService(final Bundle requestingBundle, final ServiceRegistration sreg) {
         List<String> interfaceNames = endpoint.getInterfaces();
         final BundleContext consumerContext = requestingBundle.getBundleContext();
-        final ClassLoader consumerLoader = requestingBundle.adapt(BundleWiring.class).getClassLoader();
+//        final ClassLoader consumerLoader = requestingBundle.adapt(BundleWiring.class).getClassLoader();
         try {
+            //TODO: find another way for this short of using BundleWiring
+            Class theClass = requestingBundle.loadClass(interfaceNames.get(0));
+            final ClassLoader consumerLoader = theClass.getClassLoader();
             LOG.debug("getService() from serviceFactory for {}", interfaceNames);
             final List<Class<?>> interfaces = new ArrayList<Class<?>>();
             for (String ifaceName : interfaceNames) {

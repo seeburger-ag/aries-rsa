@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.zookeeper.ZooKeeper;
@@ -38,21 +39,21 @@ import org.slf4j.LoggerFactory;
 /**
  * Creates local EndpointListeners that publish to ZooKeeper.
  */
-public class PublishingEndpointListenerFactory implements ServiceFactory<PublishingEndpointListener> {
+public class PublishingEndpointListenerFactory implements ServiceFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListenerFactory.class);
 
     private final BundleContext bctx;
     private final ZooKeeper zk;
     private final List<PublishingEndpointListener> listeners = new ArrayList<PublishingEndpointListener>();
-    private ServiceRegistration<?> serviceRegistration;
+    private ServiceRegistration serviceRegistration;
 
     public PublishingEndpointListenerFactory(ZooKeeper zk, BundleContext bctx) {
         this.bctx = bctx;
         this.zk = zk;
     }
 
-    public PublishingEndpointListener getService(Bundle b, ServiceRegistration<PublishingEndpointListener> sr) {
+    public PublishingEndpointListener getService(Bundle b, ServiceRegistration sr) {
         LOG.debug("new EndpointListener from factory");
         synchronized (listeners) {
             PublishingEndpointListener pel = new PublishingEndpointListener(zk, bctx);
@@ -61,26 +62,36 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
         }
     }
 
-    public void ungetService(Bundle b, ServiceRegistration<PublishingEndpointListener> sr, 
-                             PublishingEndpointListener pel) {
+    public void ungetService(Bundle b, ServiceRegistration sr,
+                             Object pel) {
         LOG.debug("remove EndpointListener");
         synchronized (listeners) {
             if (listeners.remove(pel)) {
-                pel.close();
+                if (pel instanceof PublishingEndpointListener)
+                {
+                    PublishingEndpointListener listener = (PublishingEndpointListener)pel;
+                    listener.close();
+
+                }
             }
         }
     }
 
     public synchronized void start() {
         Dictionary<String, String> props = new Hashtable<String, String>();
-        String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
-        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, 
-                  String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
+        String uuid = bctx.getProperty("org.osgi.framework.uuid");
+        if(uuid==null)
+        {
+            uuid = System.getProperty("org.osgi.framework.uuid",UUID.randomUUID().toString());
+            System.setProperty("org.osgi.framework.uuid", uuid);
+        }
+        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE,
+                  String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS,
                                 RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
         props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
         serviceRegistration = bctx.registerService(EndpointListener.class.getName(), this, props);
     }
-    
+
     public synchronized void stop() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
@@ -96,8 +107,8 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
 
     /**
      * Only for the test case!
-     * 
-     * @return 
+     *
+     * @return
      */
     protected List<PublishingEndpointListener> getListeners() {
         synchronized (listeners) {

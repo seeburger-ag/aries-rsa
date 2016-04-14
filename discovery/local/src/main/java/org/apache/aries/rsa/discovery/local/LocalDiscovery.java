@@ -69,7 +69,7 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    void addListener(ServiceReference<EndpointListener> endpointListenerRef, EndpointListener endpointListener) {
+    void addListener(ServiceReference endpointListenerRef, EndpointListener endpointListener) {
         List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
         if (filters.isEmpty()) {
             return;
@@ -203,7 +203,7 @@ public class LocalDiscovery implements BundleListener {
         if (filter == null) {
             return false;
         }
-    
+
         try {
             Filter f = FrameworkUtil.createFilter(filter);
             Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());

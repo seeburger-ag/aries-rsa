@@ -20,6 +20,7 @@ package org.apache.aries.rsa.topologymanager;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -57,11 +58,19 @@ public class Activator implements BundleActivator {
     private ThreadPoolExecutor exportExecutor;
     private ServiceTracker epListenerTracker;
     private ServiceTracker policyTracker;
+    public static String frameworkUUID;
 
     public void start(final BundleContext bc) throws Exception {
+        String uuid = bc.getProperty("org.osgi.framework.uuid");
+        if(uuid==null)
+        {
+            uuid = System.getProperty("org.osgi.framework.uuid",UUID.randomUUID().toString());
+            System.setProperty("org.osgi.framework.uuid", uuid);
+        }
+        frameworkUUID = uuid;
         Dictionary<String, String> props = new Hashtable<String, String>();
         props.put("name", "default");
-        bc.registerService(ExportPolicy.class, new DefaultExportPolicy(), props);
+        bc.registerService(ExportPolicy.class.getName(), new DefaultExportPolicy(), props);
 
         Filter policyFilter = exportPolicyFilter(bc);
         policyTracker = new ServiceTracker(bc, policyFilter, null) {
@@ -128,9 +137,9 @@ public class Activator implements BundleActivator {
     public void exportExistingServices(BundleContext context) {
         try {
             // cast to String is necessary for compiling against OSGi core version >= 4.3
-            ServiceReference<?>[] references = context.getServiceReferences((String)null, DOSGI_SERVICES);
+            ServiceReference[] references = context.getServiceReferences((String)null, DOSGI_SERVICES);
             if (references != null) {
-                for (ServiceReference<?> sref : references) {
+                for (ServiceReference sref : references) {
                     exportManager.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, sref));
                 }
             }

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.rsa.topologymanager.Activator;
 import org.apache.aries.rsa.topologymanager.importer.ListenerHookImpl;
 import org.apache.aries.rsa.topologymanager.importer.ServiceInterestListener;
 import org.easymock.EasyMock;
@@ -54,7 +55,7 @@ public class ListenerHookImplTest {
         m.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, "MyUUID");
         assertFalse(filter + " filter must NOT match as uuid is the local one", f.match(m));
     }
-    
+
     @Test
     public void testAddedRemoved() throws InvalidSyntaxException {
         IMocksControl c = EasyMock.createControl();
@@ -67,7 +68,7 @@ public class ListenerHookImplTest {
         ListenerInfo listener = c.createMock(ListenerInfo.class);
         EasyMock.expect(listener.getBundleContext()).andReturn(listenerBc);
         EasyMock.expect(listener.getFilter()).andReturn(filter).atLeastOnce();
-        
+
         // Main assertions
         serviceInterestListener.addServiceInterest(listenerHook.extendFilter(filter));
         EasyMock.expectLastCall();
@@ -75,7 +76,7 @@ public class ListenerHookImplTest {
         EasyMock.expectLastCall();
 
         Collection<ListenerInfo> listeners = Collections.singletonList(listener);
-        
+
         c.replay();
         listenerHook.added(listeners);
         listenerHook.removed(listeners);
@@ -85,6 +86,7 @@ public class ListenerHookImplTest {
     private BundleContext createBundleContext() {
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
         EasyMock.expect(bc.getProperty(EasyMock.eq("org.osgi.framework.uuid"))).andReturn("MyUUID").atLeastOnce();
+        Activator.frameworkUUID = "MyUUID";
         EasyMock.replay(bc);
         return bc;
     }

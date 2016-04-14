@@ -36,20 +36,20 @@ public class Activator implements BundleActivator {
 
     public synchronized void start(BundleContext bc) throws Exception {
         zkd = new ZooKeeperDiscovery(bc);
-        bc.registerService(ManagedService.class, zkd, configProperties(PID_DISCOVERY_ZOOKEEPER));
-        
+        bc.registerService(ManagedService.class.getName(), zkd, configProperties(PID_DISCOVERY_ZOOKEEPER));
+
         zkStarter = new ZookeeperStarter(bc);
-        bc.registerService(ManagedService.class, zkStarter, configProperties(PID_ZOOKEEPER_SERVER));
+        bc.registerService(ManagedService.class.getName(), zkStarter, configProperties(PID_ZOOKEEPER_SERVER));
     }
 
     public synchronized void stop(BundleContext bc) throws Exception {
         zkd.stop(true);
-        
+
         if (zkStarter != null) {
             zkStarter.shutdown();
         }
     }
-    
+
     private Dictionary<String, String> configProperties(String pid) {
         Dictionary<String, String> props = new Hashtable<String, String>();
         props.put(Constants.SERVICE_PID, pid);

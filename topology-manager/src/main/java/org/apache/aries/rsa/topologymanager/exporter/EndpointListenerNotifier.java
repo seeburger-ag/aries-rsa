@@ -49,8 +49,8 @@ public class EndpointListenerNotifier implements EndpointListener {
         this.endpointRepo = endpointRepo;
         this.listeners = new ConcurrentHashMap<EndpointListener, Set<Filter>>();
     }
-    
-    public static Set<Filter> getFiltersFromEndpointListenerScope(ServiceReference<EndpointListener> sref) {
+
+    public static Set<Filter> getFiltersFromEndpointListenerScope(ServiceReference sref) {
         Set<Filter> filters = new HashSet<Filter>();
         List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
         for (String scope : scopes) {
@@ -70,12 +70,12 @@ public class EndpointListenerNotifier implements EndpointListener {
             notifyListener(NotifyType.ADDED, ep, filters, endpoint);
         }
     }
-    
+
     public void remove(EndpointListener ep) {
         LOG.debug("EndpointListener modified");
         listeners.remove(ep);
     }
-    
+
     @Override
     public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
         notifyListeners(NotifyType.ADDED, endpoint);
@@ -105,7 +105,7 @@ public class EndpointListenerNotifier implements EndpointListener {
      * @param endpointListenerRef the ServiceReference of an EndpointListener to notify
      * @param endpoints the endpoints the listener should be notified about
      */
-    private void notifyListener(NotifyType type, EndpointListener listener, Set<Filter> filters, 
+    private void notifyListener(NotifyType type, EndpointListener listener, Set<Filter> filters,
                         EndpointDescription endpoint) {
         LOG.debug("Endpoint {}", type);
         Set<Filter> matchingFilters = getMatchingFilters(filters, endpoint);
@@ -117,7 +117,7 @@ public class EndpointListenerNotifier implements EndpointListener {
             }
         }
     }
-    
+
     private static Set<Filter> getMatchingFilters(Set<Filter> filters, EndpointDescription endpoint) {
         Set<Filter> matchingFilters = new HashSet<Filter>();
         Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());

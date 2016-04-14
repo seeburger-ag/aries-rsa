@@ -34,7 +34,7 @@ public class Activator implements BundleActivator {
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{});
         props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, provider.getSupportedTypes());
-        context.registerService(DistributionProvider.class, provider, props);
+        context.registerService(DistributionProvider.class.getName(), provider, props);
     }
 
     @Override

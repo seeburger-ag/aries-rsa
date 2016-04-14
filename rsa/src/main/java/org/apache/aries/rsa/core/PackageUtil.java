@@ -43,9 +43,9 @@ public final class PackageUtil {
      *         occurred during the retrieval
      */
     public static String getVersion(Class<?> iClass, BundleContext bc) {
-        ServiceReference<PackageAdmin> paRef = bc.getServiceReference(PackageAdmin.class);
+        ServiceReference paRef = bc.getServiceReference(PackageAdmin.class.getName());
         if (paRef != null) {
-            PackageAdmin pa = bc.getService(paRef);
+            PackageAdmin pa = (PackageAdmin)bc.getService(paRef);
             try {
                 Bundle b = pa.getBundle(iClass);
                 if (b == null) {

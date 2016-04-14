@@ -18,8 +18,7 @@
  */
 package org.apache.aries.rsa.core;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +30,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
@@ -52,9 +50,11 @@ public class ClientServiceFactoryTest extends TestCase {
 
         BundleContext consumerContext = control.createMock(BundleContext.class);
         Bundle consumerBundle = control.createMock(Bundle.class);
-        BundleWiring bundleWiring = control.createMock(BundleWiring.class);
-        EasyMock.expect(bundleWiring.getClassLoader()).andReturn(this.getClass().getClassLoader());
-        EasyMock.expect(consumerBundle.adapt(BundleWiring.class)).andReturn(bundleWiring);
+
+//        BundleWiring bundleWiring = control.createMock(BundleWiring.class);
+//        EasyMock.expect(bundleWiring.getClassLoader()).andReturn(this.getClass().getClassLoader());
+//        EasyMock.expect(consumerBundle.adapt(BundleWiring.class)).andReturn(bundleWiring);
+        EasyMock.expect(consumerBundle.loadClass(String.class.getName())).andReturn(this.getClass());
         EasyMock.expect(consumerBundle.getBundleContext()).andReturn(consumerContext);
         ServiceRegistration sreg = control.createMock(ServiceRegistration.class);
 
@@ -73,9 +73,9 @@ public class ClientServiceFactoryTest extends TestCase {
      */
     private DistributionProvider mockDistributionProvider(final Object proxy) {
         DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
-        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class), 
-                                               anyObject(BundleContext.class), 
-                                               isA(Class[].class), 
+        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class),
+                                               anyObject(BundleContext.class),
+                                               isA(Class[].class),
                                                anyObject(EndpointDescription.class))).andReturn(proxy);
         EasyMock.replay(handler);
         return handler;

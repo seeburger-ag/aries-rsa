@@ -73,7 +73,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
 
     @Override
     public ImportRegistration importService(final EndpointDescription endpoint) {
-        String frameworkUUID = bctx.getProperty(Constants.FRAMEWORK_UUID);
+        String frameworkUUID = Activator.frameworkUUID;
         checkPermission(new EndpointPermission(endpoint, frameworkUUID, EndpointPermission.IMPORT));
         return AccessController.doPrivileged(new PrivilegedAction<ImportRegistration>() {
             public ImportRegistration run() {
