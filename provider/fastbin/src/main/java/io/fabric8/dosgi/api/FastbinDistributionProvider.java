@@ -43,7 +43,7 @@ import io.fabric8.dosgi.io.ServerInvoker;
 import io.fabric8.dosgi.tcp.ClientInvokerImpl;
 import io.fabric8.dosgi.tcp.ServerInvokerImpl;
 
-@Component(enabled=true)
+@Component(enabled=true,immediate=true)
 @Service
 @Properties({
     @Property(name = RemoteConstants.REMOTE_INTENTS_SUPPORTED, value = {""}),

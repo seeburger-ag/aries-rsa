@@ -47,7 +47,7 @@ public class FastbinEndpoint implements Endpoint
         effectiveProperties.put(FastbinDistributionProvider.PROTOCOL_VERSION_PROPERTY, String.valueOf(FastbinDistributionProvider.PROTOCOL_VERSION));
         String fastbinAddress = server.getConnectAddress();
         effectiveProperties.put(FastbinDistributionProvider.SERVER_ADDRESS, fastbinAddress);
-        String endpointID = effectiveProperties.getOrDefault(FastbinDistributionProvider.ENDPOINT_ADDRESS, UUID.randomUUID()).toString();
+        String endpointID = effectiveProperties.getOrDefault(RemoteConstants.ENDPOINT_ID, UUID.randomUUID()).toString();
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointID);
         endpointDescription = new EndpointDescription(effectiveProperties);
 
@@ -75,7 +75,7 @@ public class FastbinEndpoint implements Endpoint
     @Override
     public void close() throws IOException
     {
-        server.unregisterService((String)endpointDescription.getProperties().get(FastbinDistributionProvider.ENDPOINT_ADDRESS));
+        server.unregisterService((String)endpointDescription.getId());
 
     }
 

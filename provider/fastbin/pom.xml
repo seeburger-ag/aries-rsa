@@ -37,7 +37,8 @@
         </fuse.osgi.export>
         <fuse.osgi.import.before.defaults>
             !org.objectweb.asm,
-            org.eclipse.osgi*;resolution:=optional
+            org.eclipse.osgi*;resolution:=optional,
+            com.google.common.*;version="[14.0.0,20.0.0)"
         </fuse.osgi.import.before.defaults>
         <fuse.osgi.import.additional>
         </fuse.osgi.import.additional>
