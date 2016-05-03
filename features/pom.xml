@@ -137,7 +137,6 @@
                             <features>
                                 <feature>aries-rsa-*</feature>
                             </features>
-                            <localRepo>${maven.repo.local}</localRepo>
                         </configuration>
                     </execution>
                 </executions>
