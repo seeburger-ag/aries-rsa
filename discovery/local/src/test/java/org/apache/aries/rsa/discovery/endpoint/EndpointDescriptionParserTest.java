@@ -22,30 +22,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionBundleParser;
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
-import org.osgi.framework.Bundle;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 public class EndpointDescriptionParserTest {
 
     @Test
-    public void testNoRemoteServicesXMLFiles() {
-        Bundle b = EasyMock.createNiceMock(Bundle.class);
-        EasyMock.replay(b);
-
-        List<EndpointDescriptionType> rsElements = new EndpointDescriptionBundleParser().getAllDescriptionElements(b);
-        Assert.assertEquals(0, rsElements.size());
-    }
-
-    @Test
     public void testEndpointDescriptionsFromURL() throws IOException {
         URL ed1URL = getClass().getResource("/ed1.xml");
-        List<EndpointDescriptionType> edElements = new EndpointDescriptionParser().
-            getEndpointDescriptions(ed1URL.openStream());
+        List<EndpointDescription> edElements = new EndpointDescriptionParser().
+            readEndpoints(ed1URL.openStream());
         Assert.assertEquals(4, edElements.size());
     }
 }

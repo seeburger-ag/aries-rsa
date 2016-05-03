@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.endpoint;
+package org.apache.aries.rsa.discovery.local;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,11 +24,10 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.osgi.framework.Bundle;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,23 +44,12 @@ public final class EndpointDescriptionBundleParser {
     }
 
     public List<EndpointDescription> getAllEndpointDescriptions(Bundle b) {
-        List<EndpointDescriptionType> elements = getAllDescriptionElements(b);
-
-        List<EndpointDescription> endpoints = new ArrayList<EndpointDescription>(elements.size());
-        for (EndpointDescriptionType epd : elements) {
-            Map<String, Object> props = new PropertiesMapper().toProps(epd.getProperty());
-            endpoints.add(new EndpointDescription(props));
-        }
-        return endpoints;
-    }
-
-    List<EndpointDescriptionType> getAllDescriptionElements(Bundle b) {
         Enumeration<URL> urls = getEndpointDescriptionURLs(b);
-        List<EndpointDescriptionType> elements = new ArrayList<EndpointDescriptionType>();
+        List<EndpointDescription> elements = new ArrayList<EndpointDescription>();
         while (urls.hasMoreElements()) {
             URL resourceURL = (URL) urls.nextElement();
             try {
-                elements.addAll(parser.getEndpointDescriptions(resourceURL.openStream()));
+                elements.addAll(parser.readEndpoints(resourceURL.openStream()));
             } catch (Exception ex) {
                 LOG.warn("Problem parsing: " + resourceURL, ex);
             }

@@ -20,15 +20,13 @@ package org.apache.aries.rsa.discovery.zookeeper.publish;
 
 import static org.easymock.EasyMock.expect;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
-import org.apache.aries.rsa.discovery.zookeeper.publish.DiscoveryPlugin;
-import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -45,8 +43,6 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
-import org.osgi.xmlns.rsa.v1_0.PropertyType;
 
 import junit.framework.TestCase;
 
@@ -99,10 +95,10 @@ public class PublishingEndpointListenerTest extends TestCase {
         final ZooKeeper zk = EasyMock.createNiceMock(ZooKeeper.class);
         String expectedFullPath = "/osgi/service_registry/org/foo/myClass/some.machine#9876##test";
         
-        List<PropertyType> props2 = new PropertiesMapper().fromProps(expectedProps);
-        EndpointDescriptionType epd = new EndpointDescriptionType();
-        epd.getProperty().addAll(props2);
-        byte[] data = new EndpointDescriptionParser().getData(epd);
+        EndpointDescription epd = new EndpointDescription(expectedProps);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        new EndpointDescriptionParser().writeEndpoint(epd, bos);
+        byte[] data = bos.toByteArray();
         expectCreated(zk, expectedFullPath, EasyMock.aryEq(data));
         EasyMock.replay(zk);
 

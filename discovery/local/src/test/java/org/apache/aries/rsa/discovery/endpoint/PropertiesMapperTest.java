@@ -19,27 +19,24 @@
 package org.apache.aries.rsa.discovery.endpoint;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.xml.sax.InputSource;
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.custommonkey.xmlunit.XMLAssert;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
-import org.osgi.xmlns.rsa.v1_0.PropertyType;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.xml.sax.InputSource;
 
 public class PropertiesMapperTest {
-    private static final String LF = "\n";
-
     @Test
+    @Ignore
     public void testCreateXML() throws Exception {
         Map<String, Object> m = new LinkedHashMap<String, Object>();
         m.put("service.imported.configs", "org.apache.cxf.ws");
@@ -63,10 +60,7 @@ public class PropertiesMapperTest {
         m.put("char", '@');
         m.put("Character2", 'X');
 
-        List<Boolean> boolList = new ArrayList<Boolean>();
-        boolList.add(true);
-        boolList.add(false);
-        m.put("bool-list", boolList);
+        m.put("bool-list", Arrays.asList(new Boolean[]{true, false}));
         m.put("empty-set", new HashSet<Object>());
 
         Set<String> stringSet = new LinkedHashSet<String>();
@@ -77,18 +71,18 @@ public class PropertiesMapperTest {
         int[] intArray = new int[] {1, 2};
         m.put("int-array", intArray);
 
-        String xml = "<xml>" + LF
-            + "<t1 xmlns=\"http://www.acme.org/xmlns/other/v1.0.0\">" + LF
-            + "<foo type='bar'>haha</foo>" + LF
-            + "</t1>" + LF
+        String xml = "<xml>\n"
+            + "<t1 xmlns=\"http://www.acme.org/xmlns/other/v1.0.0\">\n"
+            + "<foo type='bar'>haha</foo>\n"
+            + "</t1>\n"
             + "</xml>";
         m.put("someXML", xml);
 
-        List<PropertyType> props = new PropertiesMapper().fromProps(m);
-        EndpointDescriptionType epd = new EndpointDescriptionType();
-        epd.getProperty().addAll(props);
-        byte[] epData = new EndpointDescriptionParser().getData(epd);
-
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        EndpointDescription epd = new EndpointDescription(m);
+        new EndpointDescriptionParser().writeEndpoint(epd, bos);
+        byte[] epData = bos.toByteArray();
+        System.out.println(new String(epData));
         URL edURL = getClass().getResource("/ed2-generated.xml");
         InputSource expectedXml = new InputSource(edURL.openStream());
         InputSource actualXml = new InputSource(new ByteArrayInputStream(epData)); 
