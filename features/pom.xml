@@ -112,6 +112,7 @@
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
+                <version>4.0.5</version>
                 <configuration>
                     <startLevel>30</startLevel>
                 </configuration>
@@ -136,6 +137,7 @@
                             <features>
                                 <feature>aries-rsa-*</feature>
                             </features>
+                            <localRepo>${maven.repo.local}</localRepo>
                         </configuration>
                     </execution>
                 </executions>
