@@ -21,6 +21,7 @@ import java.net.Inet4Address;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
@@ -78,6 +79,7 @@ public class FastbinDistributionProvider implements DistributionProvider {
     private DispatchQueue queue;
     private ConcurrentHashMap<String, SerializationStrategy> serializationStrategies;
     private BundleContext bundleContext;
+    private volatile AtomicBoolean started = new AtomicBoolean(false);
 
     @SuppressWarnings("rawtypes")
     @Activate
@@ -97,11 +99,10 @@ public class FastbinDistributionProvider implements DistributionProvider {
                 LOG.info("public server address (fastbin.address) not set. Using {} as default",publicHost);
             }
             server = new ServerInvokerImpl("tcp://"+publicHost+":"+port, queue, serializationStrategies);
-            server.start();
             client = new ClientInvokerImpl(queue, serializationStrategies);
             client.start();
         } catch (Exception e) {
-            LOG.error("Failed to start the tcp server",e);
+            LOG.error("Failed to start the tcp client",e);
         }
     }
 
@@ -120,6 +121,18 @@ public class FastbinDistributionProvider implements DistributionProvider {
     @Override
     public Endpoint exportService(Object serviceO, BundleContext serviceContext, Map<String, Object> effectiveProperties, Class[] exportedInterfaces)
     {
+        if(started.compareAndSet(false, true))
+        {
+            try
+            {
+                server.start();
+            }
+            catch (Exception e)
+            {
+                LOG.error("Failed to start the tcp server",e);
+                started.set(false);
+            }
+        }
         effectiveProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, getSupportedTypes());
         return new FastbinEndpoint(server,effectiveProperties,serviceO);
     }
