@@ -89,7 +89,7 @@ public class FastbinDistributionProvider implements DistributionProvider {
         this.queue = Dispatch.createQueue();
         this.serializationStrategies = new ConcurrentHashMap<String, SerializationStrategy>();
         int port = Integer.parseInt(config.getOrDefault(PORT, System.getProperty(PORT,"9000")).toString());
-        String publicHost = (String)config.get(SERVER_ADDRESS);
+        String publicHost = (String)config.getOrDefault(SERVER_ADDRESS, System.getProperty(SERVER_ADDRESS, null));
         try {
             if(publicHost==null)
             {
