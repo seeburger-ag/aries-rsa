@@ -202,7 +202,7 @@ public class InvocationTest {
             }
 
             for (int t = 0; t < BENCHMARK_CLIENTS; t++) {
-                threads[t].join(10000);
+                threads[t].join(50000);
                 System.err.format("REQUEST: %d of %d%n", requests.get(), BENCHMARK_CLIENTS);
                 System.err.format("RESPONSES: %d of %d%n", responses.get(), BENCHMARK_CLIENTS);
                 assertEquals(threads[t].isAlive(), false);
