@@ -80,13 +80,13 @@ public class RsaTestBase {
     }
 
     protected static Option rsaCoreZookeeper() {
-        return composite(junitBundles(), 
+        return composite(junitBundles(),
                          localRepo(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("zkPort").value("15201"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
-                         mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"), 
+                         mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local"),
@@ -101,7 +101,9 @@ public class RsaTestBase {
     }
 
     protected static Option rsaFastBin() {
-        return composite(mvn("org.fusesource.hawtbuf", "hawtbuf"),
+        return composite(mvn("org.apache.felix","org.apache.felix.scr"),
+                       mvn("org.apache.felix","org.apache.felix.scr.annotations"),
+                       mvn("org.fusesource.hawtbuf", "hawtbuf"),
                        mvn("org.fusesource.hawtdispatch", "hawtdispatch"),
                        mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
     }
@@ -112,12 +114,12 @@ public class RsaTestBase {
             .put("zookeeper.port", ZK_PORT)
             .asOption();
     }
-    
+
     protected static Option configZKServer() {
         return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server")
             .put("clientPort", ZK_PORT).asOption();
-    } 
-    
+    }
+
     protected static Option configFastBin(String port) {
         return newConfiguration("org.apache.aries.rsa.provider.fastbin")
             .put("uri", "tcp://0.0.0.0:" + port).asOption();
