@@ -21,6 +21,7 @@ import java.net.Inet4Address;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -43,6 +44,7 @@ import io.fabric8.dosgi.io.ClientInvoker;
 import io.fabric8.dosgi.io.ServerInvoker;
 import io.fabric8.dosgi.tcp.ClientInvokerImpl;
 import io.fabric8.dosgi.tcp.ServerInvokerImpl;
+import io.fabric8.dosgi.tcp.TcpTransportServer;
 
 @Component(enabled=true,immediate=true)
 @Service
@@ -64,9 +66,18 @@ public class FastbinDistributionProvider implements DistributionProvider {
      */
     public static final String SERVER_ADDRESS = "fastbin.address";
     /**
-     * the port to bind the server socket to. Defaults to 9000
+     * the bind address to bind the socket to. Defaults to <code>{@link #SERVER_ADDRESS}</code>
+     */
+    public static final String SERVER_BIND_ADDRESS = "fastbin.bind.address";
+    /**
+     * the port to bind the server socket to. Defaults to 4000
      */
     public static final String PORT = "fastbin.port";
+
+    /**
+     * the tcp request timeout in milliseconds. Defaults to 20s
+     */
+    public static final String TIMEOUT = "fastbin.timeout";
 
     private static final Logger LOG = LoggerFactory.getLogger(FastbinDistributionProvider.class);
 
@@ -90,7 +101,8 @@ public class FastbinDistributionProvider implements DistributionProvider {
 
         this.queue = Dispatch.createQueue();
         this.serializationStrategies = new ConcurrentHashMap<String, SerializationStrategy>();
-        int port = Integer.parseInt(config.getOrDefault(PORT, System.getProperty(PORT,"9000")).toString());
+        int port = Integer.parseInt(config.getOrDefault(PORT, System.getProperty(PORT,"4000")).toString());
+        long timeout = Long.parseLong(config.getOrDefault(TIMEOUT, System.getProperty(TIMEOUT,String.valueOf(ClientInvokerImpl.DEFAULT_TIMEOUT))).toString());
         String publicHost = (String)config.getOrDefault(SERVER_ADDRESS, System.getProperty(SERVER_ADDRESS, null));
         try {
             if(publicHost==null)
@@ -98,8 +110,14 @@ public class FastbinDistributionProvider implements DistributionProvider {
                 publicHost = Inet4Address.getLocalHost().getCanonicalHostName();
                 LOG.info("public server address (fastbin.address) not set. Using {} as default",publicHost);
             }
-            server = new ServerInvokerImpl("tcp://"+publicHost+":"+port, queue, serializationStrategies);
-            client = new ClientInvokerImpl(queue, serializationStrategies);
+            String bindAddress = (String)config.getOrDefault(SERVER_BIND_ADDRESS, System.getProperty(SERVER_BIND_ADDRESS));
+            String uri = "tcp://"+publicHost+":"+port;
+            if(bindAddress!=null)
+            {
+                uri += "?"+TcpTransportServer.BIND_ADDRESS_QUERY_PARAM+"="+bindAddress;
+            }
+            server = new ServerInvokerImpl(uri, queue, serializationStrategies);
+            client = new ClientInvokerImpl(queue, timeout, serializationStrategies);
             client.start();
         } catch (Exception e) {
             LOG.error("Failed to start the tcp client",e);

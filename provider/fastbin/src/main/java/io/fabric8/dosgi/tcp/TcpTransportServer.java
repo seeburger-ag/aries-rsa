@@ -24,16 +24,21 @@ import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.fusesource.hawtdispatch.Dispatch;
+import org.fusesource.hawtdispatch.DispatchQueue;
+import org.fusesource.hawtdispatch.DispatchSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.fabric8.dosgi.io.TransportAcceptListener;
 import io.fabric8.dosgi.io.TransportServer;
 import io.fabric8.dosgi.util.IOExceptionSupport;
 import io.fabric8.dosgi.util.IntrospectionSupport;
-import org.fusesource.hawtdispatch.Dispatch;
-import org.fusesource.hawtdispatch.DispatchQueue;
-import org.fusesource.hawtdispatch.DispatchSource;
+import io.fabric8.dosgi.util.URISupport;
 
 /**
  * A TCP based transport server
@@ -42,6 +47,7 @@ import org.fusesource.hawtdispatch.DispatchSource;
 
 public class TcpTransportServer implements TransportServer {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TcpTransportServer.class);
     private final String bindScheme;
     private final InetSocketAddress bindAddress;
 
@@ -52,12 +58,30 @@ public class TcpTransportServer implements TransportServer {
     private TransportAcceptListener listener;
     private DispatchQueue dispatchQueue;
     private DispatchSource acceptSource;
+    /** query param for the location uri if the bind address is different than the public server address */
+    public static final String BIND_ADDRESS_QUERY_PARAM = "bindAddress";
 
     public TcpTransportServer(URI location) throws UnknownHostException {
         bindScheme = location.getScheme();
         String host = location.getHost();
         host = (host == null || host.length() == 0) ? "::" : host;
-        bindAddress = new InetSocketAddress(InetAddress.getByName(host), location.getPort());
+        Map<String, String> options = Collections.emptyMap();
+        try
+        {
+            options = new HashMap<String, String>(URISupport.parseParameters(location));
+        }
+        catch (URISyntaxException e)
+        {
+            LOG.error("Failed to parse location URI "+location,e);
+        }
+        if(options.containsKey(BIND_ADDRESS_QUERY_PARAM))
+        {
+            this.bindAddress = new InetSocketAddress(options.get(BIND_ADDRESS_QUERY_PARAM), location.getPort());
+        }
+        else
+        {
+            this.bindAddress = new InetSocketAddress(InetAddress.getByName(host), location.getPort());
+        }
     }
 
     public void setAcceptListener(TransportAcceptListener listener) {
