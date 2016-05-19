@@ -24,9 +24,28 @@
         <version>1.2.0.redhat-133</version>
     </parent>
 
-
     <artifactId>org.apache.aries.rsa.provider.fastbin</artifactId>
     <packaging>bundle</packaging>
+
+    <scm>
+        <connection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</connection>
+        <developerConnection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>${release.repository.id}</id>
+            <name>Apache Release Distribution Repository</name>
+            <url>${release.repository.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>apache.snapshots.https</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
     <name>Fabric8 :: Distributed OSGi</name>
 
@@ -48,19 +67,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
-    <repositories>
-        <repository>
-        <id>ecf</id>
-        <url>http://build.ecf-project.org/maven/3.13.0</url>
-        <releases>
-           <enabled>true</enabled>
-        </releases>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>
-     </repository>
-    </repositories>
 
     <dependencies>
 
