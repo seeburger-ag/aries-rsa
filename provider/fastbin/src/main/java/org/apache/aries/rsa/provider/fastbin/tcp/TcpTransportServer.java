@@ -59,13 +59,24 @@ public class TcpTransportServer implements TransportServer {
     private TransportAcceptListener listener;
     private DispatchQueue dispatchQueue;
     private DispatchSource acceptSource;
+    private String connectAddress;
     /** query param for the location uri if the bind address is different than the public server address */
     public static final String BIND_ADDRESS_QUERY_PARAM = "bindAddress";
 
     public TcpTransportServer(URI location) throws UnknownHostException {
         bindScheme = location.getScheme();
         String host = location.getHost();
-        host = (host == null || host.length() == 0) ? "::" : host;
+        connectAddress = location.getScheme() + "://";
+        if(host==null || host.length()==0)
+        {
+            host = "::";
+            connectAddress += resolveHostName();
+        }
+        else
+        {
+            connectAddress += host;
+        }
+
         Map<String, String> options = Collections.emptyMap();
         try
         {
@@ -159,11 +170,7 @@ public class TcpTransportServer implements TransportServer {
     }
 
     public String getConnectAddress() {
-        try {
-            return new URI(bindScheme, null, resolveHostName(), channel.socket().getLocalPort(), null, null, null).toString();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        return connectAddress + ":"+channel.socket().getLocalPort();
     }
 
 
