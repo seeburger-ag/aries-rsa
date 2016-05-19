@@ -32,8 +32,8 @@
     <name>Aries Remote Service Admin Main</name>
 
     <scm>
-        <connection>scm:git:http://git-wip-us.apache.org/repos/asf/aries-rsa.git</connection>
-        <developerConnection>scm:git:http://git-wip-us.apache.org/repos/asf/aries-rsa.git</developerConnection>
+        <connection>scm:git:https://github.com/seeburger-ag/aries-rsa.git</connection>
+        <developerConnection>scm:git:https://github.com/seeburger-ag/aries-rsa.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
