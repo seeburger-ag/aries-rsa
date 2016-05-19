@@ -213,10 +213,6 @@
         </pluginManagement>
     </build>
 
-    <version>1.9.SEE3</version>
+    <version>1.9-SNAPSHOT</version>
     <groupId>org.apache.aries.rsa.provider</groupId>
-
-  <scm>
-    <tag>org.apache.aries.rsa.main-1.9.SEE3</tag>
-  </scm>
 </project>
