@@ -19,9 +19,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric-project</artifactId>
-        <version>1.2.0.redhat-133</version>
+        <groupId>org.apache.aries.rsa</groupId>
+        <artifactId>org.apache.aries.rsa.parent</artifactId>
+        <version>1.9-SNAPSHOT</version>
+        <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>org.apache.aries.rsa.provider.fastbin</artifactId>
@@ -50,20 +51,6 @@
     <name>Fabric8 :: Distributed OSGi</name>
 
     <properties>
-        <fuse.osgi.export>
-            org.apache.aries.rsa.provider.fastbin.api
-        </fuse.osgi.export>
-        <fuse.osgi.import.before.defaults>
-            !org.objectweb.asm,
-            org.eclipse.osgi*;resolution:=optional,
-            com.google.common.*;version="[14.0.0,20.0.0)"
-        </fuse.osgi.import.before.defaults>
-        <fuse.osgi.import.additional>
-        </fuse.osgi.import.additional>
-        <fuse.osgi.private.pkg>
-            org.apache.aries.rsa.provider.fastbin*,
-        </fuse.osgi.private.pkg>
-        <fuse.osgi.symbolic.name>org.apache.aries.rsa.provider.fastbin</fuse.osgi.symbolic.name>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -74,7 +61,6 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
             <scope>provided</scope>
-            <version>4.2.0</version>
         </dependency>
 
             <!-- latest version -->
@@ -87,7 +73,6 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.enterprise</artifactId>
-            <version>4.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -107,7 +92,7 @@
         <dependency>
             <groupId>org.fusesource.hawtbuf</groupId>
             <artifactId>hawtbuf-proto</artifactId>
-            <version>${hawtbuf-version}</version>
+            <version>1.11</version>
             <optional>true</optional>
         </dependency>
 
@@ -116,18 +101,7 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi</artifactId>
-            <optional>true</optional>
-        </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>16.0.1</version>
-            <type>bundle</type>
-        </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
@@ -146,7 +120,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>3.0.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -168,7 +141,7 @@
             <plugin>
                 <groupId>org.fusesource.hawtbuf</groupId>
                 <artifactId>hawtbuf-protoc</artifactId>
-                <version>${hawtbuf-version}</version>
+                <version>1.11</version>
                 <configuration>
                     <type>alt</type>
                 </configuration>
@@ -219,6 +192,5 @@
         </pluginManagement>
     </build>
 
-    <version>1.9-SNAPSHOT</version>
     <groupId>org.apache.aries.rsa.provider</groupId>
 </project>
