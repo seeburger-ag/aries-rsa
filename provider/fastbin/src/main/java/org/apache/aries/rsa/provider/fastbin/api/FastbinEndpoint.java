@@ -41,7 +41,7 @@ public class FastbinEndpoint implements Endpoint
     private EndpointDescription endpointDescription;
     private ServerInvoker server;
 
-    public FastbinEndpoint(ServerInvoker server, Map<String, Object> effectiveProperties, Object serviceBean)
+    public FastbinEndpoint(ServerInvoker server, Map<String, Object> effectiveProperties, final Object serviceBean)
     {
         this.server = server;
         effectiveProperties.put(FastBinProvider.PROTOCOL_VERSION_PROPERTY, String.valueOf(FastBinProvider.PROTOCOL_VERSION));
