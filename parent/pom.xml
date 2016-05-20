@@ -9,8 +9,7 @@
     License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
     OF ANY KIND, either express or implied. See the License for the specific
     language governing permissions and limitations under the License. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -22,7 +21,7 @@
 
     <groupId>org.apache.aries.rsa</groupId>
     <artifactId>org.apache.aries.rsa.parent</artifactId>
-    <version>1.9-SNAPSHOT</version>
+    <version>1.9.SEE7</version>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Parent</name>
 
@@ -42,7 +41,7 @@
     <scm>
         <connection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</connection>
         <developerConnection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>org.apache.aries.rsa.main-1.9.SEE7</tag>
     </scm>
 
     <distributionManagement>
