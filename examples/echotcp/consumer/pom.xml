@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.aries.rsa.examples</groupId>
         <artifactId>org.apache.aries.rsa.examples.echotcp</artifactId>
-        <version>1.9-SNAPSHOT</version>
+        <version>1.9.SEE9</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
