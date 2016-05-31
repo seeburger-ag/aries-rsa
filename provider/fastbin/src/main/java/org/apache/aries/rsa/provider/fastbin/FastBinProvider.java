@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.Inet4Address;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,25 +36,16 @@ import org.apache.aries.rsa.provider.fastbin.tcp.ServerInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransportServer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(enabled=true,immediate=true)
-@Service
-@Properties({
-    @Property(name = RemoteConstants.REMOTE_INTENTS_SUPPORTED, value = {""}),
-    @Property(name = RemoteConstants.REMOTE_CONFIGS_SUPPORTED, value = {FastBinProvider.CONFIG_NAME})})
 public class FastBinProvider implements DistributionProvider {
 
     /**
@@ -94,11 +86,12 @@ public class FastBinProvider implements DistributionProvider {
     private ConcurrentHashMap<String, SerializationStrategy> serializationStrategies;
     private BundleContext bundleContext;
     private volatile AtomicBoolean started = new AtomicBoolean(false);
+    private ServiceRegistration registration;
 
-    @SuppressWarnings("rawtypes")
-    @Activate
+//    @Activate
     public void activate(BundleContext context, Map<String, ?> dictionary) {
         this.bundleContext = context;
+        registration = context.registerService(DistributionProvider.class.getName(), this, new Hashtable<>(dictionary));
         Map<String, Object> config = new HashMap<String, Object>();
         config.putAll(dictionary);
 
@@ -129,6 +122,8 @@ public class FastBinProvider implements DistributionProvider {
 
     @Deactivate
     public void deactivate() {
+        if(registration!=null)
+            registration.unregister();
         server.stop();
         client.stop();
     }
