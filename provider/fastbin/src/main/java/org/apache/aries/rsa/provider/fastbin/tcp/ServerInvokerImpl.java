@@ -173,6 +173,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public void registerService(final String id, final ServiceFactory service, final ClassLoader classLoader) {
         queue().execute(new Runnable() {
             public void run() {
+                LOGGER.debug("Registering service "+id);
                 holders.put(new UTF8Buffer(id), new ServiceFactoryHolder(service, classLoader));
             }
         });
@@ -181,6 +182,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public void unregisterService(final String id) {
         queue().execute(new Runnable() {
             public void run() {
+                LOGGER.debug("Deregistering service "+id);
                 holders.remove(new UTF8Buffer(id));
             }
         });
@@ -234,6 +236,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                         baos.writeInt(0); // make space for the size field.
                         baos.writeVarLong(correlation);
                     } catch (IOException e) { // should not happen
+                        LOGGER.error("Failed to write to buffer",e);
                         throw new RuntimeException(e);
                     }
 
@@ -267,7 +270,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             executor.execute(task);
 
         } catch (Exception e) {
-            LOGGER.info("Error while reading request", e);
+            LOGGER.error("Error while reading request", e);
         }
     }
 

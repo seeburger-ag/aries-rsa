@@ -33,6 +33,8 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.osgi.framework.ServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -42,6 +44,7 @@ import org.osgi.framework.ServiceException;
 public class BlockingInvocationStrategy implements InvocationStrategy {
 
     public static final BlockingInvocationStrategy INSTANCE = new BlockingInvocationStrategy();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BlockingInvocationStrategy.class);
 
     private static final Callable<Object> EMPTY_CALLABLE = new Callable<Object>() {
         public Object call() {
@@ -120,12 +123,13 @@ public class BlockingInvocationStrategy implements InvocationStrategy {
 
         } catch(Exception e) {
 
+            LOGGER.warn("Initial Encoding response for method "+method+" failed. Retrying",e);
             // we failed to encode the response.. reposition and write that error.
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, method.getReturnType(), null, new RemoteException(e.toString()), responseStream);
             } catch (Exception unexpected) {
-                unexpected.printStackTrace();
+                LOGGER.error("Error while servicing "+method,unexpected);
             }
 
         } finally {
