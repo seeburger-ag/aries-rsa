@@ -247,11 +247,21 @@ public class TcpTransport implements Transport {
     }
 
     protected String resolveHostName(String host) throws UnknownHostException {
-        String localName = InetAddress.getLocalHost().getHostName();
-        if (localName != null && isUseLocalHost()) {
-            if (localName.equals(host)) {
-                return "localhost";
+        try
+        {
+            if(isUseLocalHost())
+            {
+                String localName = InetAddress.getLocalHost().getHostName();
+                if (localName != null) {
+                    if (localName.equals(host)) {
+                        return "localhost";
+                    }
+                }
             }
+        }
+        catch (Exception e)
+        {
+            LOG.warn("Failed to resolve local host address",e);
         }
         return host;
     }
