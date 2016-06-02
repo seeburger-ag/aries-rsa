@@ -95,6 +95,19 @@ public class TopologyManagerExport implements ServiceListener {
     private void export(final ServiceReference sref) {
         execService.execute(new Runnable() {
             public void run() {
+                try
+                {
+                    /*
+                     * XXX: there is a threading issue in jboss when one thread is still activating the bundle
+                     * while the topology manager tries to access the newly registered service from another thread.
+                     * The mini pause is supposed to make sure that the bundle has properly transitioned to STARTED before the service is accessed
+                     */
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    // ignore and continue
+                }
                 doExport(sref);
             }
         });
