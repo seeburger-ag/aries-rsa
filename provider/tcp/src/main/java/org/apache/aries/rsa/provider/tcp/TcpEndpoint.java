@@ -49,8 +49,8 @@ public class TcpEndpoint implements Endpoint {
     }
     
     private String getString(Map<String, Object> effectiveProperties, String key, String defaultValue) {
-        String value = (String)effectiveProperties.get(key);
-        return value != null ? value : defaultValue;
+        Object value = effectiveProperties.get(key);
+        return value != null ? value.toString() : defaultValue;
     }
 
     @Override

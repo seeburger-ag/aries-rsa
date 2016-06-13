@@ -31,6 +31,20 @@ public class TcpEndpointTest {
     }
     
     @Test
+    public void testIntPort() throws IOException {
+        Object service = new MyServiceImpl();
+        Map<String, Object> props = new HashMap<>();
+        props.put(Constants.OBJECTCLASS, new String[]{MyService.class.getName()});
+        props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
+        props.put("port", Integer.parseInt(PORT));
+        props.put("hostname", "myhost");
+        TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
+        EndpointDescription epd = tcpEndpoint.description();
+        Assert.assertEquals("tcp://myhost:" + PORT, epd.getId());
+        tcpEndpoint.close();
+    }
+    
+    @Test
     public void testEndpointPropertiesDefault() throws IOException {
         Object service = new MyServiceImpl();
         Map<String, Object> props = new HashMap<>();
