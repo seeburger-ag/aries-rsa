@@ -22,8 +22,8 @@ public class TcpEndpointTest {
         Map<String, Object> props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[]{MyService.class.getName()});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
-        props.put("port", PORT);
-        props.put("hostname", "myhost");
+        props.put("aries.rsa.port", PORT);
+        props.put("aries.rsa.hostname", "myhost");
         TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
         EndpointDescription epd = tcpEndpoint.description();
         Assert.assertEquals("tcp://myhost:" + PORT, epd.getId());
@@ -36,8 +36,8 @@ public class TcpEndpointTest {
         Map<String, Object> props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[]{MyService.class.getName()});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
-        props.put("port", Integer.parseInt(PORT));
-        props.put("hostname", "myhost");
+        props.put("aries.rsa.port", Integer.parseInt(PORT));
+        props.put("aries.rsa.hostname", "myhost");
         TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
         EndpointDescription epd = tcpEndpoint.description();
         Assert.assertEquals("tcp://myhost:" + PORT, epd.getId());
