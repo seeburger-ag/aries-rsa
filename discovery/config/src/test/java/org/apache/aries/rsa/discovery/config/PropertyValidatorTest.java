@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -41,9 +42,8 @@ import static org.junit.Assert.assertThat;
 public class PropertyValidatorTest {
     @Test
     public void testToMap() throws Exception {
-        Hashtable dic = new Hashtable() {{
-            put("key", "value");
-        }};
+        Dictionary<String, String> dic = new Hashtable<String, String>();
+        dic.put("key", "value");
 
         assertThat(toMap(dic).size(), is(1));
         assertThat(toMap(dic).keySet().contains("key"), is(true));
@@ -55,11 +55,10 @@ public class PropertyValidatorTest {
 
     @Test
     public void testFilterConfigAdminProperties() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>() {{
-            put(Constants.SERVICE_PID, "testPid");
-            put(ConfigurationAdmin.SERVICE_FACTORYPID, "factoryPid");
-            put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, "bundleLocation");
-        }};
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put(Constants.SERVICE_PID, "testPid");
+        map.put(ConfigurationAdmin.SERVICE_FACTORYPID, "factoryPid");
+        map.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, "bundleLocation");
 
         assertThat(filterConfigAdminProperties(map).size(), is(0));
         assertThat(filterConfigAdminProperties(null), notNullValue());
@@ -74,22 +73,19 @@ public class PropertyValidatorTest {
 
     @Test
     public void testValidatePropertyTypes_objectClass() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>() {{
-            put(Constants.OBJECTCLASS, "test");
-        }};
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put(Constants.OBJECTCLASS, "test");
         Map<String, Object> config = validatePropertyTypes(map);
         assertThat(config.containsKey(Constants.OBJECTCLASS), is(true));
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>() {{
-            put(Constants.OBJECTCLASS, new String[]{"test"});
-        }};
+        map = new HashMap<String, Object>();
+        map.put(Constants.OBJECTCLASS, new String[]{"test"});
         config = validatePropertyTypes(map);
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>() {{
-            put(Constants.OBJECTCLASS, singletonList("test"));
-        }};
+        map = new HashMap<String, Object>();
+        map.put(Constants.OBJECTCLASS, singletonList("test"));
         config = validatePropertyTypes(map);
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
     }

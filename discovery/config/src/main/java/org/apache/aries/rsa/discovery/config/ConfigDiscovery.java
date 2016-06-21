@@ -105,6 +105,7 @@ class ConfigDiscovery implements ManagedServiceFactory {
         return matched;
     }
 
+    @SuppressWarnings("rawtypes")
     private void addDeclaredRemoteService(String pid, Dictionary config) {
         EndpointDescription endpoint = new EndpointDescription(PropertyValidator.validate(config));
         endpointDescriptions.put(endpoint, pid);

@@ -24,6 +24,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.*;
 
+@SuppressWarnings("rawtypes")
 class PropertyValidator {
     /**
      * Validates configuration properties,
