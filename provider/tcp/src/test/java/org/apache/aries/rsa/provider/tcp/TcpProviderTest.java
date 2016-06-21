@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.core.StringStartsWith.startsWith;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,11 +52,12 @@ public class TcpProviderTest {
         TCPProvider provider = new TCPProvider();
         Map<String, Object> props = new HashMap<String, Object>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
-        props.put("hostname", "localhost");
-        props.put("numThreads", "10");
+        props.put("aries.rsa.hostname", "localhost");
+        props.put("aries.rsa.numThreads", "10");
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
+        Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
         System.out.println(ep.description());
         myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(), 
                                                             bc,
