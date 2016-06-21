@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -47,12 +48,12 @@ public class EndpointRepository {
         = new LinkedHashMap<ServiceReference, Map<RemoteServiceAdmin, Collection<EndpointDescription>>>();
 
     private EndpointListener notifier;
-    
+
     public void setNotifier(EndpointListener notifier) {
         this.notifier = notifier;
     }
-    
-    
+
+
     /**
      * Remove all services exported by the given rsa.
      *
@@ -86,8 +87,10 @@ public class EndpointRepository {
     }
 
     public synchronized void addService(ServiceReference sref) {
-        if (!exportedServices.containsKey(sref)) {
-            LOG.info("Marking service from bundle {} for export", sref.getBundle().getSymbolicName());
+        if (sref!=null && !exportedServices.containsKey(sref)) {
+            Bundle bundle = sref.getBundle();
+            String symbolicName = bundle == null ? "<bundle-was-null>" : bundle.getSymbolicName();
+            LOG.info("Marking service from bundle {} for export", symbolicName);
             exportedServices.put(sref, new LinkedHashMap<RemoteServiceAdmin, Collection<EndpointDescription>>());
         }
     }
@@ -131,7 +134,7 @@ public class EndpointRepository {
             notifier.endpointAdded(epd, null);
         }
     }
-    
+
     private void endpointsRemoved(List<EndpointDescription> endpoints) {
         for (EndpointDescription epd : endpoints) {
             notifier.endpointRemoved(epd, null);

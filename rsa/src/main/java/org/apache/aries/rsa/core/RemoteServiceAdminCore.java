@@ -207,6 +207,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             Endpoint endpoint = provider.exportService(serviceO, serviceContext, eprops, interfaces);
             return new ExportRegistrationImpl(serviceReference, endpoint, this);
         } catch (Exception e) {
+            LOG.error("Could not export remote service",e);
             return new ExportRegistrationImpl(this, e);
         }
     }
