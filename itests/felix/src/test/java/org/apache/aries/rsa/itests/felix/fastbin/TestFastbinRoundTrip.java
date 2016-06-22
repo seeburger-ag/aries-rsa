@@ -26,29 +26,20 @@ import javax.inject.Inject;
 
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
+import org.apache.aries.rsa.itests.felix.ServerConfiguration;
+import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
-import org.ops4j.pax.exam.ExamSystem;
 import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.TestContainer;
-import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.spi.PaxExamRuntime;
 
-@RunWith(PaxExam.class)
+@RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
-    private static TestContainer remoteContainer;
-
     @Inject
     EchoService echoService;
 
-    public static void startRemote() throws IOException, InterruptedException {
-        ExamSystem testSystem = PaxExamRuntime.createTestSystem(remoteConfig());
-        remoteContainer = PaxExamRuntime.createContainer(testSystem);
-        remoteContainer.start();
-    }
-
-    private static Option[] remoteConfig() throws IOException {
+    @ServerConfiguration
+    public static Option[] remoteConfig() throws IOException {
         return new Option[] {
                              rsaCoreZookeeper(),
                              rsaFastBin(),
@@ -61,7 +52,6 @@ public class TestFastbinRoundTrip extends RsaTestBase {
 
     @Configuration
     public static Option[] configure() throws Exception {
-        startRemote();
         return new Option[] {
                              rsaCoreZookeeper(),
                              rsaFastBin(),
@@ -74,10 +64,6 @@ public class TestFastbinRoundTrip extends RsaTestBase {
     @Test
     public void testCall() throws Exception {
         assertEquals("test", echoService.echo("test"));
-    }
-
-    public static void shutdownRemote() {
-        remoteContainer.stop();
     }
 
 }
