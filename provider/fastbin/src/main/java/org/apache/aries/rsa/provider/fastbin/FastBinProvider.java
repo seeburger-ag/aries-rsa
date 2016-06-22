@@ -95,6 +95,7 @@ public class FastBinProvider implements DistributionProvider {
         Map<String, Object> config = new HashMap<String, Object>();
         config.putAll(dictionary);
 
+        started.set(false);
         this.queue = Dispatch.createQueue();
         this.serializationStrategies = new ConcurrentHashMap<String, SerializationStrategy>();
         int port = Integer.parseInt(config.getOrDefault(PORT, System.getProperty(PORT,"4000")).toString());

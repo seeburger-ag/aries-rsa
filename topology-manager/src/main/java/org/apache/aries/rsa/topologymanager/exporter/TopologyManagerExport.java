@@ -25,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
@@ -93,6 +95,11 @@ public class TopologyManagerExport implements ServiceListener {
     };
 
     private void export(final ServiceReference sref) {
+        final Map<String, ?> addProps = policy.additionalParameters(sref);
+        if (!shouldExport(sref, addProps)) {
+            LOG.debug("Skipping service {}", sref);
+            return;
+        }
         execService.execute(new Runnable() {
             public void run() {
                 try
@@ -108,15 +115,19 @@ public class TopologyManagerExport implements ServiceListener {
                 {
                     // ignore and continue
                 }
-                doExport(sref);
+                doExport(sref, addProps);
             }
         });
     }
 
-    private void doExport(final ServiceReference sref) {
-        Map<String, ?> addProps = policy.additionalParameters(sref);
-        if (!shouldExport(sref, addProps)) {
-            LOG.debug("Skipping service {}", sref);
+    private void doExport(final ServiceReference sref, Map<String, ? > addProps) {
+        Bundle bundle = sref.getBundle();
+        if(bundle == null) {
+            LOG.warn("Service Reference {} had no bundle reference. Skipping",sref);
+            return;
+        }
+        if(bundle.getState()==Bundle.STOPPING || bundle.getState()==Bundle.RESOLVED || bundle.getState()==Bundle.INSTALLED) {
+            LOG.warn("Trying to export a service from bundle {} which has been stopped in the meantime. Skipping",bundle.getSymbolicName());
             return;
         }
         LOG.debug("Exporting service {}", sref);
@@ -138,6 +149,7 @@ public class TopologyManagerExport implements ServiceListener {
                 exportServiceUsingRemoteServiceAdmin(sref, remoteServiceAdmin, addProps);
             }
         }
+
     }
 
     private boolean shouldExport(ServiceReference sref, Map<String, ?> addProps) {
@@ -163,6 +175,9 @@ public class TopologyManagerExport implements ServiceListener {
         }
         // do the export
         LOG.debug("exporting {}...", sref);
+        if(!canAccessService(sref, true)) {
+            return;
+        }
         // TODO: additional parameter Map?
         Collection<ExportRegistration> exportRegs = remoteServiceAdmin.exportService(sref, (Map<String, Object>)addProps);
         // process successful/failed registrations
@@ -192,6 +207,41 @@ public class TopologyManagerExport implements ServiceListener {
             LOG.info("TopologyManager: export successful for {}, endpoints: {}", sref, endpoints);
             endpointRepo.addEndpoints(sref, remoteServiceAdmin, endpoints);
         }
+    }
+
+    /**
+     * on jboss we sometimes face some threading issues when accessing a service when the exporting bundle is started
+     * This methods tries to get and unget the service object to test if it will be possible to export.
+     * If the retry parameter is set to true, it will wait for 2 seconds in case of an error and try again
+     * @param sref
+     * @param retry
+     * @return <code>true</code> if the service object could be retrieved <code>false</code> in all other cases
+     */
+    private boolean canAccessService(ServiceReference sref, boolean retry)
+    {
+        try {
+            LOG.debug("Trying to access to-be-exported service {}",sref);
+            BundleContext bundleContext = sref.getBundle().getBundleContext();
+            Object service = bundleContext.getService(sref);
+            if(service!=null)
+            {
+                LOG.debug("Service {} could be accessed and will be exported",sref);
+                bundleContext.ungetService(sref);
+            }
+            return true;
+        } catch (Exception e) {
+            if(retry) {
+                LOG.warn("Unable to access to-be-exported service "+sref+". Retrying in 2 seconds.",e);
+                try {
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+                } catch (InterruptedException e1) {}
+                return canAccessService(sref, false);
+            }
+            LOG.error("Unable to access to-be-exported service "+sref+". Service will not be exported",e);
+            return false;
+        }
+
+
     }
 
     /**

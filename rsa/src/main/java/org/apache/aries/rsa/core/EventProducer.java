@@ -65,11 +65,19 @@ public class EventProducer {
     }
 
     public void notifyRemoval(ExportRegistration er) {
-        notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, er.getExportReference(), null);
+        try{
+            notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, er.getExportReference(), null);
+        } catch(IllegalStateException e) {
+            LOG.warn("Failed to notify removal of {} because it is invalid",er);
+        }
     }
 
     public void notifyRemoval(ImportRegistration ir) {
-        notify(RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, ir.getImportReference(), null);
+        try{
+            notify(RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, ir.getImportReference(), null);
+        } catch(IllegalStateException e) {
+            LOG.warn("Failed to notify removal of {} because it is invalid",ir);
+        }
     }
 
     private void notify(int type, ExportReference er, Throwable ex) {

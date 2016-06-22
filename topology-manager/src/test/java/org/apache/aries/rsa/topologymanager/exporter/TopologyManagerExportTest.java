@@ -30,6 +30,7 @@ import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
@@ -57,7 +58,7 @@ public class TopologyManagerExportTest {
         final ServiceReference sref = createUserService(c);
         EndpointDescription epd = createEndpoint();
         expectServiceExported(c, rsa, notifier, sref, epd);
-        
+
         c.replay();
         EndpointRepository endpointRepo = new EndpointRepository();
         endpointRepo.setNotifier(notifier);
@@ -67,19 +68,19 @@ public class TopologyManagerExportTest {
         exportManager.add(rsa);
         exportManager.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, sref));
         c.verify();
-        
+
         c.reset();
         notifier.endpointRemoved(epd, null);
         expectLastCall().once();
         c.replay();
         exportManager.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, sref));
         c.verify();
-        
+
         c.reset();
         c.replay();
         exportManager.serviceChanged(new ServiceEvent(ServiceEvent.MODIFIED, sref));
         c.verify();
-        
+
         c.reset();
         c.replay();
         exportManager.remove(rsa);
@@ -110,7 +111,7 @@ public class TopologyManagerExportTest {
         ExportRegistration exportRegistration = createExportRegistration(c, epd);
         EasyMock.expect(rsa.exportService(EasyMock.same(sref), (Map<String, Object>)EasyMock.anyObject()))
             .andReturn(Collections.singletonList(exportRegistration)).once();
-        listener.endpointAdded(epd, null); 
+        listener.endpointAdded(epd, null);
         EasyMock.expectLastCall().once();
     }
 
@@ -145,6 +146,12 @@ public class TopologyManagerExportTest {
         EasyMock.expect(sref.getProperty(EasyMock.same(RemoteConstants.SERVICE_EXPORTED_INTERFACES)))
             .andReturn("*").anyTimes();
         Bundle srefBundle = c.createMock(Bundle.class);
+        BundleContext srefContext = c.createMock(BundleContext.class);
+        EasyMock.expect(srefBundle.getState()).andReturn(Bundle.ACTIVE).anyTimes();
+        EasyMock.expect(srefBundle.getBundleContext()).andReturn(srefContext).anyTimes();
+        Object serviceInstance = new Object();
+        EasyMock.expect(srefContext.getService(sref)).andReturn(serviceInstance).anyTimes();
+        EasyMock.expect(srefContext.ungetService(sref)).andReturn(true).anyTimes();
         EasyMock.expect(sref.getBundle()).andReturn(srefBundle).atLeastOnce();
         EasyMock.expect(sref.getProperty("objectClass")).andReturn("org.My").anyTimes();
         EasyMock.expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").atLeastOnce();

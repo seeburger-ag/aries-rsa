@@ -224,6 +224,10 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             final Buffer encoded_method = readBuffer(bais);
 
             final ServiceFactoryHolder holder = holders.get(service);
+            if(holder==null) {
+                LOGGER.warn("The requested service {"+service+"} is not available");
+                return;
+            }
             final MethodData methodData = holder.getMethodData(encoded_method);
 
             final Object svc = holder.factory.get();
