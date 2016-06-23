@@ -64,9 +64,9 @@ public class EventProducer {
         }
     }
 
-    public void notifyRemoval(ExportRegistration er) {
+    public void notifyRemoval(ExportReference er) {
         try{
-            notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, er.getExportReference(), null);
+            notify(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, er, null);
         } catch(IllegalStateException e) {
             LOG.warn("Failed to notify removal of {} because it is invalid",er);
         }
