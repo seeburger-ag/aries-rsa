@@ -1,0 +1,3 @@
+Private-Package: \
+	org.apache.karaf.shell.table,\
+	org.apache.aries.rsa.discovery.command

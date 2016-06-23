@@ -2,9 +2,11 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="aries-rsa-${project.version}">
 
     <feature name="aries-rsa-core" version="${project.version}">
+        <feature>scr</feature>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.spi/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.core/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.topology-manager/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.command/${project.version}</bundle>
         <conditional>
             <condition>eventadmin</condition>
             <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.eapub/${project.version}</bundle>
