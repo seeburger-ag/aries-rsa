@@ -170,7 +170,8 @@ public class TcpTransportServer implements TransportServer {
     }
 
     public String getConnectAddress() {
-        return connectAddress + ":"+channel.socket().getLocalPort();
+        int port = bindAddress.getPort() <=0 ? channel.socket().getLocalPort() : bindAddress.getPort();
+        return connectAddress + ":" + port;
     }
 
 
