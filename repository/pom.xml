@@ -81,6 +81,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.config</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.command</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
             <artifactId>org.apache.aries.rsa.examples.echotcp.service</artifactId>
             <version>${project.version}</version>
