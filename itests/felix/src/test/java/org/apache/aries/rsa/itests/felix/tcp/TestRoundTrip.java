@@ -43,7 +43,8 @@ public class TestRoundTrip extends RsaTestBase {
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
         return new Option[] {
-            rsaCoreZookeeper(),
+            rsaCore(),
+            rsaDiscoveryZookeeper(),
             rsaTcp(),
             echoTcpService(),
             configZKServer(),
@@ -54,7 +55,8 @@ public class TestRoundTrip extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                rsaCoreZookeeper(),
+                rsaCore(),
+                rsaDiscoveryZookeeper(),
                 rsaTcp(),
                 RsaTestBase.echoTcpConsumer(),
                 configZKConsumer()

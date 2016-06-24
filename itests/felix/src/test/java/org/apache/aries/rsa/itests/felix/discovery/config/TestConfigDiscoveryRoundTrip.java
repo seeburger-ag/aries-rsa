@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
@@ -51,11 +52,24 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                rsaCoreConfigDiscovery(),
+                rsaCore(),
+                rsaDiscoveryConfig(),
                 rsaTcp(),
                 echoTcpConsumer(),
                 configTcpConfigDiscovery()
         };
+    }
+    
+
+    protected static Option configTcpConfigDiscovery() {
+        return factoryConfiguration("org.apache.aries.rsa.discovery.config")
+            .put("service.imported", "true")
+            .put("service.imported.configs", "aries.tcp")
+            .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
+            .put("endpoint.id", "tcp://localhost:8201")
+            .put("aries.tcp.hostname", "localhost")
+            .put("aries.tcp.port", "8201")
+            .asOption();
     }
 
     @Test

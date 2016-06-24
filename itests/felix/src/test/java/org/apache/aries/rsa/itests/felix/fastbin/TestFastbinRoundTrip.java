@@ -40,8 +40,10 @@ public class TestFastbinRoundTrip extends RsaTestBase {
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] {
-                             rsaCoreZookeeper(),
+        return new Option[] //
+            {
+                             rsaCore(),
+                             rsaDiscoveryZookeeper(),
                              rsaFastBin(),
                              echoTcpService(),
                              configZKServer(),
@@ -53,7 +55,8 @@ public class TestFastbinRoundTrip extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                             rsaCoreZookeeper(),
+                             rsaCore(),
+                             rsaDiscoveryZookeeper(),
                              rsaFastBin(),
                              echoTcpConsumer(),
                              configZKConsumer(),

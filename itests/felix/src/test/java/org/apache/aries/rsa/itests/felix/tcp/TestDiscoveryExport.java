@@ -50,7 +50,8 @@ public class TestDiscoveryExport extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                rsaCoreZookeeper(),
+                rsaCore(),
+                rsaDiscoveryZookeeper(),
                 rsaTcp(),
                 echoTcpService(),
                 localRepo(),
