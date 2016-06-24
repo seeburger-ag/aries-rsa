@@ -132,7 +132,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
             Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
             assertNotEquals("Hashcode should be handled by the proxy and not be a remote call",-7, hello.hashCode());
             assertFalse("equals should be handled by the proxy and not be a remote call",hello.equals(serviceImpl));

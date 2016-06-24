@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,6 +43,7 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtbuf.UTF8Buffer;
 import org.fusesource.hawtdispatch.DispatchQueue;
+import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,8 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
-    private final static HashMap<Class,String> CLASS_TO_PRIMITIVE = new HashMap<Class, String>(8, 1.0F);
+    @SuppressWarnings("rawtypes")
+    private final static Map<Class,String> CLASS_TO_PRIMITIVE = new HashMap<Class, String>(8, 1.0F);
 
     static {
         CLASS_TO_PRIMITIVE.put(boolean.class,"Z");
@@ -134,7 +137,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected void onCommand(TransportPool pool, Object data) {
         try {
             DataByteArrayInputStream bais = new DataByteArrayInputStream( (Buffer) data);
-            int size = bais.readInt();
+            bais.readInt();
             long correlation = bais.readVarLong();
             pool.onDone(correlation);
             ResponseFuture response = requests.remove(correlation);
