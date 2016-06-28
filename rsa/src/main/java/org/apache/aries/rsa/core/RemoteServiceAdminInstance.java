@@ -35,6 +35,8 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
 
@@ -42,6 +44,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
     private final RemoteServiceAdminCore rsaCore;
 
     private boolean closed;
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminInstance.class);
 
     public RemoteServiceAdminInstance(BundleContext bc, RemoteServiceAdminCore core) {
         bctx = bc;
@@ -84,9 +87,15 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
 
     public void close(boolean closeAll) {
         closed = true;
-        rsaCore.removeExportRegistrations(bctx.getBundle());
-        if (closeAll) {
-            rsaCore.close();
+        try {
+            rsaCore.removeExportRegistrations(bctx.getBundle());
+            if (closeAll) {
+                rsaCore.close();
+            }
+        }
+        catch (Exception e) {
+            LOG.warn("Could not shutdown RSA cleanly: {}",e.getMessage());
+            LOG.debug("Stacktrace:",e);
         }
     }
 
