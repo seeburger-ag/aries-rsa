@@ -28,7 +28,7 @@
     </parent>
     <artifactId>org.apache.aries.rsa.spi</artifactId>
     <packaging>bundle</packaging>
-    <name>Aries Remote Service Admin Service Provider Interface</name>
+    <name>Aries Remote Service Admin SPI</name>
 
     <properties>
         <topDirectoryLocation>../..</topDirectoryLocation>

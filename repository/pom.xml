@@ -8,6 +8,7 @@
     </parent>
     <artifactId>repository</artifactId>
     <packaging>pom</packaging>
+    <name>Aries Remote Service Admin Repository</name>
     <properties>
         <local.url.policy>REQUIRED</local.url.policy>
     </properties>
