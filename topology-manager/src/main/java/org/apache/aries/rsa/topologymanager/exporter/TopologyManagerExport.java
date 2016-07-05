@@ -139,7 +139,8 @@ public class TopologyManagerExport implements ServiceListener {
             return;
         }
 
-        for (RemoteServiceAdmin remoteServiceAdmin : rsaSet) {
+        HashSet<RemoteServiceAdmin> rsaSetCopy = new HashSet<>(rsaSet);
+        for (RemoteServiceAdmin remoteServiceAdmin : rsaSetCopy) {
             LOG.debug("TopologyManager: handling remoteServiceAdmin " + remoteServiceAdmin);
             if (endpointRepo.isAlreadyExportedForRsa(sref, remoteServiceAdmin)) {
                 // already handled by this remoteServiceAdmin
@@ -185,7 +186,7 @@ public class TopologyManagerExport implements ServiceListener {
         for (ExportRegistration reg : exportRegs) {
             if (reg.getException() == null) {
                 EndpointDescription endpoint = getExportedEndpoint(reg);
-                LOG.debug("TopologyManager: export succeeded for {}, endpoint {}", sref, endpoint);
+                LOG.debug("TopologyManager: export succeeded for {}, endpoint {}, rsa {}", sref, endpoint, remoteServiceAdmin.getClass());
                 endpoints.add(endpoint);
             } else {
                 LOG.error("TopologyManager: export failed for {}", sref);

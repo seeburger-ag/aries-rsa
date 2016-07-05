@@ -117,7 +117,9 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         try {
             ExportRegistration exportReg = exportService(interfaceNames, serviceReference, serviceProperties);
             exportRegs = new ArrayList<>();
-            exportRegs.add(exportReg);
+            if (exportReg != null) {
+                exportRegs.add(exportReg);
+            }
             store(key, exportRegs);
             return exportRegs;
         } finally {
@@ -205,6 +207,9 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             // TODO unget service when export is destroyed
             Object serviceO = serviceContext.getService(serviceReference);
             Endpoint endpoint = provider.exportService(serviceO, serviceContext, eprops, interfaces);
+            if (endpoint == null) {
+                return null;
+            }
             return new ExportRegistrationImpl(serviceReference, endpoint, this);
         } catch (Exception e) {
             LOG.error("Could not export remote service",e);
@@ -293,11 +298,14 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         for (ExportRegistration exportRegistration : regs) {
             if (exportRegistration instanceof ExportRegistrationImpl) {
                 ExportRegistrationImpl exportRegistrationImpl = (ExportRegistrationImpl) exportRegistration;
-                EndpointDescription epd = exportRegistration.getExportReference().getExportedEndpoint();
-                // create one copy for each distinct endpoint description
-                if (!copiedEndpoints.contains(epd)) {
-                    copiedEndpoints.add(epd);
-                    copy.add(new ExportRegistrationImpl(exportRegistrationImpl));
+                if (exportRegistration.getException() == null) {
+                    // Can only retrieve reference if we have no exception
+                    EndpointDescription epd = exportRegistration.getExportReference().getExportedEndpoint();
+                    // create one copy for each distinct endpoint description
+                    if (!copiedEndpoints.contains(epd)) {
+                        copiedEndpoints.add(epd);
+                        copy.add(new ExportRegistrationImpl(exportRegistrationImpl));
+                    }
                 }
             }
         }

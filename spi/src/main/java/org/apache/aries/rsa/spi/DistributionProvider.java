@@ -29,6 +29,11 @@ public interface DistributionProvider {
     String[] getSupportedTypes();
 
     /**
+     * Called by RemoteServiceAdmin to export a service.
+     * 
+     * The Distribution provider will be called if no config type was set or
+     * if it supports the config type.
+     * 
      * @param serviceO service instance to be exported
      * @param serviceContext bundle context of the bundle exporting the sevice
      * @param effectiveProperties combined properties of the service and additional properties from rsa
