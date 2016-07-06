@@ -21,7 +21,7 @@
 
     <groupId>org.apache.aries.rsa</groupId>
     <artifactId>org.apache.aries.rsa.parent</artifactId>
-    <version>1.9.0</version>
+    <version>1.10-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Parent</name>
 
@@ -310,8 +310,4 @@
             </build>
         </profile>
     </profiles>
-
-  <scm>
-    <tag>org.apache.aries.rsa-1.9.0</tag>
-  </scm>
 </project>
