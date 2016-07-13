@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.core;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -106,7 +107,7 @@ public class EventProducer {
                     RemoteServiceAdminListener.class.getName(), null);
             if (listenerRefs != null) {
                 for (ServiceReference sref : listenerRefs) {
-                    RemoteServiceAdminListener rsal = (RemoteServiceAdminListener)bctx.getService(sref);
+                    RemoteServiceAdminListener rsal = accessService(sref, true);
                     if (rsal != null) {
                         try {
                             Bundle bundle = sref.getBundle();
@@ -123,6 +124,30 @@ public class EventProducer {
             }
         } catch (InvalidSyntaxException e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * workaround for jboss threading issues
+     * @param sref
+     * @param retry if getService should be retried if the first attempt fails
+     * @return the service instance, or <code>null</code> if it cannot be accessed
+     */
+    protected RemoteServiceAdminListener accessService(ServiceReference sref, boolean retry)
+    {
+        try {
+            return (RemoteServiceAdminListener)bctx.getService(sref);
+        } catch (Exception e) {
+            if (retry) {
+                LOG.warn("Unable to access service " + sref + ": "+e+". Retrying in 2 seconds.");
+                try {
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+                }
+                catch (InterruptedException e1) {}
+                return accessService(sref, false);
+            }
+            LOG.error("Unable to access service " + sref + ". The listener will not be notified", e);
+            return null;
         }
     }
 }

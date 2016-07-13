@@ -318,7 +318,18 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             List<ExportReference> ers = new ArrayList<ExportReference>();
             for (Collection<ExportRegistration> exportRegistrations : exportedServices.values()) {
                 for (ExportRegistration er : exportRegistrations) {
-                    ers.add(new ExportReferenceImpl(er.getExportReference()));
+
+                    ExportReference exportReference;
+                    try
+                    {
+                        exportReference = er.getExportReference();
+                        ers.add(new ExportReferenceImpl(exportReference));
+                    }
+                    catch (Exception e)
+                    {
+                        LOG.warn("Error retrieving ExportReference for ExportRegistration=" + er.toString() + "; ex=" + e.toString(), er.getException());
+                    }
+
                 }
             }
             return Collections.unmodifiableCollection(ers);
