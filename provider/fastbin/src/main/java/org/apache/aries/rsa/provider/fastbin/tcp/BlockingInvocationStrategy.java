@@ -29,16 +29,17 @@ import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
-import org.fusesource.hawtdispatch.Dispatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
  * </p>
  *
  */
-public class BlockingInvocationStrategy implements InvocationStrategy {
+public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
 
-    public static final BlockingInvocationStrategy INSTANCE = new BlockingInvocationStrategy();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BlockingInvocationStrategy.class);
 
     private static final Callable<Object> EMPTY_CALLABLE = new Callable<Object>() {
         public Object call() {
@@ -80,15 +81,13 @@ public class BlockingInvocationStrategy implements InvocationStrategy {
         }
     }
 
-    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream target) throws Exception {
 
-        assert Dispatch.getCurrentQueue() == null : "You should not do blocking RPC class when executing on a dispatch queue";
-
-        serializationStrategy.encodeRequest(loader, method.getParameterTypes(), args, target);
+    @Override
+    protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
         return new BlockingResponseFuture(loader, method, serializationStrategy);
     }
 
-    public void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
+    public void doService(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
 
         int pos = responseStream.position();
         try {
@@ -113,12 +112,13 @@ public class BlockingInvocationStrategy implements InvocationStrategy {
 
         } catch(Exception e) {
 
+            LOGGER.warn("Initial Encoding response for method "+method+" failed. Retrying",e);
             // we failed to encode the response.. reposition and write that error.
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, method.getReturnType(), null, new RemoteException(e.toString()), responseStream);
             } catch (Exception unexpected) {
-                unexpected.printStackTrace();
+                LOGGER.error("Error while servicing "+method,unexpected);
             }
 
         } finally {
