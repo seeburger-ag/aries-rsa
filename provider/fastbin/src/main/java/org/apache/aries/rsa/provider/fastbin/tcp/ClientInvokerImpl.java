@@ -198,12 +198,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
                 serializationStrategy = ObjectSerializationStrategy.INSTANCE;
             }
 
-            final InvocationStrategy strategy;
-            if( AsyncInvocationStrategy.isAsyncMethod(method) ) {
-                strategy = AsyncInvocationStrategy.INSTANCE;
-            } else {
-                strategy = BlockingInvocationStrategy.INSTANCE;
-            }
+            final InvocationStrategy strategy = InvocationType.forMethod(method);
 
             rc = new MethodData(strategy, serializationStrategy, signature);
             synchronized (method_cache) {

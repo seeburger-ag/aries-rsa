@@ -120,12 +120,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 }
 
 
-                final InvocationStrategy invocationStrategy;
-                if( AsyncInvocationStrategy.isAsyncMethod(method) ) {
-                    invocationStrategy = AsyncInvocationStrategy.INSTANCE;
-                } else {
-                    invocationStrategy = BlockingInvocationStrategy.INSTANCE;
-                }
+                final InvocationStrategy invocationStrategy = InvocationType.forMethod(method);
 
                 rc = new MethodData(invocationStrategy, serializationStrategy, method);
                 method_cache.put(data, rc);
