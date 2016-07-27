@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.provider.fastbin.io;
 
+import org.apache.aries.rsa.provider.fastbin.streams.StreamProvider;
+
 public interface ServerInvoker extends Service {
 
     String getConnectAddress();
@@ -26,6 +28,7 @@ public interface ServerInvoker extends Service {
 
     void unregisterService(String id);
 
+    StreamProvider getStreamProvider();
 
     public interface ServiceFactory {
 

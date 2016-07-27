@@ -22,6 +22,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.aries.rsa.provider.fastbin.io.ClientInvoker;
+import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker;
 import org.apache.aries.rsa.provider.fastbin.util.UuidGenerator;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.service.cm.ManagedService;
@@ -29,7 +31,10 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 public class Activator extends BaseActivator implements ManagedService {
 
-    private FastBinProvider provider;
+    static Activator INSTANCE;
+    FastBinProvider provider;
+    ClientInvoker client;
+    ServerInvoker server;
 
     @Override
     protected void doOpen() throws Exception {
@@ -38,6 +43,7 @@ public class Activator extends BaseActivator implements ManagedService {
 
     @Override
     protected void doStart() throws Exception {
+        INSTANCE = this;
         String uri = getString("uri", "tcp://0.0.0.0:2543");
         String exportedAddress = getString("exportedAddress", null);
         if (exportedAddress == null) {
@@ -45,6 +51,8 @@ public class Activator extends BaseActivator implements ManagedService {
         }
         long timeout = getLong("timeout", TimeUnit.MINUTES.toMillis(5));
         provider = new FastBinProvider(uri, exportedAddress, timeout);
+        client = provider.getClient();
+        server = provider.getServer();
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{});
         props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, provider.getSupportedTypes());
@@ -61,6 +69,18 @@ public class Activator extends BaseActivator implements ManagedService {
                 provider = null;
             }
         }
+    }
+
+    public ClientInvoker getClient() {
+        return client;
+    }
+
+    public ServerInvoker getServer() {
+        return server;
+    }
+
+    public static Activator getInstance() {
+        return INSTANCE;
     }
 
 }
