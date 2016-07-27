@@ -79,6 +79,10 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
         oos.flush();
     }
 
+    @Override
+    public int getProtocolVersion() {
+        return FastBinProvider.PROTOCOL_VERSION;
+    }
 
     @Override
     public SerializationStrategy forProtocolVersion(int protocolVersion)

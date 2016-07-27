@@ -129,6 +129,14 @@ public class FastBinProvider implements DistributionProvider {
         client.stop();
     }
 
+    public ClientInvoker getClient() {
+        return client;
+    }
+
+    public ServerInvoker getServer() {
+        return server;
+    }
+
     @Override
     public String[] getSupportedTypes() {
         return new String[] { CONFIG_NAME };
