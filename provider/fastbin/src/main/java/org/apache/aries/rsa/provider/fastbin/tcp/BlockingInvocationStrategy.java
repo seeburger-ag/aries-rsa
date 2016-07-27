@@ -100,6 +100,9 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
                 final Object[] args = new Object[types.length];
                 serializationStrategy.decodeRequest(loader, types, requestStream, args);
                 value = method.invoke(target, args);
+                if(isStream(method.getReturnType())) {
+                    value = replaceStream(value);
+                }
             } catch (Throwable t) {
                 if (t instanceof InvocationTargetException) {
                     error = t.getCause();

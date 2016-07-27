@@ -38,6 +38,8 @@ import org.apache.aries.rsa.provider.fastbin.io.Transport;
 import org.apache.aries.rsa.provider.fastbin.io.TransportAcceptListener;
 import org.apache.aries.rsa.provider.fastbin.io.TransportListener;
 import org.apache.aries.rsa.provider.fastbin.io.TransportServer;
+import org.apache.aries.rsa.provider.fastbin.streams.StreamProvider;
+import org.apache.aries.rsa.provider.fastbin.streams.StreamProviderImpl;
 import org.fusesource.hawtbuf.Buffer;
 import org.fusesource.hawtbuf.BufferEditor;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
@@ -67,6 +69,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
     protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<UTF8Buffer, ServiceFactoryHolder>();
+    private StreamProvider streamProvider;
 
     static class MethodData {
 
@@ -165,6 +168,11 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         return this.server.getConnectAddress();
     }
 
+    @Override
+    public StreamProvider getStreamProvider() {
+        return streamProvider;
+    }
+
     public void registerService(final String id, final ServiceFactory service, final ClassLoader classLoader) {
         queue().execute(new Runnable() {
             public void run() {
@@ -186,7 +194,25 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     }
 
     public void start(Runnable onComplete) throws Exception {
+        registerStreamProvider();
         this.server.start(onComplete);
+    }
+
+    private void registerStreamProvider() {
+        streamProvider = new StreamProviderImpl();
+        registerService(StreamProvider.STREAM_PROVIDER_SERVICE_NAME, new ServerInvoker.ServiceFactory() {
+
+            @Override
+            public Object get() {
+                return streamProvider;
+            }
+
+            @Override
+            public void unget(){
+                // nothing to do
+            }
+        }, getClass().getClassLoader());
+
     }
 
     public void stop() {
