@@ -40,4 +40,6 @@ public interface SerializationStrategy {
 
     SerializationStrategy forProtocolVersion(int protocolVersion);
 
+    int getProtocolVersion();
+
 }

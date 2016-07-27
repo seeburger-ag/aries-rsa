@@ -93,9 +93,11 @@ public enum InvocationType
 
     static {
         try{
-            String name = Promise.class.getName();
+            Class< ? > clazz = InvocationType.class.getClassLoader().loadClass("org.osgi.util.promise.Promise");
             // if we make it here, the class is available
-            promiseAvailable = true;
+            if(clazz != null) {
+                promiseAvailable = true;
+            }
         } catch (Throwable t) {
             promiseAvailable = false;
         }

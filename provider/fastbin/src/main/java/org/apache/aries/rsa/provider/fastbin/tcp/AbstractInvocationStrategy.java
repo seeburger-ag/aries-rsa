@@ -18,12 +18,17 @@
  */
 package org.apache.aries.rsa.provider.fastbin.tcp;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.aries.rsa.provider.fastbin.Activator;
 import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
+import org.apache.aries.rsa.provider.fastbin.streams.InputStreamProxy;
+import org.apache.aries.rsa.provider.fastbin.streams.OutputStreamProxy;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.osgi.framework.ServiceException;
@@ -39,8 +44,39 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
     public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
         serializationStrategy = serializationStrategy.forProtocolVersion(protocolVersion);
         requestStream.writeShort(protocolVersion);
+        replaceStreamParameters(method, args, protocolVersion);
+
         encodeRequest(serializationStrategy, loader, method, args, requestStream, protocolVersion);
         return createResponse(serializationStrategy, loader,method, args);
+    }
+
+    protected void replaceStreamParameters(Method method, Object[] args, int protocolVersion) {
+        Class< ? >[] types = method.getParameterTypes();
+        if(args==null)
+            return;
+        for (int i = 0; i < args.length; i++) {
+            if(isStream(types[i])) {
+                args[i] = replaceStream(args[i], protocolVersion);
+            }
+        }
+    }
+
+    protected Object replaceStream(Object value, int protocolVersion) {
+        if (value instanceof InputStream) {
+            InputStream in = (InputStream)value;
+            int streamID = Activator.getInstance().getServer().getStreamProvider().registerStream(in);
+            value = new InputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress(), protocolVersion);
+        }
+        else if (value instanceof OutputStream) {
+            OutputStream out = (OutputStream)value;
+            int streamID = Activator.getInstance().getServer().getStreamProvider().registerStream(out);
+            value = new OutputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress(), protocolVersion);
+        }
+        return value;
+    }
+
+    protected boolean isStream(Class<?> clazz) {
+        return clazz==InputStream.class || clazz==OutputStream.class;
     }
 
     /**
