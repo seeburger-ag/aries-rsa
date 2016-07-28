@@ -18,12 +18,14 @@
  */
 package org.apache.aries.rsa.provider.fastbin.tcp;
 
+import java.net.ProtocolException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 import org.apache.aries.rsa.provider.fastbin.io.ProtocolCodec.BufferState;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.fusesource.hawtbuf.Buffer;
 import org.junit.After;
@@ -136,6 +138,23 @@ public class LengthPrefixedCodecTest {
         assertEquals(false, codec.full());
         assertEquals(false, codec.empty());
         assertEquals(bytesThatWillBeWritten, codec.getWriteCounter());
+    }
+
+    @Test(expected=ProtocolException.class)
+    public void testReadEvilPackage() throws Exception {
+
+        expect(readableByteChannel.read(EasyMock.anyObject())).andAnswer(new IAnswer<Integer>() {
+
+            @Override
+            public Integer answer() throws Throwable {
+                ByteBuffer buffer = (ByteBuffer)EasyMock.getCurrentArguments()[0];
+                // an attacker could do that to provoke out of memory
+                buffer.putInt(Integer.MAX_VALUE-1);
+                return 1;
+            }
+        });
+        replay(readableByteChannel);
+        codec.read();
     }
 
     private IAnswer<Integer> createWriteAnswer(final int length) {

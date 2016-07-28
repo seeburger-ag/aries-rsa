@@ -34,11 +34,12 @@ import org.fusesource.hawtbuf.Buffer;
 
 public class LengthPrefixedCodec implements ProtocolCodec {
 
+    /** prevent DOS attacks in case a very large size field is sent. Default is 10MB */
+    private static final int MAX_PACKET_SIZE = Integer.getInteger("aries.fastbin.max.packet.bytes", 1024 * 1024 * 10) <= 0 ? Integer.MAX_VALUE : Integer.getInteger("aries.fastbin.max.packet.bytes", 1024 * 1024 * 10);
 
     final int write_buffer_size = 1024 * 64;
     long write_counter = 0L;
     WritableByteChannel write_channel;
-
     final Queue<ByteBuffer> next_write_buffers = new LinkedList<ByteBuffer>();
     int next_write_size = 0;
 
@@ -149,6 +150,9 @@ public class LengthPrefixedCodec implements ProtocolCodec {
                     int size = read_buffer.getInt(0);
                     if( size < 4 ) {
                         throw new ProtocolException("Expecting a size greater than 3");
+                    }
+                    else if( size > MAX_PACKET_SIZE ) {
+                        throw new ProtocolException("Paket length was declared as " + size + " but at most " + MAX_PACKET_SIZE + "is allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes");
                     }
                     if( size == 4 ) {
                         // weird.. empty frame.. guess it could happen.
