@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.apache.aries.rsa.examples</groupId>
     <artifactId>org.apache.aries.rsa.examples.echotcp</artifactId>
-    <version>1.9.SEE13-SNAPSHOT</version>
+    <version>1.10.SEE1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
