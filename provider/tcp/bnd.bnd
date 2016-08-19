@@ -1,1 +1,3 @@
 Bundle-Activator:  org.apache.aries.rsa.provider.tcp.Activator
+Provide-Capability: osgi.remoteserviceadmin.distribution;\
+	configs:List<String>="aries.tcp"; version:Version=1.0
