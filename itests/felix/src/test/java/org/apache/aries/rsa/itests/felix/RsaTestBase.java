@@ -137,18 +137,21 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
     }
 
-    protected static Option configZKConsumer() {
-        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper").put("zookeeper.host", "127.0.0.1")
+    protected static Option configZKDiscovery() {
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper") //
+            .put("zookeeper.host", "127.0.0.1") //
             .put("zookeeper.port", ZK_PORT).asOption();
     }
 
     protected static Option configZKServer() {
-        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server").put("clientPort", ZK_PORT)
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server") //
+            .put("clientPort", ZK_PORT) //
             .asOption();
     }
 
     protected static Option configFastBin(String port) {
-        return newConfiguration("org.apache.aries.rsa.provider.fastbin").put("uri", "tcp://0.0.0.0:" + port)
+        return newConfiguration("org.apache.aries.rsa.provider.fastbin") //
+            .put("uri", "tcp://0.0.0.0:" + port) //
             .asOption();
     }
 

@@ -47,7 +47,7 @@ public class TestFastbinRoundTrip extends RsaTestBase {
                              rsaFastBin(),
                              echoTcpService(),
                              configZKServer(),
-                             configZKConsumer(),
+                             configZKDiscovery(),
                              configFastBin("2544"),
         };
     }
@@ -59,7 +59,7 @@ public class TestFastbinRoundTrip extends RsaTestBase {
                              rsaDiscoveryZookeeper(),
                              rsaFastBin(),
                              echoTcpConsumer(),
-                             configZKConsumer(),
+                             configZKDiscovery(),
                              configFastBin("2545")
         };
     }

@@ -55,7 +55,7 @@ public class TestDiscoveryExport extends RsaTestBase {
                 rsaTcp(),
                 echoTcpService(),
                 localRepo(),
-                configZKConsumer(),
+                configZKDiscovery(),
                 configZKServer()
         };
     }
