@@ -15,5 +15,4 @@ service.imported = true
 service.imported.configs = org.apache.cxf.rs
 objectClass = org.acme.foo.rest.api.FooService
 org.apache.cxf.rs.address = http://localhost:9100/
-org.apache.cxf.rs.provider = org.acme.foo.rest.json.CustomJSONProvider
 ```
