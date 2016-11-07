@@ -32,6 +32,7 @@
 
     <properties>
         <topDirectoryLocation>../..</topDirectoryLocation>
+        <baseline.skip>false</baseline.skip>
     </properties>
 
 </project>

@@ -27,7 +27,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <baseline>1.8.0</baseline>
+        <baseline>1.9.0</baseline>
         <baseline.skip>true</baseline.skip>
         <zookeeper.version>3.4.7</zookeeper.version>
         <rsa.version>1.0.0</rsa.version>
