@@ -81,6 +81,10 @@ public class RsaTestBase {
         }
     }
 
+    protected static Option echoTcpAPI() {
+        return mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api");
+    }
+    
     protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
         mvn("org.apache.felix", "org.apache.felix.scr"),
@@ -109,8 +113,11 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
-                         // CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
         );
+    }
+    
+    protected static Option debug() {
+        return CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
     
     protected static Option rsaDiscoveryConfig() {

@@ -58,7 +58,7 @@ public class TopologyManagerImportTest {
         EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
                                            EasyMock.anyObject(),
                                            (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid");
+        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid").atLeastOnce();
 
         EndpointDescription endpoint = c.createMock(EndpointDescription.class);
         RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);

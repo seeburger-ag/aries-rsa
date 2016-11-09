@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -59,6 +60,7 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
     private final BundleContext bctx;
     private Set<RemoteServiceAdmin> rsaSet;
     private final ListenerHookImpl listenerHook;
+    private RSFindHook findHook;
 
     /**
      * If set to false only one service is imported for each import interest even it multiple services are
@@ -88,18 +90,19 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
     private final Map<String /* filter */, List<ImportRegistration>> importedServices
         = new HashMap<String, List<ImportRegistration>>();
     
-
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new HashSet<RemoteServiceAdmin>();
         bctx = bc;
         endpointListenerManager = new EndpointListenerManager(bctx, this);
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         listenerHook = new ListenerHookImpl(bc, this);
+        findHook = new RSFindHook(bc, this);
     }
     
     public void start() {
         bctx.registerService(RemoteServiceAdminListener.class, this, null);
         bctx.registerService(ListenerHook.class, listenerHook, null);
+        bctx.registerService(FindHook.class, findHook, null);
         endpointListenerManager.start();
     }
 
