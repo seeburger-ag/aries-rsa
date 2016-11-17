@@ -20,7 +20,9 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.rmi.RemoteException;
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -109,8 +111,39 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
     public final void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
         // first see which version the client requested
         serializationStrategy = serializationStrategy.forProtocolVersion(checkVersion(requestStream));
+        if(method==null && target instanceof ServiceException)
+        {
+            handleInvalidRequest(serializationStrategy, loader, method, target, responseStream, onComplete);
+            return;
+        }
         doService(serializationStrategy, loader, method, target, requestStream, responseStream, onComplete);
 
+    }
+
+    protected void handleInvalidRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayOutputStream responseStream, Runnable onComplete)
+    {
+        //client made an invalid request
+        int pos = responseStream.position();
+        try {
+
+            Object value = null;
+            Throwable error = (Throwable)target;
+            serializationStrategy.encodeResponse(loader, null, value, error, responseStream);
+
+        } catch(Exception e) {
+
+            LOGGER.warn("Initial Encoding response for method "+method+" failed. Retrying",e);
+            // we failed to encode the response.. reposition and write that error.
+            try {
+                responseStream.position(pos);
+                serializationStrategy.encodeResponse(loader, null, null, new RemoteException(e.toString()), responseStream);
+            } catch (Exception unexpected) {
+                LOGGER.error("Error while servicing "+method,unexpected);
+            }
+
+        } finally {
+            onComplete.run();
+        }
     }
 
     /**

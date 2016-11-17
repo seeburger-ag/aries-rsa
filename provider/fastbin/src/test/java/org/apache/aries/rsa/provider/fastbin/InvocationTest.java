@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +48,7 @@ import org.apache.aries.rsa.provider.fastbin.test.StringValue;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.junit.Test;
+import org.osgi.framework.ServiceException;
 
 public class InvocationTest {
     final static long MILLIS_IN_A_NANO = TimeUnit.MILLISECONDS.toNanos(1);
@@ -108,6 +112,57 @@ public class InvocationTest {
             client.stop();
         }
     }
+
+    /**
+     * tests that requests to an unknown ID throw an exception instead of deadlocking the request
+     * @throws Exception
+     */
+    @Test(timeout=30*1000)
+    public void testInvokeInvalidServiceID() throws Exception {
+
+        DispatchQueue queue = Dispatch.createQueue();
+        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        map.put("protobuf", new ProtobufSerializationStrategy());
+
+        ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
+        server.start();
+
+        ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
+        client.start();
+
+        try {
+            server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+                public Object get() {
+                    return new Hello2Impl();
+                }
+                public void unget() {
+                }
+            }, Hello2Impl.class.getClassLoader());
+
+
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id-broken", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
+            Hello2 hello  = (Hello2) Proxy.newProxyInstance(Hello2Impl.class.getClassLoader(), new Class[] { Hello2.class }, handler);
+
+            try{
+                hello.hello("Fabric");
+                fail("The service id does not exist, so this must fail");
+            } catch (ServiceException e) {
+                assertNotNull(e.getMessage());
+            }
+            try{
+                hello.helloAsync("World").get();
+                fail("The service id does not exist, so this must fail");
+            } catch (ExecutionException e) {
+                assertTrue(e.getCause() instanceof ServiceException);
+                assertNotNull(e.getCause().getMessage());
+            }
+        }
+        finally {
+            server.stop();
+            client.stop();
+        }
+    }
+
 
 
     @Test
@@ -674,5 +729,27 @@ public class InvocationTest {
         }
     }
 
+    public interface Hello2 {
+
+        public String hello(String name);
+
+        public Future<String> helloAsync(String name);
+    }
+
+    public class Hello2Impl implements Hello2 {
+
+        @Override
+        public String hello(String name) {
+            return "Hello "+name;
+        }
+
+        @Override
+        public Future<String> helloAsync(final String name) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            return executor.submit(() -> {
+                return hello(name);
+            });
+        }
+    }
 
 }
