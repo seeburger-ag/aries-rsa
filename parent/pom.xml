@@ -21,7 +21,7 @@
 
     <groupId>org.apache.aries.rsa</groupId>
     <artifactId>org.apache.aries.rsa.parent</artifactId>
-    <version>1.10.SEE2</version>
+    <version>1.10.SEE3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Parent</name>
 
@@ -41,7 +41,7 @@
     <scm>
         <connection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</connection>
         <developerConnection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</developerConnection>
-        <tag>org.apache.aries.rsa.main-1.10.SEE2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
