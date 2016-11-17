@@ -33,5 +33,18 @@ public interface InvocationStrategy {
 
     public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception;
 
+    /**
+     * handles the actual remote call.
+     * <p>
+     * if method is <code>null</code> and target is a <code>ServiceException</code> it is treated as an indication that the method lookup failed.
+     * In such a case the strategy will send the service exception to the caller
+     * @param serializationStrategy
+     * @param loader
+     * @param method
+     * @param target
+     * @param requestStream
+     * @param responseStream
+     * @param onComplete
+     */
     void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete);
 }

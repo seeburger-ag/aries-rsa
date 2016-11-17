@@ -46,6 +46,7 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtbuf.UTF8Buffer;
 import org.fusesource.hawtdispatch.DispatchQueue;
+import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,41 +244,83 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             final Buffer encoded_method = readBuffer(bais);
 
             final ServiceFactoryHolder holder = holders.get(service);
-            final MethodData methodData = holder.getMethodData(encoded_method);
+            Runnable task = null;
+            if(holder==null) {
+                LOGGER.warn("The requested service {"+service+"} is not available");
+                task = new Runnable() {
+                    public void run() {
 
-            final Object svc = holder.factory.get();
-
-            Runnable task = new Runnable() {
-                public void run() {
-
-                    final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
-                    try {
-                        baos.writeInt(0); // make space for the size field.
-                        baos.writeVarLong(correlation);
-                    } catch (IOException e) { // should not happen
-                        throw new RuntimeException(e);
-                    }
-
-                    // Lets decode the remaining args on the target's executor
-                    // to take cpu load off the
-                    methodData.invocationStrategy.service(methodData.serializationStrategy, holder.loader, methodData.method, svc, bais, baos, new Runnable() {
-                        public void run() {
-                            holder.factory.unget();
-                            final Buffer command = baos.toBuffer();
-
-                            // Update the size field.
-                            BufferEditor editor = command.buffer().bigEndianEditor();
-                            editor.writeInt(command.length);
-
-                            queue().execute(new Runnable() {
-                                public void run() {
-                                    transport.offer(command);
-                                }
-                            });
+                        final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
+                        try {
+                            baos.writeInt(0); // make space for the size field.
+                            baos.writeVarLong(correlation);
+                        } catch (IOException e) { // should not happen
+                            LOGGER.error("Failed to write to buffer",e);
+                            throw new RuntimeException(e);
                         }
-                    });
-                }
-            };
+
+                        // Lets decode the remaining args on the target's executor
+                        // to take cpu load off the
+                        BlockingInvocationStrategy strategy = new BlockingInvocationStrategy();
+                        strategy.service(ObjectSerializationStrategy.INSTANCE, getClass().getClassLoader(), null,  new ServiceException("The requested service {"+service+"} is not available"), bais, baos, new Runnable() {
+
+                            public void run() {
+                                final Buffer command = baos.toBuffer();
+
+                                // Update the size field.
+                                BufferEditor editor = command.buffer().bigEndianEditor();
+                                editor.writeInt(command.length);
+
+                                queue().execute(new Runnable() {
+                                    public void run() {
+                                        transport.offer(command);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                };
+            }
+            final Object svc = holder==null ? null : holder.factory.get();
+            if(holder!=null)
+            {
+                final MethodData methodData = holder.getMethodData(encoded_method);
+
+
+                task = new Runnable() {
+                    public void run() {
+
+                        final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
+                        try {
+                            baos.writeInt(0); // make space for the size field.
+                            baos.writeVarLong(correlation);
+                        } catch (IOException e) { // should not happen
+                            LOGGER.error("Failed to write to buffer",e);
+                            throw new RuntimeException(e);
+                        }
+
+                        // Lets decode the remaining args on the target's executor
+                        // to take cpu load off the
+                        methodData.invocationStrategy.service(methodData.serializationStrategy, holder.loader, methodData.method, svc, bais, baos, new Runnable() {
+                            public void run() {
+                                holder.factory.unget();
+                                final Buffer command = baos.toBuffer();
+
+                                // Update the size field.
+                                BufferEditor editor = command.buffer().bigEndianEditor();
+                                editor.writeInt(command.length);
+
+                                queue().execute(new Runnable() {
+                                    public void run() {
+                                        transport.offer(command);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                };
+
+            }
 
             Executor executor;
             if( svc instanceof Dispatched ) {
