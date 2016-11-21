@@ -17,9 +17,9 @@ When large amount of data (e.g. files) need to be transfered remotely it is not 
 use `InputStream` and `OutputStream` as parameter or return value. When a remote method contains such a parameter, the stream is replaced with a proxy implementation that pipes data remotely from/to the original stream.
 
 
-## Endpoint Configuration
+## Transport configuration
 
-service.exported.configs: aries.fastbin
+Config PID: org.apache.aries.rsa.provider.fastbin
 
 | Key                      | Default               | Description                                              |
 | -------------------------| --------------------- | -------------------------------------------------------- |
@@ -27,3 +27,9 @@ service.exported.configs: aries.fastbin
 | exportAddress            | looks up the hostname | The ip/hostname how remote clients can reach this server |
 | timeout                  | 300000                | The timeout for sync calls (default 5 minutes)           |
 
+
+## Endpoint Configuration
+
+Per service configuration using service properties.
+
+service.exported.configs: aries.fastbin
