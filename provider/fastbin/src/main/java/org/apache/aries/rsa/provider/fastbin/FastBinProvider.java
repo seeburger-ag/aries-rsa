@@ -91,7 +91,6 @@ public class FastBinProvider implements DistributionProvider {
 //    @Activate
     public void activate(BundleContext context, Map<String, ?> dictionary) {
         this.bundleContext = context;
-        registration = context.registerService(DistributionProvider.class.getName(), this, new Hashtable<>(dictionary));
         Map<String, Object> config = new HashMap<String, Object>();
         config.putAll(dictionary);
 
@@ -119,6 +118,7 @@ public class FastBinProvider implements DistributionProvider {
         } catch (Exception e) {
             LOG.error("Failed to start the tcp client",e);
         }
+        registration = context.registerService(DistributionProvider.class.getName(), this, new Hashtable<>(dictionary));
     }
 
     @Deactivate
