@@ -391,7 +391,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             LOG.info("Importing service {} with interfaces {} using handler {}.",
                      endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
 
-            ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.get(0), endpoint, provider);
+            ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
             if (imRegs == null) {
                 imRegs = new ArrayList<ImportRegistrationImpl>();
                 importedServices.put(endpoint, imRegs);
@@ -419,7 +419,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         return usableConfigurationTypes;
     }
 
-    protected ImportRegistrationImpl exposeServiceFactory(String interfaceName,
+    protected ImportRegistrationImpl exposeServiceFactory(String[] interfaceNames,
                                             EndpointDescription epd,
                                             DistributionProvider handler) {
         ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, this);
@@ -437,11 +437,11 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
              *  If the bundle publishing the factory does not import the service interface
              *  package then the factory is visible for all consumers which we want.
              */
-            ServiceRegistration csfReg = apictx.registerService(interfaceName, csf, serviceProps);
+            ServiceRegistration csfReg = apictx.registerService(interfaceNames, csf, serviceProps);
             imReg.setImportedServiceRegistration(csfReg);
         } catch (Exception ex) {
             // Only logging at debug level as this might be written to the log at the TopologyManager
-            LOG.debug("Can not proxy service with interface " + interfaceName + ": " + ex.getMessage(), ex);
+            LOG.debug("Can not proxy service with interfaces " + Arrays.toString(interfaceNames) + ": " + ex.getMessage(), ex);
             imReg.setException(ex);
         }
         return imReg;
