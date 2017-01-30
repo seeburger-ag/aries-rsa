@@ -70,6 +70,12 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
             if (clazz != null) {
                 return clazz;
             } else {
+                try{
+                    //try to load it with our own classloader (could be e.g. a service exception)
+                    return Class.forName(className, false, this.getClassLoader());
+                } catch(ClassNotFoundException e2) {
+                    //ignore
+                }
                 throw e;
             }
         }
