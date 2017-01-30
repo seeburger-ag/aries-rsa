@@ -155,6 +155,60 @@ public class RemoteServiceAdminCoreTest {
         c.verify();
     }
 
+
+    @Test
+    public void testImportWithMultipleInterfaces() {
+        IMocksControl c = EasyMock.createNiceControl();
+        Bundle b = c.createMock(Bundle.class);
+        BundleContext bc = c.createMock(BundleContext.class);
+
+        Dictionary<String, String> d = new Hashtable<String, String>();
+        EasyMock.expect(b.getHeaders()).andReturn(d).anyTimes();
+
+        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
+
+        EasyMock.expect(bc.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class","java.lang.Runnable"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
+        EasyMock.expect(b.getSymbolicName()).andReturn("BundleName").anyTimes();
+
+        DistributionProvider provider = c.createMock(DistributionProvider.class);
+        EasyMock.expect(provider.getSupportedTypes())
+            .andReturn(new String[]{MYCONFIG}).atLeastOnce();
+        c.replay();
+
+        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, provider);
+
+
+        Map<String, Object> p = new HashMap<String, Object>();
+        p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
+        p.put(Constants.OBJECTCLASS, new String[] {
+            "es.schaaf.my.class",
+            "java.lang.Runnable"
+        });
+        p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, MYCONFIG);
+        EndpointDescription endpoint = new EndpointDescription(p);
+
+        ImportRegistration ireg = rsaCore.importService(endpoint);
+
+        assertNotNull(ireg);
+
+        assertEquals(1, rsaCore.getImportedEndpoints().size());
+
+        // lets import the same endpoint once more -> should get a copy of the ImportRegistration
+        ImportRegistration ireg2 = rsaCore.importService(endpoint);
+        assertNotNull(ireg2);
+        assertEquals(2, rsaCore.getImportedEndpoints().size());
+
+        assertEquals(ireg.getImportReference(), (rsaCore.getImportedEndpoints().toArray())[0]);
+
+        assertEquals(ireg.getImportReference().getImportedEndpoint(), ireg2.getImportReference()
+            .getImportedEndpoint());
+
+        EndpointDescription importedEndpoint = ireg.getImportReference().getImportedEndpoint();
+        assertEquals(2,importedEndpoint.getInterfaces().size());
+
+        c.verify();
+    }
+
     private EndpointDescription creatEndpointDesc(String configType) {
         Map<String, Object> p = new HashMap<String, Object>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
