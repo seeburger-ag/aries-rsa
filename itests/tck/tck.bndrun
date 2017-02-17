@@ -1,4 +1,4 @@
--standalone: target/index.xml
+#-standalone: target/index.xml
 
 -runtrace = true
 
@@ -8,6 +8,16 @@
 -runproperties = \
     report="true", \
     osgi.resolverMode="strict"
+    rsa.ct.timeout="300000", \
+    rsa.ct.timeout.factor="3"
+#    org.osgi.test.cases.remoteserviceadmin.system.packages.extra="junit.framework;version=3.8", \
+#    org.osgi.test.cases.remoteserviceadmin.bundles="jar/osgi.cmpn-5.0.0.jar,jar/org.osgi.impl.service.log-1.3.2.jar,jar/org.apache.cxf.dosgi.singlebundle-1.3.1.jar,jar/org.apache.cxf.dosgi.discovery.server.config-1.2.0.jar", \
+#    org.osgi.test.cases.remoteserviceadmin.serverconfig="service.exported.configs,org.apache.cxf.ws.port", \
+#    service.exported.configs="org.apache.cxf.ws", \
+#    org.apache.cxf.ws.port="@@FREE_PORT@@"
+
+-runvm = \
+    -Xmx512m, -XX:MaxPermSize=350m
 
 -runsystempackages=javax.xml.stream; version=1.0, javax.xml.stream.events; version=1.0, javax.xml.stream.util; version=1.0
 -runfw: org.eclipse.osgi;version='[3.8.0.v20120529-1548,3.8.0.v20120529-1548]'
