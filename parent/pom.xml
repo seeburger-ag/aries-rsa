@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.main</artifactId>
-        <version>1.10.0.SEE4</version>
+        <version>1.11.0.SEE5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -41,7 +41,7 @@
     <scm>
         <connection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</connection>
         <developerConnection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</developerConnection>
-        <tag>org.apache.aries.rsa-1.10.0.SEE4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
