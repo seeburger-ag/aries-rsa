@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
+import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
@@ -86,7 +87,7 @@ public class TopologyManagerExport implements ServiceListener {
             export(serviceRef);
         }
     };
-    
+
     public void remove(RemoteServiceAdmin rsa) {
         rsaSet.remove(rsa);
         endpointRepo.removeRemoteServiceAdmin(rsa);
@@ -122,17 +123,18 @@ public class TopologyManagerExport implements ServiceListener {
                 // already handled by this remoteServiceAdmin
                 LOG.debug("already handled by this remoteServiceAdmin -> skipping");
             } else {
-                
+
                 exportServiceUsingRemoteServiceAdmin(sref, remoteServiceAdmin, addProps);
             }
         }
     }
 
     private boolean shouldExport(ServiceReference<?> sref, Map<String, ?> addProps) {
-        String exported = (String)sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
-        String addExported = (String)addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
-        String effectiveExported = addExported != null ? addExported : exported;
-        return (effectiveExported != null) && !effectiveExported.isEmpty();
+        List<String> exported= StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
+        List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
+        int length = exported == null ? 0 : exported.size();
+        length += addExported == null ? 0 : addExported.size();
+        return length>0;
     }
 
     private Object getSymbolicName(Bundle bundle) {
@@ -140,7 +142,7 @@ public class TopologyManagerExport implements ServiceListener {
     }
 
     private void exportServiceUsingRemoteServiceAdmin(final ServiceReference<?> sref,
-                                                      final RemoteServiceAdmin remoteServiceAdmin, 
+                                                      final RemoteServiceAdmin remoteServiceAdmin,
                                                       Map<String, ?> addProps) {
         // abort if the service was unregistered by the time we got here
         // (we check again at the end, but this optimization saves unnecessary heavy processing)
