@@ -249,80 +249,22 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             final ServiceFactoryHolder holder = holders.get(service);
             Runnable task = null;
             if(holder==null) {
-                LOGGER.warn("The requested service {"+service+"} is not available");
-                task = new Runnable() {
-                    public void run() {
-
-                        final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
-                        try {
-                            baos.writeInt(0); // make space for the size field.
-                            baos.writeVarLong(correlation);
-                        } catch (IOException e) { // should not happen
-                            LOGGER.error("Failed to write to buffer",e);
-                            throw new RuntimeException(e);
-                        }
-
-                        // Lets decode the remaining args on the target's executor
-                        // to take cpu load off the
-                        BlockingInvocationStrategy strategy = new BlockingInvocationStrategy();
-                        strategy.service(ObjectSerializationStrategy.INSTANCE, getClass().getClassLoader(), null,  new ServiceException("The requested service {"+service+"} is not available"), bais, baos, new Runnable() {
-
-                            public void run() {
-                                final Buffer command = baos.toBuffer();
-
-                                // Update the size field.
-                                BufferEditor editor = command.buffer().bigEndianEditor();
-                                editor.writeInt(command.length);
-
-                                queue().execute(new Runnable() {
-                                    public void run() {
-                                        transport.offer(command);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                };
+                String message = "The requested service {"+service+"} is not available";
+                LOGGER.warn(message);
+                task = new SendTask(bais, correlation, transport, message);
             }
             final Object svc = holder==null ? null : holder.factory.get();
-            if(holder!=null)
-            {
-                final MethodData methodData = holder.getMethodData(encoded_method);
-
-
-                task = new Runnable() {
-                    public void run() {
-
-                        final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
-                        try {
-                            baos.writeInt(0); // make space for the size field.
-                            baos.writeVarLong(correlation);
-                        } catch (IOException e) { // should not happen
-                            LOGGER.error("Failed to write to buffer",e);
-                            throw new RuntimeException(e);
-                        }
-
-                        // Lets decode the remaining args on the target's executor
-                        // to take cpu load off the
-                        methodData.invocationStrategy.service(methodData.serializationStrategy, holder.loader, methodData.method, svc, bais, baos, new Runnable() {
-                            public void run() {
-                                holder.factory.unget();
-                                final Buffer command = baos.toBuffer();
-
-                                // Update the size field.
-                                BufferEditor editor = command.buffer().bigEndianEditor();
-                                editor.writeInt(command.length);
-
-                                queue().execute(new Runnable() {
-                                    public void run() {
-                                        transport.offer(command);
-                                    }
-                                });
-                            }
-                        });
-                    }
-                };
-
+            if(holder!=null) {
+                try {
+                    final MethodData methodData = holder.getMethodData(encoded_method);
+                    task = new SendTask(svc, bais, holder, correlation, methodData, transport);
+                }
+                catch (ReflectiveOperationException reflectionEx) {
+                    final String methodName = encoded_method.utf8().toString();
+                    String message = "The requested method {"+methodName+"} is not available";
+                    LOGGER.warn(message);
+                    task = new SendTask(bais, correlation, transport, message);
+                }
             }
 
             Executor executor;
@@ -378,6 +320,63 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         }
 
         public void onTransportDisconnected(Transport transport) {
+        }
+    }
+
+    private final class SendTask implements Runnable {
+        private Object svc;
+        private DataByteArrayInputStream bais;
+        private ServiceFactoryHolder holder;
+        private long correlation;
+        private MethodData methodData;
+        private Transport transport;
+
+
+        private SendTask(Object svc, DataByteArrayInputStream bais, ServiceFactoryHolder holder, long correlation, MethodData methodData, Transport transport) {
+            this.svc = svc;
+            this.bais = bais;
+            this.holder = holder;
+            this.correlation = correlation;
+            this.methodData = methodData;
+            this.transport = transport;
+        }
+
+        private SendTask(DataByteArrayInputStream bais, long correlation, Transport transport, String errorMessage) {
+            this(new ServiceException(errorMessage), bais, null, correlation, new MethodData(new BlockingInvocationStrategy(), ObjectSerializationStrategy.INSTANCE, null),transport);
+        }
+
+        public void run() {
+
+            final DataByteArrayOutputStream baos = new DataByteArrayOutputStream();
+            try {
+                baos.writeInt(0); // make space for the size field.
+                baos.writeVarLong(correlation);
+            } catch (IOException e) { // should not happen
+                LOGGER.error("Failed to write to buffer",e);
+                throw new RuntimeException(e);
+            }
+
+            // Lets decode the remaining args on the target's executor
+            // to take cpu load off the
+
+            ClassLoader loader = holder==null ? getClass().getClassLoader() : holder.loader;
+            methodData.invocationStrategy.service(methodData.serializationStrategy, loader, methodData.method, svc, bais, baos, new Runnable() {
+                public void run() {
+                    if(holder!=null)
+                        holder.factory.unget();
+                    final Buffer command = baos.toBuffer();
+
+                    // Update the size field.
+                    BufferEditor editor = command.buffer().bigEndianEditor();
+                    editor.writeInt(command.length);
+
+                    queue().execute(new Runnable() {
+                        public void run() {
+                            transport.offer(command);
+                        }
+                    });
+                }
+            });
         }
     }
 

@@ -105,7 +105,7 @@ public class TransportFailureTest {
                         Thread.sleep(SLEEP_TIME);
                         // Big introspection call to access the transport channel and close it, simulating
                         // a disconnect on the client side.
-                        ((SocketChannel) get(get(get(get(get(callback, "val$helper"), "onComplete"), "this$1"), "val$transport"), "channel")).close();
+                        ((SocketChannel) get(get(get(get(get(callback, "val$helper"), "onComplete"), "this$1"), "transport"), "channel")).close();
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
