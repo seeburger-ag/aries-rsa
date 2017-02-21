@@ -324,7 +324,13 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected class InvokerTransportPool extends TransportPool {
 
         public InvokerTransportPool(String uri, DispatchQueue queue) {
-            super(uri, queue, TransportPool.DEFAULT_POOL_SIZE, timeout << 1);
+            /*
+             * the evict time needs to be 0. Otherwise the client will
+             * evict transport objects which breaks the connection for
+             * long running async calls.
+             * Since there is limit of 2 transports per uri it shouldn't be that many objects
+             */
+            super(uri, queue, TransportPool.DEFAULT_POOL_SIZE, 0);
         }
 
         @Override
