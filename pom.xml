@@ -21,13 +21,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.apache.aries.rsa</groupId>
-        <artifactId>org.apache.aries.rsa.parent</artifactId>
-        <version>1.10.SEE4-SNAPSHOT</version>
-        <relativePath>parent/pom.xml</relativePath>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>17</version>
+        <relativePath />
     </parent>
 
+    <groupId>org.apache.aries.rsa</groupId>
     <artifactId>org.apache.aries.rsa.main</artifactId>
+    <version>1.11.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Main</name>
 
@@ -191,6 +193,7 @@
                         <goals>deploy</goals>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <mavenExecutorId>forked-path</mavenExecutorId>
+                        <tagNameFormat>org.apache.aries.rsa-@{project.version}</tagNameFormat>
                     </configuration>
                 </plugin>
             </plugins>

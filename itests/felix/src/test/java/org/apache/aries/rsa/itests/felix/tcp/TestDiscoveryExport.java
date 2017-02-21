@@ -1,4 +1,3 @@
-package org.apache.aries.rsa.itests.felix.tcp;
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -17,16 +16,14 @@ package org.apache.aries.rsa.itests.felix.tcp;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.aries.rsa.itests.felix.tcp;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -42,7 +39,6 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 
 @RunWith(PaxExam.class)
 public class TestDiscoveryExport extends RsaTestBase {
@@ -54,11 +50,12 @@ public class TestDiscoveryExport extends RsaTestBase {
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                rsaCoreZookeeper(),
+                rsaCore(),
+                rsaDiscoveryZookeeper(),
                 rsaTcp(),
                 echoTcpService(),
                 localRepo(),
-                configZKConsumer(),
+                configZKDiscovery(),
                 configZKServer()
         };
     }
@@ -85,9 +82,7 @@ public class TestDiscoveryExport extends RsaTestBase {
         throws KeeperException, InterruptedException {
         byte[] data = zk.getData(endpointPath, false, null);
         ByteArrayInputStream is = new ByteArrayInputStream(data);
-        List<EndpointDescriptionType> epdList = new EndpointDescriptionParser().getEndpointDescriptions(is);
-        Map<String, Object> props = new PropertiesMapper().toProps(epdList.get(0).getProperty());
-        return new EndpointDescription(props);
+        return new EndpointDescriptionParser().readEndpoint(is);
     }
 
     private String getEndpointPath(ZooKeeper zk, String servicePath) throws KeeperException, InterruptedException {

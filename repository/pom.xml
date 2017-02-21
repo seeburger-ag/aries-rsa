@@ -3,11 +3,12 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.parent</artifactId>
-        <version>1.10.SEE4-SNAPSHOT</version>
+        <version>1.11.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <artifactId>repository</artifactId>
     <packaging>pom</packaging>
+    <name>Aries Remote Service Admin Repository</name>
     <properties>
         <local.url.policy>REQUIRED</local.url.policy>
     </properties>
@@ -78,6 +79,16 @@
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
             <artifactId>org.apache.aries.rsa.discovery.zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.config</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.command</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

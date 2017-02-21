@@ -18,37 +18,39 @@
  */
 package org.apache.aries.rsa.discovery.endpoint;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionsType;
+import org.osgi.xmlns.rsa.v1_0.ObjectFactory;
+import org.osgi.xmlns.rsa.v1_0.PropertyType;
 
 public class EndpointDescriptionParser {
     private JAXBContext jaxbContext;
 
     public EndpointDescriptionParser() {
         try {
-            jaxbContext = JAXBContext.newInstance(EndpointDescriptionsType.class.getPackage().getName(),
-                                                  this.getClass().getClassLoader());
+            jaxbContext = JAXBContext.newInstance(EndpointDescriptionsType.class);
         } catch (JAXBException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public List<EndpointDescriptionType> getEndpointDescriptions(InputStream is) {
+    private List<EndpointDescriptionType> readEpdts(InputStream is) {
         try {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Source source = new StreamSource(is);
@@ -59,32 +61,63 @@ public class EndpointDescriptionParser {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
+    
+    public List<EndpointDescription> readEndpoints(InputStream is) {
+        List<EndpointDescriptionType> epdts = readEpdts(is);
+        List<EndpointDescription> epds = new ArrayList<EndpointDescription>();
+        for (EndpointDescriptionType epdt : epdts) {
+            epds.add(convert(epdt));
+        }
+        return epds;
+    }
+    
+    public EndpointDescription readEndpoint(InputStream is) {
+        List<EndpointDescription> endpoints = readEndpoints(is);
+        if (endpoints.isEmpty()) {
+            return null;
+        }
+        return endpoints.iterator().next();
+    }
 
-    public void writeTo(EndpointDescriptionsType endpointDescriptions, OutputStream os) {
+    public void writeEndpoint(EndpointDescription epd, OutputStream os) {
+        writeEpdt(convert(epd), os);
+    }
+    
+    private void writeEpdt(EndpointDescriptionType endpointDescription, OutputStream os) {
         try {
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            QName name = new QName("http://www.osgi.org/xmlns/rsa/v1.0.0", "endpoint-descriptions");
-            JAXBElement<EndpointDescriptionsType> el = 
-                new JAXBElement<EndpointDescriptionsType>(name, EndpointDescriptionsType.class, 
-                    endpointDescriptions);
+            EndpointDescriptionsType endpointDescriptions = new EndpointDescriptionsType();
+            endpointDescriptions.getEndpointDescription().add(endpointDescription);
+            JAXBElement<EndpointDescriptionsType> el = new ObjectFactory().createEndpointDescriptions(endpointDescriptions);
             marshaller.marshal(el, os);
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         } finally {
-            try {
-                os.close();
-            } catch (IOException e) {
-                // Ignore
-            }
+            safeClose(os);
         }
     }
-    
-    public byte[] getData(EndpointDescriptionType endpointDescription) {
-        EndpointDescriptionsType endpointDescriptions = new EndpointDescriptionsType();
-        endpointDescriptions.getEndpointDescription().add(endpointDescription);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        writeTo(endpointDescriptions, bos);
-        return bos.toByteArray();
+
+    private void safeClose(OutputStream os) {
+        try {
+            os.close();
+        } catch (IOException e) {
+            // Ignore
+        }
     }
+
+    private EndpointDescriptionType convert(EndpointDescription epd) {
+        List<PropertyType> props = new PropertiesMapper().fromProps(epd.getProperties());
+        EndpointDescriptionType epdt = new EndpointDescriptionType();
+        epdt.getProperty().addAll(props);
+        return epdt;
+    }
+
+    private EndpointDescription convert(EndpointDescriptionType epdt) {
+        Map<String, Object> props = new PropertiesMapper().toProps(epdt.getProperty());
+        return new EndpointDescription(props);
+        
+    }
+    
+
 }

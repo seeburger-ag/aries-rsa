@@ -18,13 +18,18 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import java.util.List;
+
 import javax.jws.Oneway;
 
 public interface MyService {
     String echo(String msg);
+
     void call(String msg);
 
     // Oneway not yet supported
     @Oneway
     void callOneWay(String msg);
+    
+    void callWithList(List<String> msg);
 }

@@ -21,6 +21,8 @@ package org.apache.aries.rsa.itests.felix.rsa;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.TimeoutException;
+
 import javax.inject.Inject;
 
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
@@ -31,6 +33,7 @@ import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
@@ -46,43 +49,61 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {
-                rsaCoreZookeeper(),
-                configZKServer(),
+                rsaCore(),
                 rsaFastBin(),
                 echoTcpService(),
                 configFastBin("2545"),
-                configZKConsumer()
         };
     }
 
     @Test
     public void testListener() throws Exception {
+        Bundle serviceBundle = getBundle("org.apache.aries.rsa.examples.echotcp.service");
+        serviceBundle.stop();
+        ServiceRegistration<RemoteServiceAdminListener> sreg = context.registerService(RemoteServiceAdminListener.class, this, null);
 
-        Thread.sleep(1000);
-        context.registerService(RemoteServiceAdminListener.class, this, null);
+        serviceBundle.start();
+        assertEvent(RemoteServiceAdminEvent.EXPORT_REGISTRATION);
+
+        serviceBundle.stop();
+        assertEvent(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION);
+
+        sreg.unregister();
+    }
+
+    @Override
+    public synchronized void remoteAdminEvent(RemoteServiceAdminEvent event) {
+        lastEvent = event;
+        this.notifyAll();
+    }
+
+    private void assertEvent(int eventType) throws InterruptedException, TimeoutException {
+        waitEvent();
+        assertEquals(eventType, lastEvent.getType());
+        assertNotNull("ExportReference must be available",lastEvent.getExportReference());
+        this.lastEvent = null;
+    }
+
+    private synchronized void waitEvent() throws InterruptedException, TimeoutException {
+        long start = System.currentTimeMillis();
+        while (this.lastEvent == null) {
+            this.wait(1000);
+            if (System.currentTimeMillis() - start > 2000) {
+                throw new TimeoutException("Timeout waiting for Event");
+            }
+        }
+    }
+
+    private Bundle getBundle(String symName) {
         Bundle serviceBundle = null;
         Bundle[] bundles = context.getBundles();
         for (Bundle bundle : bundles) {
-            if("org.apache.aries.rsa.examples.echotcp.service".equals(bundle.getSymbolicName())) {
+            if(symName.equals(bundle.getSymbolicName())) {
                 serviceBundle = bundle;
                 break;
             }
         }
-        serviceBundle.stop();
-        assertNotNull(lastEvent);
-        assertEquals(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, lastEvent.getType());
-        assertNotNull("ExportReference must be available",lastEvent.getExportReference());
-
-        serviceBundle.start();
-        Thread.sleep(3000);
-        assertNotNull(lastEvent);
-        assertEquals(RemoteServiceAdminEvent.EXPORT_REGISTRATION, lastEvent.getType());
-        assertNotNull("ExportReference must be available",lastEvent.getExportReference());
-    }
-
-    @Override
-    public void remoteAdminEvent(RemoteServiceAdminEvent event) {
-        lastEvent = event;
+        return serviceBundle;
     }
 
 }

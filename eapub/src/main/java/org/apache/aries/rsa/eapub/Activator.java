@@ -25,11 +25,11 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
 public class Activator implements BundleActivator {
 
-    private ServiceRegistration registration;
+    private ServiceRegistration<RemoteServiceAdminListener> registration;
 
     public void start(BundleContext bundlecontext) throws Exception {
         registration = bundlecontext.registerService(
-                RemoteServiceAdminListener.class.getName(), new EventAdminHelper(bundlecontext), null);
+                RemoteServiceAdminListener.class, new EventAdminHelper(bundlecontext), null);
     }
 
     public void stop(BundleContext context) throws Exception {

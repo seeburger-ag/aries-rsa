@@ -19,8 +19,6 @@
 package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.aries.rsa.topologymanager.Activator;
 import org.osgi.framework.BundleContext;
@@ -37,19 +35,6 @@ import org.slf4j.LoggerFactory;
 public class ListenerHookImpl implements ListenerHook {
 
     private static final Logger LOG = LoggerFactory.getLogger(ListenerHookImpl.class);
-
-    // From the old impl.
-    private static final Set<String> SYSTEM_PACKAGES;
-    static {
-        SYSTEM_PACKAGES = new HashSet<String>();
-        SYSTEM_PACKAGES.add("org.osgi.service");
-        SYSTEM_PACKAGES.add("org.apache.felix");
-        SYSTEM_PACKAGES.add("org.ops4j.pax.logging");
-        SYSTEM_PACKAGES.add("ch.ethz.iks.slp");
-        SYSTEM_PACKAGES.add("org.ungoverned.osgi.service");
-        SYSTEM_PACKAGES.add("org.springframework.osgi.context.event.OsgiBundleApplicationContextListener");
-        SYSTEM_PACKAGES.add("java.net.ContentHandler");
-    }
 
     private final BundleContext bctx;
     private final ServiceInterestListener serviceInterestListener;
@@ -81,7 +66,7 @@ public class ListenerHookImpl implements ListenerHook {
                 continue;
             }
 
-            if (isClassExcluded(className)) {
+            if (FilterHelper.isClassExcluded(className)) {
                 LOG.debug("Skipping import request for excluded class [{}]", className);
                 continue;
             }
@@ -102,19 +87,6 @@ public class ListenerHookImpl implements ListenerHook {
             String exFilter = extendFilter(listenerInfo.getFilter());
             serviceInterestListener.removeServiceInterest(exFilter);
         }
-    }
-
-    private static boolean isClassExcluded(String className) {
-        if (className == null) {
-            return true;
-        }
-
-        for (String p : SYSTEM_PACKAGES) {
-            if (className.startsWith(p)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     String extendFilter(String filter) {

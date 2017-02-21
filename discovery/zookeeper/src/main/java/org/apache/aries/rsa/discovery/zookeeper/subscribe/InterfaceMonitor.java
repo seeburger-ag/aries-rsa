@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.KeeperException;
@@ -36,7 +35,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,7 +238,7 @@ public class InterfaceMonitor implements Watcher, StatCallback {
             byte[] data = zk.getData(node, false, null);
             LOG.debug("Got data for node: {}", node);
 
-            EndpointDescription endpoint = getFirstEnpointDescription(data);
+            EndpointDescription endpoint = parser.readEndpoint(new ByteArrayInputStream(data));
             if (endpoint != null) {
                 return endpoint;
             }
@@ -249,14 +247,5 @@ public class InterfaceMonitor implements Watcher, StatCallback {
             LOG.error("Problem getting EndpointDescription from node " + node, e);
         }
         return null;
-    }
-
-    public EndpointDescription getFirstEnpointDescription(byte[] data) {
-        List<EndpointDescriptionType> elements = parser.getEndpointDescriptions(new ByteArrayInputStream(data));
-        if (elements.isEmpty()) {
-            return null;
-        }
-        Map<String, Object> props = new PropertiesMapper().toProps(elements.get(0).getProperty());
-        return new EndpointDescription(props);
     }
 }

@@ -1,3 +1,22 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.apache.aries.rsa.itests.felix;
 
 import static org.ops4j.pax.exam.CoreOptions.composite;
@@ -62,6 +81,10 @@ public class RsaTestBase {
         }
     }
 
+    protected static Option echoTcpAPI() {
+        return mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api");
+    }
+    
     protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
         mvn("org.apache.felix", "org.apache.felix.scr"),
@@ -78,22 +101,37 @@ public class RsaTestBase {
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
         );
     }
-
-    protected static Option rsaCoreZookeeper() {
-        return composite(junitBundles(),
+    
+    protected static Option rsaCore() {
+        return composite(junitBundles(), 
                          localRepo(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
-                         systemProperty("zkPort").value("15201"),
+                         systemProperty("aries.rsa.hostname").value("localhost"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
-                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local"),
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
+        );
+    }
+    
+    protected static Option debug() {
+        return CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+    }
+    
+    protected static Option rsaDiscoveryConfig() {
+        return composite(
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.config")
+                         );
+    }
+    
+    protected static Option rsaDiscoveryZookeeper() {
+        return composite(
+                         systemProperty("zkPort").value("15201"),
                          mvn("org.apache.zookeeper", "zookeeper"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper")
-                         //CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
-            );
+                         );
     }
 
     protected static Option rsaTcp() {
@@ -101,28 +139,27 @@ public class RsaTestBase {
     }
 
     protected static Option rsaFastBin() {
-        return composite(mvn("org.apache.felix","org.apache.felix.scr"),
-                       mvn("org.apache.felix","org.apache.felix.scr.annotations"),
-                       mvn("org.fusesource.hawtbuf", "hawtbuf"),
-                       mvn("org.fusesource.hawtdispatch", "hawtdispatch"),
-                       mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
+        return composite(mvn("org.fusesource.hawtbuf", "hawtbuf"),
+                         mvn("org.fusesource.hawtdispatch", "hawtdispatch"),
+                         mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
     }
 
-    protected static Option configZKConsumer() {
-        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper")
-            .put("zookeeper.host", "127.0.0.1")
-            .put("zookeeper.port", ZK_PORT)
-            .asOption();
+    protected static Option configZKDiscovery() {
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper") //
+            .put("zookeeper.host", "127.0.0.1") //
+            .put("zookeeper.port", ZK_PORT).asOption();
     }
 
     protected static Option configZKServer() {
-        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server")
-            .put("clientPort", ZK_PORT).asOption();
+        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server") //
+            .put("clientPort", ZK_PORT) //
+            .asOption();
     }
 
     protected static Option configFastBin(String port) {
-        return newConfiguration("org.apache.aries.rsa.provider.fastbin")
-            .put("uri", "tcp://0.0.0.0:" + port).asOption();
+        return newConfiguration("org.apache.aries.rsa.provider.fastbin") //
+            .put("uri", "tcp://0.0.0.0:" + port) //
+            .asOption();
     }
 
 }

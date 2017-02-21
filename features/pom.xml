@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.parent</artifactId>
-        <version>1.10.SEE4-SNAPSHOT</version>
+        <version>1.11.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
@@ -26,7 +26,62 @@
 
     <properties>
         <topDirectoryLocation>../..</topDirectoryLocation>
+        <karaf.version>4.0.4</karaf.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <version>${karaf.version}</version>
+            <type>kar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>standard</artifactId>
+            <version>${karaf.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa</groupId>
+            <artifactId>org.apache.aries.rsa.topology-manager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.provider</groupId>
+            <artifactId>org.apache.aries.rsa.provider.tcp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.provider</groupId>
+            <artifactId>org.apache.aries.rsa.provider.fastbin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <resources>
@@ -54,6 +109,40 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <version>4.0.5</version>
+                <configuration>
+                    <startLevel>30</startLevel>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>verify</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</descriptor>
+                                <descriptor>file:${project.build.directory}/classes/features.xml</descriptor>
+                            </descriptors>
+                            <distribution>org.apache.karaf.features:framework</distribution>
+                            <javase>1.7</javase>
+                            <framework>
+                                <feature>framework</feature>
+                            </framework>
+                            <features>
+                                <feature>aries-rsa-*</feature>
+                            </features>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

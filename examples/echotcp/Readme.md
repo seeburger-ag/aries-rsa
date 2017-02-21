@@ -10,7 +10,7 @@ Download Apache Karaf 4.0.5
 Extract to container_a and start. In the shell execute the commands below:
 
 ```
-feature:repo-add aries-rsa 1.8-SNAPSHOT
+feature:repo-add aries-rsa 1.8.0
 feature:install scr aries-rsa-provider-tcp aries-rsa-discovery-zookeeper aries-rsa-discovery-zookeeper-server
 install -s mvn:org.apache.aries.rsa.examples.echotcp/org.apache.aries.rsa.examples.echotcp.api
 install -s mvn:org.apache.aries.rsa.examples.echotcp/org.apache.aries.rsa.examples.echotcp.service
@@ -28,7 +28,7 @@ It should look similar to this:
 Extract to container_b and start. In the shell execute the commands below:
 
 ```
-feature:repo-add aries-rsa 1.8-SNAPSHOT
+feature:repo-add aries-rsa 1.8.0
 feature:install scr aries-rsa-provider-tcp aries-rsa-discovery-zookeeper
 install -s mvn:org.apache.aries.rsa.examples.echotcp/org.apache.aries.rsa.examples.echotcp.api
 install -s mvn:org.apache.aries.rsa.examples.echotcp/org.apache.aries.rsa.examples.echotcp.consumer

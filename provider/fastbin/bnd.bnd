@@ -1,0 +1,3 @@
+Bundle-Activator:  org.apache.aries.rsa.provider.fastbin.Activator
+Provide-Capability: osgi.remoteserviceadmin.distribution;\
+	configs:List<String>="aries.fastbin"; version:Version=1.0

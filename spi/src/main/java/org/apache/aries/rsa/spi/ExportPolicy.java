@@ -42,5 +42,5 @@ public interface ExportPolicy {
      * @param sref service to export
      * @return additional properties for exported Service (must not be null)
      */
-    Map<String, ?> additionalParameters(ServiceReference sref);
+    Map<String, ?> additionalParameters(ServiceReference<?> sref);
 }

@@ -2,9 +2,11 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="aries-rsa-${project.version}">
 
     <feature name="aries-rsa-core" version="${project.version}">
+        <feature>scr</feature>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.spi/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.core/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.topology-manager/${project.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.command/${project.version}</bundle>
         <conditional>
             <condition>eventadmin</condition>
             <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.eapub/${project.version}</bundle>
@@ -15,10 +17,22 @@
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.tcp/${project.version}</bundle>
     </feature>
-    
+
+    <feature name="aries-rsa-provider-fastbin" version="${project.version}">
+        <feature>aries-rsa-core</feature>
+        <bundle>mvn:org.fusesource.hawtdispatch/hawtdispatch/${hawtdispatch.version}</bundle>
+        <bundle>mvn:org.fusesource.hawtbuf/hawtbuf/${hawtbuf.version}</bundle>
+        <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.fastbin/${project.version}</bundle>
+    </feature>
+
     <feature name="aries-rsa-discovery-local" version="${project.version}">
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
+    </feature>
+
+    <feature name="aries-rsa-discovery-config" version="${project.version}">
+        <feature>aries-rsa-core</feature>
+        <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.config/${project.version}</bundle>
     </feature>
 
     <feature name="aries-rsa-discovery-zookeeper" version="${project.version}">

@@ -18,13 +18,14 @@
  */
 package org.apache.aries.rsa.topologymanager.importer;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.osgi.framework.Constants;
 
 public final class FilterHelper {
-    private static final String OBJECTCLASS_EXPRESSION = ".*\\(" + Constants.OBJECTCLASS + "=([a-zA-Z_0-9.]+)\\).*";
+    private static final String OBJECTCLASS_EXPRESSION = ".*\\(" + Constants.OBJECTCLASS + "=([^)]+)\\).*";
     private static final Pattern OBJECTCLASS_PATTERN = Pattern.compile(OBJECTCLASS_EXPRESSION);
 
     private FilterHelper() {
@@ -39,5 +40,38 @@ public final class FilterHelper {
             }
         }
         return null;
+    }
+    
+    private static final Set<String> SYSTEM_PACKAGES;
+    static {
+        SYSTEM_PACKAGES = new HashSet<String>();
+        SYSTEM_PACKAGES.add("org.osgi.service");
+        SYSTEM_PACKAGES.add("org.apache.felix");
+        SYSTEM_PACKAGES.add("org.ops4j.pax.logging");
+        SYSTEM_PACKAGES.add("ch.ethz.iks.slp");
+        SYSTEM_PACKAGES.add("org.ungoverned.osgi.service");
+        SYSTEM_PACKAGES.add("org.springframework.osgi.context.event.OsgiBundleApplicationContextListener");
+        SYSTEM_PACKAGES.add("java.net.ContentHandler");
+    }
+    
+    public static boolean isClassExcluded(String className) {
+        if (className == null) {
+            return true;
+        }
+
+        for (String p : SYSTEM_PACKAGES) {
+            if (className.startsWith(p)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static String getFullFilter(String objectClass, String filter) {
+        if (objectClass == null) {
+            return filter;
+        }
+        String nameFilter = String.format("(objectClass=%s)", objectClass); 
+        return (filter == null) ? nameFilter : String.format("(&%s%s)", nameFilter, filter);
     }
 }

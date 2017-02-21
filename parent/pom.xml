@@ -13,26 +13,26 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.apache</groupId>
-        <artifactId>apache</artifactId>
-        <version>14</version>
-        <relativePath />
+        <groupId>org.apache.aries.rsa</groupId>
+        <artifactId>org.apache.aries.rsa.main</artifactId>
+        <version>1.11.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>org.apache.aries.rsa</groupId>
     <artifactId>org.apache.aries.rsa.parent</artifactId>
-    <version>1.10.SEE4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Parent</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <baseline>1.8.0</baseline>
+        <baseline>1.9.0</baseline>
         <baseline.skip>true</baseline.skip>
         <zookeeper.version>3.4.7</zookeeper.version>
         <rsa.version>1.0.0</rsa.version>
         <slf4j.version>1.7.14</slf4j.version>
         <log4j.version>1.2.6</log4j.version>
+        <hawtdispatch.version>1.21</hawtdispatch.version>
+        <hawtbuf.version>1.11</hawtbuf.version>
         <exam.version>4.8.0</exam.version>
         <cxf.resources.base.path />
         <cxf.checkstyle.extension />
@@ -66,7 +66,7 @@
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.enterprise</artifactId>
+            <artifactId>org.osgi.compendium</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -102,12 +102,12 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
-                <version>4.2.0</version>
+                <version>4.3.1</version>
             </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
-                <artifactId>org.osgi.enterprise</artifactId>
-                <version>4.2.0</version>
+                <artifactId>org.osgi.compendium</artifactId>
+                <version>4.3.1</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -127,12 +127,17 @@
             <dependency>
                 <groupId>org.fusesource.hawtdispatch</groupId>
                 <artifactId>hawtdispatch</artifactId>
-                <version>1.21</version>
+                <version>${hawtdispatch.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.fusesource.hawtbuf</groupId>
                 <artifactId>hawtbuf</artifactId>
-                <version>1.11</version>
+                <version>${hawtbuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fusesource.hawtbuf</groupId>
+                <artifactId>hawtbuf-proto</artifactId>
+                <version>${hawtbuf.version}</version>
             </dependency>
 
             <dependency>
@@ -221,6 +226,17 @@
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>
+                 <plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-javadoc-plugin</artifactId>
+                     <version>2.10.3</version>
+                     <configuration>
+                         <attach>true</attach>
+                         <quiet>true</quiet>
+                         <encoding>UTF-8</encoding>
+                         <additionalparam>-Xdoclint:none</additionalparam>
+                     </configuration>
+                 </plugin>
             </plugins>
         </pluginManagement>
 

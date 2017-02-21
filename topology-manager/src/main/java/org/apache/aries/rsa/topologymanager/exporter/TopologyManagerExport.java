@@ -191,7 +191,7 @@ public class TopologyManagerExport implements ServiceListener {
                 LOG.debug("TopologyManager: export succeeded for {}, endpoint {}, rsa {}", sref, endpoint, remoteServiceAdmin.getClass());
                 endpoints.add(endpoint);
             } else {
-                LOG.error("TopologyManager: export failed for {}", sref);
+                LOG.error("TopologyManager: export failed for {}", sref, reg.getException());
                 reg.close();
             }
         }

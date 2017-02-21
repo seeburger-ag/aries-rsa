@@ -1,0 +1,5 @@
+Private-Package: \
+	org.apache.karaf.shell.table,\
+	org.apache.aries.rsa.discovery.command
+Provide-Capability: osgi.remoteserviceadmin.discovery;\
+	protocols:List<String>="command"; version:Version=1.0

@@ -20,15 +20,13 @@ package org.apache.aries.rsa.discovery.zookeeper.publish;
 
 import static org.easymock.EasyMock.expect;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
-import org.apache.aries.rsa.discovery.zookeeper.publish.DiscoveryPlugin;
-import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -45,8 +43,6 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
-import org.osgi.xmlns.rsa.v1_0.PropertyType;
 
 import junit.framework.TestCase;
 
@@ -82,8 +78,8 @@ public class PublishingEndpointListenerTest extends TestCase {
         ctx.addServiceListener(EasyMock.isA(ServiceListener.class),
                 EasyMock.eq("(objectClass=" + DiscoveryPlugin.class.getName() + ")"));
 
-        ServiceReference sr1 = createAppendPlugin(ctx);
-        ServiceReference sr2 = createPropertyPlugin(ctx);
+        ServiceReference<DiscoveryPlugin> sr1 = createAppendPlugin(ctx);
+        ServiceReference<DiscoveryPlugin> sr2 = createPropertyPlugin(ctx);
 
         EasyMock.expect(ctx.getServiceReferences(DiscoveryPlugin.class.getName(), null))
                 .andReturn(new ServiceReference[]{sr1, sr2}).anyTimes();
@@ -98,11 +94,11 @@ public class PublishingEndpointListenerTest extends TestCase {
 
         final ZooKeeper zk = EasyMock.createNiceMock(ZooKeeper.class);
         String expectedFullPath = "/osgi/service_registry/org/foo/myClass/some.machine#9876##test";
-
-        List<PropertyType> props2 = new PropertiesMapper().fromProps(expectedProps);
-        EndpointDescriptionType epd = new EndpointDescriptionType();
-        epd.getProperty().addAll(props2);
-        byte[] data = new EndpointDescriptionParser().getData(epd);
+        
+        EndpointDescription epd = new EndpointDescription(expectedProps);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        new EndpointDescriptionParser().writeEndpoint(epd, bos);
+        byte[] data = bos.toByteArray();
         expectCreated(zk, expectedFullPath, EasyMock.aryEq(data));
         EasyMock.replay(zk);
 
@@ -137,7 +133,7 @@ public class PublishingEndpointListenerTest extends TestCase {
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceReference createAppendPlugin(BundleContext ctx) {
+    private ServiceReference<DiscoveryPlugin> createAppendPlugin(BundleContext ctx) {
         DiscoveryPlugin plugin1 = new DiscoveryPlugin() {
             public String process(Map<String, Object> mutableProperties, String endpointKey) {
                 String eid = (String) mutableProperties.get("endpoint.id");
@@ -145,20 +141,20 @@ public class PublishingEndpointListenerTest extends TestCase {
                 return endpointKey;
             }
         };
-        ServiceReference sr1 = EasyMock.createMock(ServiceReference.class);
+        ServiceReference<DiscoveryPlugin> sr1 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(ctx.getService(sr1)).andReturn(plugin1).anyTimes();
         return sr1;
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceReference createPropertyPlugin(BundleContext ctx) {
+    private ServiceReference<DiscoveryPlugin> createPropertyPlugin(BundleContext ctx) {
         DiscoveryPlugin plugin2 = new DiscoveryPlugin() {
             public String process(Map<String, Object> mutableProperties, String endpointKey) {
                 mutableProperties.put("foo", "bar");
                 return endpointKey.replaceAll("localhost", "some.machine");
             }
         };
-        ServiceReference sr2 = EasyMock.createMock(ServiceReference.class);
+        ServiceReference<DiscoveryPlugin> sr2 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(ctx.getService(sr2)).andReturn(plugin2).anyTimes();
         return sr2;
     }
@@ -179,16 +175,16 @@ public class PublishingEndpointListenerTest extends TestCase {
     }
 
     private void expectCreated(ZooKeeper zk, String path, byte[] dataMatcher) throws KeeperException, InterruptedException {
-        expect(zk.create(EasyMock.eq(path),
-                         dataMatcher,
+        expect(zk.create(EasyMock.eq(path), 
+                         dataMatcher, 
                          EasyMock.eq(Ids.OPEN_ACL_UNSAFE),
                          EasyMock.eq(CreateMode.EPHEMERAL)))
             .andReturn("");
     }
-
+    
     private void expectCreated(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
-        expect(zk.create(EasyMock.eq(path),
-                         (byte[])EasyMock.anyObject(),
+        expect(zk.create(EasyMock.eq(path), 
+                         (byte[])EasyMock.anyObject(), 
                          EasyMock.eq(Ids.OPEN_ACL_UNSAFE),
                          EasyMock.eq(CreateMode.EPHEMERAL)))
             .andReturn("");

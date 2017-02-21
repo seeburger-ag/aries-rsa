@@ -18,6 +18,7 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.publish;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.endpoint.PropertiesMapper;
 import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -42,8 +42,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
-import org.osgi.xmlns.rsa.v1_0.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +84,12 @@ public class PublishingEndpointListener implements EndpointListener {
             }
         }
     }
+    
+    private byte[] getData(EndpointDescription epd) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        endpointDescriptionParser.writeEndpoint(epd, bos);
+        return bos.toByteArray();
+    }
 
     private void addEndpoint(EndpointDescription endpoint) throws URISyntaxException, KeeperException,
                                                                   InterruptedException, IOException {
@@ -108,11 +112,7 @@ public class PublishingEndpointListener implements EndpointListener {
             String fullPath = path + '/' + endpointKey;
             LOG.info("Creating ZooKeeper node for service with path {}", fullPath);
             createPath(path, zk);
-            List<PropertyType> propsOut = new PropertiesMapper().fromProps(props);
-            EndpointDescriptionType epd = new EndpointDescriptionType();
-            epd.getProperty().addAll(propsOut);
-            byte[] epData = endpointDescriptionParser.getData(epd);
-            createEphemeralNode(fullPath, epData);
+            createEphemeralNode(fullPath, getData(endpoint));
         }
     }
 

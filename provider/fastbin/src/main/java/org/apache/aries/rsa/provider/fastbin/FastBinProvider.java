@@ -36,7 +36,6 @@ import org.apache.aries.rsa.provider.fastbin.tcp.ServerInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransportServer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
-import org.apache.felix.scr.annotations.Deactivate;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.framework.BundleContext;
@@ -121,7 +120,7 @@ public class FastBinProvider implements DistributionProvider {
         registration = context.registerService(DistributionProvider.class.getName(), this, new Hashtable<>(dictionary));
     }
 
-    @Deactivate
+//    @Deactivate
     public void deactivate() {
         if(registration!=null)
             registration.unregister();

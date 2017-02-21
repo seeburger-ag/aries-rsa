@@ -18,8 +18,12 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.core.StringStartsWith.startsWith;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,27 +34,31 @@ import org.apache.aries.rsa.provider.tcp.myservice.MyServiceImpl;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.util.EndpointHelper;
 import org.easymock.EasyMock;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 public class TcpProviderTest {
 
     private static final int NUM_CALLS = 100;
-    private MyService myServiceProxy;
-    private Endpoint ep;
+    private static MyService myServiceProxy;
+    private static Endpoint ep;
     
-    @Before
-    public void createServerAndProxy() {
+    @BeforeClass
+    public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
         TCPProvider provider = new TCPProvider();
         Map<String, Object> props = new HashMap<String, Object>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
+        props.put("aries.rsa.hostname", "localhost");
+        props.put("aries.rsa.numThreads", "10");
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
+        Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
+        System.out.println(ep.description());
         myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(), 
                                                             bc,
                                                             exportedInterfaces, 
@@ -65,9 +73,14 @@ public class TcpProviderTest {
         Assert.assertEquals(msg, result);
     }
     
+    @Test(expected=RuntimeException.class)
+    public void testCallException() throws IOException, InterruptedException {
+        myServiceProxy.call("throw exception");
+    }
+    
     @Test
     public void testCall() throws IOException, InterruptedException {
-        myServiceProxy.call("test");
+        myServiceProxy.echo("test");
     }
     
     @Test
@@ -75,8 +88,17 @@ public class TcpProviderTest {
         myServiceProxy.callOneWay("test");
     }
     
-    @After
-    public void close() throws IOException {
+    /**
+     * Test for ARIES-1515
+     */
+    @Test
+    public void testCallWithInterfaceBasedParam() throws IOException, InterruptedException {
+        List<String> msgList = new ArrayList<String>();
+        myServiceProxy.callWithList(msgList);
+    }
+    
+    @AfterClass
+    public static void close() throws IOException {
         ep.close();
     }
 

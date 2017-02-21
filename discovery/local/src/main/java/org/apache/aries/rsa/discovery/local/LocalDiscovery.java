@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionBundleParser;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;

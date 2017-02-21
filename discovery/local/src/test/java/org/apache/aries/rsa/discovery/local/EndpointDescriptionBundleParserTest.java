@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.endpoint;
+package org.apache.aries.rsa.discovery.local;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -35,12 +35,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import junit.framework.TestCase;
-
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionBundleParser;
 import org.easymock.EasyMock;
+import org.junit.Assert;
+import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+
+import junit.framework.TestCase;
 
 public class EndpointDescriptionBundleParserTest extends TestCase {
 
@@ -52,6 +53,15 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
                 Collections.enumeration(Arrays.asList(ed1URL))).anyTimes();
         EasyMock.replay(b);
         return b;
+    }
+    
+    @Test
+    public void testNoRemoteServicesXMLFiles() {
+        Bundle b = EasyMock.createNiceMock(Bundle.class);
+        EasyMock.replay(b);
+
+        List<EndpointDescription> rsElements = new EndpointDescriptionBundleParser().getAllEndpointDescriptions(b);
+        Assert.assertEquals(0, rsElements.size());
     }
 
     public void testAllEndpoints1() {

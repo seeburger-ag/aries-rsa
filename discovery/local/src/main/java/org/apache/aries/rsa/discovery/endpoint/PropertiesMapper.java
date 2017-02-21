@@ -46,7 +46,7 @@ import org.osgi.xmlns.rsa.v1_0.XmlType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PropertiesMapper {
+class PropertiesMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PropertiesMapper.class);
 
     public Map<String, Object> toProps(List<PropertyType> properties) {
