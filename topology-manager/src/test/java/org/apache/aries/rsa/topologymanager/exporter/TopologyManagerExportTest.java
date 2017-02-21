@@ -20,8 +20,10 @@ package org.apache.aries.rsa.topologymanager.exporter;
 
 import static org.easymock.EasyMock.expectLastCall;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -105,6 +107,44 @@ public class TopologyManagerExportTest {
         c.verify();
     }
 
+    @Test
+    public void testExportExistingMultipleInterfaces() throws Exception {
+        IMocksControl c = EasyMock.createControl();
+        RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);
+        final EndpointListenerNotifier mockEpListenerNotifier = c.createMock(EndpointListenerNotifier.class);
+        List<String> exportedInterfaces = Arrays.asList("a.b.C","foo.Bar");
+        final ServiceReference sref = createUserService(c, exportedInterfaces);
+        expectServiceExported(c, rsa, mockEpListenerNotifier, sref, createEndpoint());
+        c.replay();
+
+        EndpointRepository endpointRepo = new EndpointRepository();
+        endpointRepo.setNotifier(mockEpListenerNotifier);
+        ExportPolicy policy = new DefaultExportPolicy();
+        TopologyManagerExport exportManager = new TopologyManagerExport(endpointRepo, syncExecutor(), policy);
+        exportManager.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, sref));
+        exportManager.add(rsa);
+        c.verify();
+    }
+
+    @Test
+    public void testExportExistingNoExportedInterfaces() throws Exception {
+        IMocksControl c = EasyMock.createControl();
+        RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);
+        final EndpointListenerNotifier mockEpListenerNotifier = c.createMock(EndpointListenerNotifier.class);
+        String exportedInterfaces = "";
+        final ServiceReference sref = createUserService(c, exportedInterfaces);
+//        expectServiceExported(c, rsa, mockEpListenerNotifier, sref, createEndpoint());
+        c.replay();
+
+        EndpointRepository endpointRepo = new EndpointRepository();
+        endpointRepo.setNotifier(mockEpListenerNotifier);
+        ExportPolicy policy = new DefaultExportPolicy();
+        TopologyManagerExport exportManager = new TopologyManagerExport(endpointRepo, syncExecutor(), policy);
+        exportManager.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, sref));
+        exportManager.add(rsa);
+        c.verify();
+    }
+
     private void expectServiceExported(IMocksControl c, RemoteServiceAdmin rsa,
                                        final EndpointListener listener,
                                        final ServiceReference sref, EndpointDescription epd) {
@@ -142,9 +182,13 @@ public class TopologyManagerExportTest {
     }
 
     private ServiceReference createUserService(IMocksControl c) {
+        return createUserService(c, "*");
+    }
+
+    private ServiceReference createUserService(IMocksControl c, Object exportedInterfaces) {
         final ServiceReference sref = c.createMock(ServiceReference.class);
         EasyMock.expect(sref.getProperty(EasyMock.same(RemoteConstants.SERVICE_EXPORTED_INTERFACES)))
-            .andReturn("*").anyTimes();
+            .andReturn(exportedInterfaces).anyTimes();
         Bundle srefBundle = c.createMock(Bundle.class);
         BundleContext srefContext = c.createMock(BundleContext.class);
         EasyMock.expect(srefBundle.getState()).andReturn(Bundle.ACTIVE).anyTimes();
@@ -152,9 +196,11 @@ public class TopologyManagerExportTest {
         Object serviceInstance = new Object();
         EasyMock.expect(srefContext.getService(sref)).andReturn(serviceInstance).anyTimes();
         EasyMock.expect(srefContext.ungetService(sref)).andReturn(true).anyTimes();
-        EasyMock.expect(sref.getBundle()).andReturn(srefBundle).atLeastOnce();
+        if(!"".equals(exportedInterfaces)) {
+            EasyMock.expect(sref.getBundle()).andReturn(srefBundle).atLeastOnce();
+            EasyMock.expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").atLeastOnce();
+        }
         EasyMock.expect(sref.getProperty("objectClass")).andReturn("org.My").anyTimes();
-        EasyMock.expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").atLeastOnce();
         return sref;
     }
 }

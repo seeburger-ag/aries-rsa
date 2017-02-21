@@ -28,6 +28,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
+import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
@@ -154,10 +155,11 @@ public class TopologyManagerExport implements ServiceListener {
     }
 
     private boolean shouldExport(ServiceReference sref, Map<String, ?> addProps) {
-        String exported = (String)sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
-        String addExported = (String)addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
-        String effectiveExported = addExported != null ? addExported : exported;
-        return (effectiveExported != null) && !effectiveExported.isEmpty();
+        List<String> exported= StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
+        List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
+        int length = exported == null ? 0 : exported.size();
+        length += addExported == null ? 0 : addExported.size();
+        return length>0;
     }
 
     private Object getSymbolicName(Bundle bundle) {
