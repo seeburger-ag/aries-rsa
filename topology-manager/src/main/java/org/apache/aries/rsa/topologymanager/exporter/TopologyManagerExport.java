@@ -229,7 +229,15 @@ public class TopologyManagerExport implements ServiceListener {
             if(service!=null)
             {
                 LOG.debug("Service {} could be accessed and will be exported",sref);
-                bundleContext.ungetService(sref);
+                /*
+                 * normally we should unget the service here, because we were never really interested in it
+                 * however, this might cause a threading issue where SCR is stuck between activation and deactivation.
+                 * It is possible this triggers an issue similar to
+                 * https://issues.apache.org/jira/browse/FELIX-5276
+                 * Omit ungetService for now.
+                 * See http://bugzilla.seeburger.de/bugzilla/show_bug.cgi?id=73676
+                 */
+//                bundleContext.ungetService(sref);
             }
             return true;
         } catch (Exception e) {
