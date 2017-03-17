@@ -226,8 +226,7 @@ public class TopologyManagerExport implements ServiceListener {
             LOG.debug("Trying to access to-be-exported service {}",sref);
             BundleContext bundleContext = sref.getBundle().getBundleContext();
             Object service = bundleContext.getService(sref);
-            if(service!=null)
-            {
+            if(service!=null) {
                 LOG.debug("Service {} could be accessed and will be exported",sref);
                 /*
                  * normally we should unget the service here, because we were never really interested in it
@@ -238,6 +237,10 @@ public class TopologyManagerExport implements ServiceListener {
                  * See http://bugzilla.seeburger.de/bugzilla/show_bug.cgi?id=73676
                  */
 //                bundleContext.ungetService(sref);
+            }
+            else {
+                // enters the retry logic in the catch
+                throw new IllegalStateException("getService returned null for service reference '"+sref);
             }
             return true;
         } catch (Exception e) {
