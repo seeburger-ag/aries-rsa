@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
+import org.ops4j.pax.exam.options.SystemPropertyOption;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
@@ -48,7 +49,8 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
         return new Option[] {
             rsaCore(),
             rsaTcp(),
-            echoTcpService()
+            echoTcpService(),
+            new SystemPropertyOption("java.net.preferIPv4Stack").value("true")
         };
     }
 
@@ -70,7 +72,7 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
             .put("endpoint.id", "tcp://localhost:"+tcpPort)
-            .put("aries.tcp.hostname", "127.0.0.1")
+            .put("aries.tcp.hostname", "localhost")
             .put("aries.tcp.port", tcpPort)
             .asOption();
     }
