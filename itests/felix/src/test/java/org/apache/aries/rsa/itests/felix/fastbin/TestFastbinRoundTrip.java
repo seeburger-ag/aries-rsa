@@ -66,7 +66,6 @@ public class TestFastbinRoundTrip extends RsaTestBase {
     }
 
     @Test
-    @Ignore //cannot get this to work on the new buildslaves in openstack
     public void testCall() throws Exception {
         assertEquals("test", echoService.echo("test"));
     }
