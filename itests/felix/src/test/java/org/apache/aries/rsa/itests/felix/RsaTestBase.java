@@ -70,7 +70,7 @@ public class RsaTestBase {
         }
     }
 
-    protected int getFreePort() throws IOException {
+    protected static int getFreePort() throws IOException {
         ServerSocket socket = new ServerSocket();
         try {
             socket.setReuseAddress(true); // enables quickly reopening socket on same port
@@ -84,7 +84,7 @@ public class RsaTestBase {
     protected static Option echoTcpAPI() {
         return mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api");
     }
-    
+
     protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
         mvn("org.apache.felix", "org.apache.felix.scr"),
@@ -101,9 +101,9 @@ public class RsaTestBase {
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
         );
     }
-    
+
     protected static Option rsaCore() {
-        return composite(junitBundles(), 
+        return composite(junitBundles(),
                          localRepo(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
@@ -115,17 +115,17 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
         );
     }
-    
+
     protected static Option debug() {
         return CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
-    
+
     protected static Option rsaDiscoveryConfig() {
         return composite(
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.config")
                          );
     }
-    
+
     protected static Option rsaDiscoveryZookeeper() {
         return composite(
                          systemProperty("zkPort").value("15201"),

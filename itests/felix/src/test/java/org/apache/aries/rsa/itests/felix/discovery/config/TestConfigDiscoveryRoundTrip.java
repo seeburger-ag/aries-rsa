@@ -19,6 +19,13 @@ package org.apache.aries.rsa.itests.felix.discovery.config;
  */
 
 
+import static org.junit.Assert.assertEquals;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
+
+import java.io.IOException;
+
+import javax.inject.Inject;
+
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
@@ -27,12 +34,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
-
-import javax.inject.Inject;
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
@@ -59,16 +60,23 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
                 configTcpConfigDiscovery()
         };
     }
-    
+
 
     protected static Option configTcpConfigDiscovery() {
+        int freePort = 8201;
+        try {
+            freePort = getFreePort();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         return factoryConfiguration("org.apache.aries.rsa.discovery.config")
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
-            .put("endpoint.id", "tcp://localhost:8201")
+            .put("endpoint.id", "tcp://localhost:"+freePort)
             .put("aries.tcp.hostname", "localhost")
-            .put("aries.tcp.port", "8201")
+            .put("aries.tcp.port", String.valueOf(freePort))
             .asOption();
     }
 
