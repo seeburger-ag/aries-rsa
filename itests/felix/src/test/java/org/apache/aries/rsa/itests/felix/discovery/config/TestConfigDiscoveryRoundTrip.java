@@ -41,6 +41,8 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
     @Inject
     EchoService echoService;
 
+    static String tcpPort = "8201";
+
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
         return new Option[] {
@@ -63,20 +65,13 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
 
 
     protected static Option configTcpConfigDiscovery() {
-        int freePort = 8201;
-        try {
-            freePort = getFreePort();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
         return factoryConfiguration("org.apache.aries.rsa.discovery.config")
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
-            .put("endpoint.id", "tcp://localhost:"+freePort)
-            .put("aries.tcp.hostname", "localhost")
-            .put("aries.tcp.port", String.valueOf(freePort))
+            .put("endpoint.id", "tcp://localhost:"+tcpPort)
+            .put("aries.tcp.hostname", "127.0.0.1")
+            .put("aries.tcp.port", tcpPort)
             .asOption();
     }
 
