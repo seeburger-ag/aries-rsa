@@ -49,8 +49,7 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
         return new Option[] {
             rsaCore(),
             rsaTcp(),
-            echoTcpService(),
-            new SystemPropertyOption("java.net.preferIPv4Stack").value("true")
+            echoTcpService()
         };
     }
 

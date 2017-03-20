@@ -37,6 +37,7 @@ import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.OptionalCompositeOption;
+import org.ops4j.pax.exam.options.SystemPropertyOption;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -135,7 +136,10 @@ public class RsaTestBase {
     }
 
     protected static Option rsaTcp() {
-        return mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp");
+        return composite(
+                  systemProperty("java.net.preferIPv4Stack").value("true"),
+                  mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp")
+                  );
     }
 
     protected static Option rsaFastBin() {
