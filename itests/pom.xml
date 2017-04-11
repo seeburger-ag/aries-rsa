@@ -27,7 +27,6 @@
 
     <properties>
         <topDirectoryLocation>..</topDirectoryLocation>
-        <pax-exam.version>4.8.0</pax-exam.version>
     </properties>
 
     <modules>
@@ -44,32 +43,32 @@
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-junit4</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-cm</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-inject</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-container-forked</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-container-native</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-link-mvn</artifactId>
-                <version>${pax-exam.version}</version>
+                <version>${exam.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>

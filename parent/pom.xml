@@ -33,7 +33,7 @@
         <log4j.version>1.2.6</log4j.version>
         <hawtdispatch.version>1.21</hawtdispatch.version>
         <hawtbuf.version>1.11</hawtbuf.version>
-        <exam.version>4.8.0</exam.version>
+        <exam.version>4.10.0</exam.version>
         <cxf.resources.base.path />
         <cxf.checkstyle.extension />
     </properties>
