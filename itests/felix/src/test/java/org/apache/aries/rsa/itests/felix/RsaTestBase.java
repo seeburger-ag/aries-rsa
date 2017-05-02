@@ -81,6 +81,18 @@ public class RsaTestBase {
         }
     }
 
+    protected Bundle getBundle(String symName) {
+        Bundle serviceBundle = null;
+        Bundle[] bundles = bundleContext.getBundles();
+        for (Bundle bundle : bundles) {
+            if(symName.equals(bundle.getSymbolicName())) {
+                serviceBundle = bundle;
+                break;
+            }
+        }
+        return serviceBundle;
+    }
+
     protected static Option echoTcpAPI() {
         return mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api");
     }
