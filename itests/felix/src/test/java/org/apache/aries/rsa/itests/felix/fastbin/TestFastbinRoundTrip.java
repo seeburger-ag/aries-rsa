@@ -41,26 +41,27 @@ public class TestFastbinRoundTrip extends RsaTestBase {
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
         return new Option[] //
-            {
-                             rsaCore(),
-                             rsaDiscoveryZookeeper(),
-                             rsaFastBin(),
-                             echoTcpService(),
-                             configZKServer(),
-                             configZKDiscovery(),
-                             configFastBin("2544"),
+        {
+         rsaCore(), //
+         rsaDiscoveryZookeeper(), //
+         rsaProviderFastBin(), //
+         echoTcpService(), //
+         configZKServer(), //
+         configZKDiscovery(), //
+         configFastBinPort("2544"),
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] {
-                             rsaCore(),
-                             rsaDiscoveryZookeeper(),
-                             rsaFastBin(),
-                             echoTcpConsumer(),
-                             configZKDiscovery(),
-                             configFastBin("2545")
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaDiscoveryZookeeper(), //
+         rsaProviderFastBin(), //
+         echoTcpConsumer(), //
+         configZKDiscovery(), //
+         configFastBinPort("2545")
         };
     }
 

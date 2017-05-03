@@ -49,7 +49,7 @@ public class TestFindHook extends RsaTestBase {
         return new Option[] {
             rsaCore(),
             rsaDiscoveryZookeeper(),
-            rsaTcp(),
+            rsaProviderTcp(),
             echoTcpService(),
             configZKServer(),
             configZKDiscovery(),
@@ -61,7 +61,7 @@ public class TestFindHook extends RsaTestBase {
         return new Option[] {
                 rsaCore(),
                 rsaDiscoveryZookeeper(),
-                rsaTcp(),
+                rsaProviderTcp(),
                 echoTcpAPI(),
                 configZKDiscovery()
         };

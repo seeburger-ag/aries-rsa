@@ -42,26 +42,27 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] {
-            rsaCore(),
-            rsaTcp(),
-            echoTcpService()
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaProviderTcp(), //
+         echoTcpService()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] {
-                rsaCore(),
-                rsaDiscoveryConfig(),
-                rsaTcp(),
-                echoTcpConsumer(),
-                configTcpConfigDiscovery()
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaDiscoveryConfig(), //
+         rsaProviderTcp(), //
+         echoTcpConsumer(), //
+         configImportEchoService()
         };
     }
-    
 
-    protected static Option configTcpConfigDiscovery() {
+    protected static Option configImportEchoService() {
         return factoryConfiguration("org.apache.aries.rsa.discovery.config")
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")

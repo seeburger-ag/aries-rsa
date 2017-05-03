@@ -99,17 +99,15 @@ public class RsaTestBase {
     
     protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
-        mvn("org.apache.felix", "org.apache.felix.scr"),
-        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
-        // Consumer is needed to trigger service import. Pax exam inject does not trigger it
+        echoTcpAPI(),
+        // Consumer bundle is needed to trigger service import. Pax exam inject does not trigger it
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.consumer")
         );
     }
 
     protected static Option echoTcpService() {
         return composite(
-        mvn("org.apache.felix", "org.apache.felix.scr"),
-        mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api"),
+        echoTcpAPI(),
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
         );
     }
@@ -121,6 +119,7 @@ public class RsaTestBase {
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
+                         mvn("org.apache.felix", "org.apache.felix.scr"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
@@ -146,11 +145,11 @@ public class RsaTestBase {
                          );
     }
 
-    protected static Option rsaTcp() {
+    protected static Option rsaProviderTcp() {
         return mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.tcp");
     }
 
-    protected static Option rsaFastBin() {
+    protected static Option rsaProviderFastBin() {
         return composite(mvn("org.fusesource.hawtbuf", "hawtbuf"),
                          mvn("org.fusesource.hawtdispatch", "hawtdispatch"),
                          mvn("org.apache.aries.rsa.provider", "org.apache.aries.rsa.provider.fastbin"));
@@ -168,7 +167,7 @@ public class RsaTestBase {
             .asOption();
     }
 
-    protected static Option configFastBin(String port) {
+    protected static Option configFastBinPort(String port) {
         return newConfiguration("org.apache.aries.rsa.provider.fastbin") //
             .put("uri", "tcp://0.0.0.0:" + port) //
             .asOption();

@@ -52,7 +52,7 @@ public class TestDiscoveryExport extends RsaTestBase {
         return new Option[] {
                 rsaCore(),
                 rsaDiscoveryZookeeper(),
-                rsaTcp(),
+                rsaProviderTcp(),
                 echoTcpService(),
                 localRepo(),
                 configZKDiscovery(),
