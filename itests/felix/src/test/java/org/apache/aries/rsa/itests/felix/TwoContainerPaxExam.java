@@ -29,6 +29,12 @@ import org.ops4j.pax.exam.TestContainer;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.PaxExamRuntime;
 
+/**
+ * Can be used instead of the PaxExam runner to start a second
+ * OSGi container that typically hosts the server side for the test.
+ * 
+ * Use the @ServerConfiguration annotation to mark the config of your server side
+ */
 public class TwoContainerPaxExam extends PaxExam {
 
     private Class<?> testClass;
