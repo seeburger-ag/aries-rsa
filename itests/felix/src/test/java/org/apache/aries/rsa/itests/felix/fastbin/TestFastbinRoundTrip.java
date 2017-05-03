@@ -35,6 +35,8 @@ import org.ops4j.pax.exam.Option;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
+    private static final String FASTBIN_PORT_SERVER = "2544";
+    private static final String FASTBIN_PORT_CLIENT = "2545";
     @Inject
     EchoService echoService;
 
@@ -48,7 +50,7 @@ public class TestFastbinRoundTrip extends RsaTestBase {
          echoTcpService(), //
          configZKServer(), //
          configZKDiscovery(), //
-         configFastBinPort("2544"),
+         configFastBinPort(FASTBIN_PORT_SERVER),
         };
     }
 
@@ -61,7 +63,7 @@ public class TestFastbinRoundTrip extends RsaTestBase {
          rsaProviderFastBin(), //
          echoTcpConsumer(), //
          configZKDiscovery(), //
-         configFastBinPort("2545")
+         configFastBinPort(FASTBIN_PORT_CLIENT)
         };
     }
 
