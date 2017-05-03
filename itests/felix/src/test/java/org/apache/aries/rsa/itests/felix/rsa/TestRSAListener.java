@@ -80,12 +80,9 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
     }
 
     private synchronized void waitEvent() throws InterruptedException, TimeoutException {
-        long start = System.currentTimeMillis();
-        while (this.lastEvent == null) {
-            this.wait(1000);
-            if (System.currentTimeMillis() - start > 2000) {
-                throw new TimeoutException("Timeout waiting for Event");
-            }
+        this.wait(2000);
+        if (this.lastEvent == null) {
+            throw new TimeoutException("Timeout waiting for Event");
         }
     }
 
