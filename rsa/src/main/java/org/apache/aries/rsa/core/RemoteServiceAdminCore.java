@@ -202,7 +202,11 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         try {
             Class<?>[] interfaces = getInterfaces(interfaceNames, serviceReference.getBundle());
             Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
-            BundleContext serviceContext = serviceReference.getBundle().getBundleContext();
+            Bundle bundle = serviceReference.getBundle();
+            if (bundle == null) {
+                throw new IllegalStateException("Service is already unregistered");
+            }
+            BundleContext serviceContext = bundle.getBundleContext();
 
             // TODO unget service when export is destroyed
             Object serviceO = serviceContext.getService(serviceReference);

@@ -36,32 +36,35 @@ import org.ops4j.pax.exam.Option;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
+    private static final String FASTBIN_PORT_SERVER = "2544";
+    private static final String FASTBIN_PORT_CLIENT = "2545";
     @Inject
     EchoService echoService;
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
         return new Option[] //
-            {
-                             rsaCore(),
-                             rsaDiscoveryZookeeper(),
-                             rsaFastBin(),
-                             echoTcpService(),
-                             configZKServer(),
-                             configZKDiscovery(),
-                             configFastBin("2544"),
+        {
+         rsaCore(), //
+         rsaDiscoveryZookeeper(), //
+         rsaProviderFastBin(), //
+         echoTcpService(), //
+         configZKServer(), //
+         configZKDiscovery(), //
+         configFastBinPort(FASTBIN_PORT_SERVER),
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] {
-                             rsaCore(),
-                             rsaDiscoveryZookeeper(),
-                             rsaFastBin(),
-                             echoTcpConsumer(),
-                             configZKDiscovery(),
-                             configFastBin("2545")
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaDiscoveryZookeeper(), //
+         rsaProviderFastBin(), //
+         echoTcpConsumer(), //
+         configZKDiscovery(), //
+         configFastBinPort(FASTBIN_PORT_CLIENT)
         };
     }
 

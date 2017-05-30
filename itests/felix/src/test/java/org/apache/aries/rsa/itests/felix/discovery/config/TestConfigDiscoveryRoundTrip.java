@@ -19,23 +19,20 @@ package org.apache.aries.rsa.itests.felix.discovery.config;
  */
 
 
-import static org.junit.Assert.assertEquals;
-import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
-
-import java.io.IOException;
-
-import javax.inject.Inject;
-
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
 import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.options.SystemPropertyOption;
+
+import javax.inject.Inject;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
@@ -43,42 +40,40 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
     @Inject
     EchoService echoService;
 
-    static String tcpPort = "8201";
-
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] {
-            rsaCore(),
-            rsaTcp(),
-            echoTcpService()
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaProviderTcp(), //
+         echoTcpService()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] {
-                rsaCore(),
-                rsaDiscoveryConfig(),
-                rsaTcp(),
-                echoTcpConsumer(),
-                configTcpConfigDiscovery()
+        return new Option[] //
+        {
+         rsaCore(), //
+         rsaDiscoveryConfig(), //
+         rsaProviderTcp(), //
+         echoTcpConsumer(), //
+         configImportEchoService()
         };
     }
 
-
-    protected static Option configTcpConfigDiscovery() {
+    protected static Option configImportEchoService() {
         return factoryConfiguration("org.apache.aries.rsa.discovery.config")
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
-            .put("endpoint.id", "tcp://localhost:"+tcpPort)
+            .put("endpoint.id", "tcp://localhost:8201")
             .put("aries.tcp.hostname", "localhost")
-            .put("aries.tcp.port", tcpPort)
+            .put("aries.tcp.port", "8201")
             .asOption();
     }
 
     @Test
-    @Ignore //cannot get this to work on the new buildslaves in openstack
     public void testCall() throws Exception {
         assertEquals("test", echoService.echo("test"));
     }
