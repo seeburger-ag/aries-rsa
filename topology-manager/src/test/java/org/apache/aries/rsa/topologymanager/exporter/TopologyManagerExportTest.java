@@ -186,10 +186,16 @@ public class TopologyManagerExportTest {
     }
 
     private ServiceReference createUserService(IMocksControl c, Object exportedInterfaces) {
-        final ServiceReference sref = c.createMock(ServiceReference.class);
+        final ServiceReference<Object> sref = c.createMock(ServiceReference.class);
         EasyMock.expect(sref.getProperty(EasyMock.same(RemoteConstants.SERVICE_EXPORTED_INTERFACES)))
             .andReturn(exportedInterfaces).anyTimes();
         Bundle srefBundle = c.createMock(Bundle.class);
+        BundleContext srefContext = c.createMock(BundleContext.class);
+        EasyMock.expect(srefBundle.getState()).andReturn(Bundle.ACTIVE).anyTimes();
+        EasyMock.expect(srefBundle.getBundleContext()).andReturn(srefContext).anyTimes();
+        Object serviceInstance = new Object();
+        EasyMock.expect(srefContext.getService(sref)).andReturn(serviceInstance).anyTimes();
+        EasyMock.expect(srefContext.ungetService(sref)).andReturn(true).anyTimes();
         if(!"".equals(exportedInterfaces)) {
             EasyMock.expect(sref.getBundle()).andReturn(srefBundle).atLeastOnce();
             EasyMock.expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").atLeastOnce();
