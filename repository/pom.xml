@@ -9,53 +9,6 @@
     <artifactId>repository</artifactId>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Repository</name>
-    <properties>
-        <local.url.policy>REQUIRED</local.url.policy>
-    </properties>
-    <profiles>
-        <profile>
-            <id>RunningInCI</id>
-            <activation>
-                <property>
-                    <name>running.in.ci</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <properties>
-                <local.url.policy>FORBIDDEN</local.url.policy>
-            </properties>
-        </profile>
-        <profile>
-            <id>apache-release</id>
-            <properties>
-                <local.url.policy>FORBIDDEN</local.url.policy>
-            </properties>
-        </profile>
-    </profiles>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>biz.aQute.bnd</groupId>
-                <artifactId>bnd-indexer-maven-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <localURLs>${local.url.policy}</localURLs>
-                    <includeTransitive>true</includeTransitive>
-                    <scopes>
-                        <scope>runtime</scope>
-                    </scopes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>index</id>
-                        <goals>
-                            <goal>index</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>org.apache.aries.rsa</groupId>
