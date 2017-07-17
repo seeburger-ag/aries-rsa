@@ -101,24 +101,29 @@ public class TopologyManagerExport implements ServiceListener {
             LOG.debug("Skipping service {}", sref);
             return;
         }
-        execService.execute(new Runnable() {
-            public void run() {
-                try
-                {
-                    /*
-                     * XXX: there is a threading issue in jboss when one thread is still activating the bundle
-                     * while the topology manager tries to access the newly registered service from another thread.
-                     * The mini pause is supposed to make sure that the bundle has properly transitioned to STARTED before the service is accessed
-                     */
-                    Thread.sleep(1000);
+        if(System.getProperty("jboss.domain.default.config")!=null) {
+            execService.execute(new Runnable() {
+                public void run() {
+                    try
+                    {
+                        /*
+                         * XXX: there is a threading issue in jboss when one thread is still activating the bundle
+                         * while the topology manager tries to access the newly registered service from another thread.
+                         * The mini pause is supposed to make sure that the bundle has properly transitioned to STARTED before the service is accessed
+                         */
+                        Thread.sleep(600);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        // ignore and continue
+                    }
+                    doExport(sref, addProps);
                 }
-                catch (InterruptedException e)
-                {
-                    // ignore and continue
-                }
-                doExport(sref, addProps);
-            }
-        });
+            });
+        }
+        else {
+            doExport(sref, addProps);
+        }
     }
 
     private void doExport(final ServiceReference sref, Map<String, ? > addProps) {
