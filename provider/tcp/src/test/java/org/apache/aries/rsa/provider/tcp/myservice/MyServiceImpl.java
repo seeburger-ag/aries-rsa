@@ -32,6 +32,12 @@ public class MyServiceImpl implements MyService {
         if ("throw exception".equals(msg)) {
             throw new IllegalArgumentException("Throwing expected exception");
         }
+        if ("slow".equals(msg)) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     @Override
@@ -40,7 +46,7 @@ public class MyServiceImpl implements MyService {
 
     @Override
     public void callWithList(List<String> msg) {
-
+        
     }
 
 }

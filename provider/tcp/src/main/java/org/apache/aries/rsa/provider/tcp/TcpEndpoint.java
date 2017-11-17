@@ -33,27 +33,15 @@ public class TcpEndpoint implements Endpoint {
         if (service == null) {
             throw new NullPointerException("Service must not be null");
         }
-        Integer port = getInt(effectiveProperties, "aries.rsa.port", "0");
-        String hostName = getString(effectiveProperties, "aries.rsa.hostname", System.getProperty("aries.rsa.hostname"));
-        if (hostName == null) {
-            hostName = LocalHostUtil.getLocalIp();
-        }
-        int numThreads = getInt(effectiveProperties, "aries.rsa.numThreads", "10");
+        EndpointPropertiesParser parser = new EndpointPropertiesParser(effectiveProperties);
+        Integer port = parser.getPort();
+        String hostName = parser.getHostname();
+        int numThreads =  parser.getNumThreads();
         tcpServer = new TCPServer(service, hostName, port, numThreads);
         String endpointId = String.format("tcp://%s:%s",hostName, tcpServer.getPort());
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
         this.epd = new EndpointDescription(effectiveProperties);
-    }
-    
-
-    private Integer getInt(Map<String, Object> effectiveProperties, String key, String defaultValue) {
-        return Integer.parseInt(getString(effectiveProperties, key, defaultValue));
-    }
-    
-    private String getString(Map<String, Object> effectiveProperties, String key, String defaultValue) {
-        Object value = effectiveProperties.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 
     @Override

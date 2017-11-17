@@ -21,6 +21,7 @@ package org.apache.aries.rsa.provider.tcp;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ public class TcpProviderTest {
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put("aries.rsa.hostname", "localhost");
         props.put("aries.rsa.numThreads", "10");
+        props.put("osgi.basic.timeout", 100);
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
@@ -63,6 +65,16 @@ public class TcpProviderTest {
                                                             bc,
                                                             exportedInterfaces, 
                                                             ep.description());
+    }
+    
+    @Test
+    public void testCallTimeout() throws IOException {
+        try {
+            myServiceProxy.call("slow");
+            Assert.fail("Expecting timeout");
+        } catch (RuntimeException e) {
+            Assert.assertEquals(SocketTimeoutException.class, e.getCause().getClass());
+        }
     }
 
     @Test
@@ -96,7 +108,7 @@ public class TcpProviderTest {
         List<String> msgList = new ArrayList<String>();
         myServiceProxy.callWithList(msgList);
     }
-    
+
     @AfterClass
     public static void close() throws IOException {
         ep.close();
@@ -126,4 +138,5 @@ public class TcpProviderTest {
         long tps = NUM_CALLS * 1000 / (System.currentTimeMillis() - start);
         System.out.println(tps + " tps");
     }
+    
 }

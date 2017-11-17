@@ -32,7 +32,6 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 @SuppressWarnings("rawtypes")
 public class TCPProvider implements DistributionProvider {
-
     private static final String TCP_CONFIG_TYPE = "aries.tcp";
 
     @Override
@@ -57,11 +56,13 @@ public class TCPProvider implements DistributionProvider {
         throws IntentUnsatisfiedException {
         try {
             URI address = new URI(endpoint.getId());
-            InvocationHandler handler = new TcpInvocationHandler(cl, address.getHost(), address.getPort());
+            Integer timeout = new EndpointPropertiesParser(endpoint).getTimeoutMillis();
+            InvocationHandler handler = new TcpInvocationHandler(cl, address.getHost(), address.getPort(), timeout);
             return Proxy.newProxyInstance(cl, interfaces, handler);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
 
 }

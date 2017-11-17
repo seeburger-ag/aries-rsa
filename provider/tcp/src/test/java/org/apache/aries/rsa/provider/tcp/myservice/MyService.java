@@ -32,4 +32,5 @@ public interface MyService {
     void callOneWay(String msg);
     
     void callWithList(List<String> msg);
+
 }

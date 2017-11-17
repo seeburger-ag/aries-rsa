@@ -30,26 +30,28 @@ public class TcpInvocationHandler implements InvocationHandler {
     private String host;
     private int port;
     private ClassLoader cl;
+    private int timeoutMillis;
 
-    public TcpInvocationHandler(ClassLoader cl, String host, int port)
+    public TcpInvocationHandler(ClassLoader cl, String host, int port, int timeoutMillis)
         throws UnknownHostException, IOException {
         this.cl = cl;
         this.host = host;
         this.port = port;
-
+        this.timeoutMillis = timeoutMillis;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try (
-            Socket socket = new Socket(this.host, this.port);
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())
+                Socket socket = new Socket(this.host, this.port);
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())
             ) {
+            socket.setSoTimeout(timeoutMillis);
             out.writeObject(method.getName());
             out.writeObject(args);
             out.flush();
             return parseResult(socket);
-        } catch (Exception  e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error calling " + host + ":" + port + " method: " + method.getName(), e);
         }
     }
