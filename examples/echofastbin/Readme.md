@@ -45,6 +45,7 @@ bundle:install -s mvn:org.apache.aries.rsa.examples.echofastbin/org.apache.aries
 bundle:install -s mvn:org.apache.aries.rsa.examples.echofastbin/org.apache.aries.rsa.examples.echofastbin.fbconsumer
 ```
 
+```
 The consumer should start and show:
 karaf@root()> Sending to echo service: echo                                                                                                                                                                 
 Good morning
@@ -56,6 +57,7 @@ Good morning send as a stream
 Good morning Async
 
 The log should show that the discovery picks up the endpoint from zookeeper and that the RemoteServiceAdmin imports the service.
+```
 
 ```
 2017-11-20 23:55:51,415 | INFO  | er])-EventThread | InterfaceMonitor                 | 55 - org.apache.aries.rsa.discovery.zookeeper - 1.11.0 | Processing change on node: /osgi/service_registry/org/apache/aries/rsa/examples/fastbin/api/EchoService
