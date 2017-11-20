@@ -24,6 +24,8 @@ import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
 import org.apache.aries.rsa.provider.fastbin.io.ClientInvoker;
@@ -39,9 +41,13 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FastBinProvider implements DistributionProvider {
 
+	private static final Logger LOG = LoggerFactory.getLogger(FastBinProvider.class);
+	
     public static final String FASTBIN_CONFIG_TYPE = "aries.fastbin";
 
     public static final String FASTBIN_ADDRESS = FASTBIN_CONFIG_TYPE + ".address";
@@ -68,8 +74,18 @@ public class FastBinProvider implements DistributionProvider {
     }
 
     public void close() {
-        client.stop();
-        server.stop();
+    	client.stop();
+    	final Semaphore counter = new Semaphore(0);
+    	server.stop(() -> {
+    		counter.release(1);
+    	});
+        try {
+        	if(!counter.tryAcquire(1, 30, TimeUnit.SECONDS)) {
+        		LOG.warn("Server/Client failed to shut down in time. Proceeding shutdown anyway...");
+        	}
+        } catch(InterruptedException e) {
+        	LOG.warn("Interrupted while waiting for Server/Client shutdown");
+        }
     }
 
     public ClientInvoker getClient() {

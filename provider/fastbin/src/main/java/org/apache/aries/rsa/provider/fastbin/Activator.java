@@ -28,13 +28,17 @@ import org.apache.aries.rsa.provider.fastbin.util.UuidGenerator;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Activator extends BaseActivator implements ManagedService {
 
+	private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
     static Activator INSTANCE;
     FastBinProvider provider;
     ClientInvoker client;
     ServerInvoker server;
+    
 
     @Override
     protected void doOpen() throws Exception {
@@ -45,6 +49,7 @@ public class Activator extends BaseActivator implements ManagedService {
     protected void doStart() throws Exception {
         INSTANCE = this;
         String uri = getString("uri", "tcp://0.0.0.0:2543");
+        LOG.info("Binding Fastbin Server to {}",uri);
         String exportedAddress = getString("exportedAddress", null);
         if (exportedAddress == null) {
             exportedAddress = UuidGenerator.getHostName();
