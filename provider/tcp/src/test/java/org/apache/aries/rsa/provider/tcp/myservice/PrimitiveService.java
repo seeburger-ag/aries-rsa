@@ -18,36 +18,21 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
-import java.util.List;
+public interface PrimitiveService {
+    
+    byte callByte(byte num);
+    
+    short callShort(short num);
 
-public class MyServiceImpl implements MyService {
+    int callInt(int num);
 
-    @Override
-    public String echo(String msg) {
-        return msg;
-    }
+    long callLong(long num);
+    
+    float callFloat(float num);
+    
+    double callDouble(double num);
 
-    @Override
-    public void call(String msg) {
-        if ("throw exception".equals(msg)) {
-            throw new IllegalArgumentException("Throwing expected exception");
-        }
-        if ("slow".equals(msg)) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-            }
-        }
-    }
-
-    @Override
-    public void callOneWay(String msg) {
-    }
-
-    @Override
-    public void callWithList(List<String> msg) {
-        
-    }
-
-
+    boolean callBoolean(boolean bool);
+    
+    byte[] callByteAr(byte[] byteAr);
 }
