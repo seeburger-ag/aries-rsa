@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.provider.tcp.myservice;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 import javax.jws.Oneway;
 
@@ -32,5 +33,7 @@ public interface MyService {
     void callOneWay(String msg);
     
     void callWithList(List<String> msg);
+    
+    Future<String> callAsync(int delay); 
 
 }

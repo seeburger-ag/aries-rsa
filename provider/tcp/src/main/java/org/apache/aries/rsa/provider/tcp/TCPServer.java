@@ -22,11 +22,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -63,14 +65,11 @@ public class TCPServer implements Closeable, Runnable {
         ClassLoader serviceCL = service.getClass().getClassLoader();
         while (running) {
             try (
-                Socket socket = this.serverSocket.accept();
-                ObjectInputStream ois = new LoaderObjectInputStream(socket.getInputStream(), serviceCL);
-                ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream())
+                    Socket socket = this.serverSocket.accept();
+                    ObjectInputStream ois = new LoaderObjectInputStream(socket.getInputStream(), serviceCL);
+                    ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream())
                 ) {
-                String methodName = (String)ois.readObject();
-                Object[] args = (Object[])ois.readObject();
-                Object result = invoker.invoke(methodName, args);
-                objectOutput.writeObject(result);
+                handleCall(ois, objectOutput);
             } catch (SocketException e) {
                 running = false;
             } catch (Exception e) {
@@ -79,7 +78,19 @@ public class TCPServer implements Closeable, Runnable {
         }
     }
 
-
+    @SuppressWarnings("unchecked")
+    private void handleCall(ObjectInputStream ois, ObjectOutputStream objectOutput) throws Exception {
+        String methodName = (String)ois.readObject();
+        Object[] args = (Object[])ois.readObject();
+        Object result = invoker.invoke(methodName, args);
+        if (result instanceof InvocationTargetException) {
+            result = ((InvocationTargetException) result).getCause();
+        } else if (result instanceof Future) {
+            Future<Object> fu = (Future<Object>) result;
+            result = fu.get();
+        }
+        objectOutput.writeObject(result);
+    }
 
     @Override
     public void close() throws IOException {

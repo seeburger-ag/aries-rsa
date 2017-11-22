@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import static org.hamcrest.core.StringStartsWith.startsWith;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.provider.tcp.myservice.MyService;
@@ -43,6 +45,7 @@ import org.osgi.framework.BundleContext;
 
 public class TcpProviderTest {
 
+    private static final int TIMEOUT = 200;
     private static final int NUM_CALLS = 100;
     private static MyService myServiceProxy;
     private static Endpoint ep;
@@ -55,7 +58,7 @@ public class TcpProviderTest {
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put("aries.rsa.hostname", "localhost");
         props.put("aries.rsa.numThreads", "10");
-        props.put("osgi.basic.timeout", 100);
+        props.put("osgi.basic.timeout", TIMEOUT);
         MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
@@ -68,7 +71,7 @@ public class TcpProviderTest {
     }
     
     @Test
-    public void testCallTimeout() throws IOException {
+    public void testCallTimeout() {
         try {
             myServiceProxy.call("slow");
             Assert.fail("Expecting timeout");
@@ -78,25 +81,25 @@ public class TcpProviderTest {
     }
 
     @Test
-    public void testPerf() throws IOException, InterruptedException {
+    public void testPerf() throws InterruptedException {
         runPerfTest(myServiceProxy);
         String msg = "test";
         String result = myServiceProxy.echo(msg);
         Assert.assertEquals(msg, result);
     }
     
-    @Test(expected=RuntimeException.class)
-    public void testCallException() throws IOException, InterruptedException {
+    @Test(expected=IllegalArgumentException.class)
+    public void testCallException() {
         myServiceProxy.call("throw exception");
     }
     
     @Test
-    public void testCall() throws IOException, InterruptedException {
+    public void testCall() {
         myServiceProxy.echo("test");
     }
     
     @Test
-    public void testCallOneway() throws IOException, InterruptedException {
+    public void testCallOneway() {
         myServiceProxy.callOneWay("test");
     }
     
@@ -107,6 +110,13 @@ public class TcpProviderTest {
     public void testCallWithInterfaceBasedParam() throws IOException, InterruptedException {
         List<String> msgList = new ArrayList<String>();
         myServiceProxy.callWithList(msgList);
+    }
+
+    @Test
+    public void testAsyncCall() throws Exception {
+        Future<String> result = myServiceProxy.callAsync(100);
+        String answer = result.get(1, TimeUnit.SECONDS);
+        assertEquals("Finished", answer);
     }
 
     @AfterClass

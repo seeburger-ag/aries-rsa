@@ -18,7 +18,11 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class MyServiceImpl implements MyService {
 
@@ -34,7 +38,7 @@ public class MyServiceImpl implements MyService {
         }
         if ("slow".equals(msg)) {
             try {
-                Thread.sleep(200);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
             }
         }
@@ -49,5 +53,18 @@ public class MyServiceImpl implements MyService {
         
     }
 
+    @Override
+    public Future<String> callAsync(final int delay) {
+        return supplyAsync(new Supplier<String>() {
+            public String get() {
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                }
+                return "Finished";
+            }
+            
+        });
+    }
 
 }

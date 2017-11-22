@@ -25,6 +25,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class TcpInvocationHandler implements InvocationHandler {
     private String host;
@@ -42,6 +45,27 @@ public class TcpInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (Future.class.isAssignableFrom(method.getReturnType())) {
+            return createAsyncResult(method, args);
+        } else {
+            return handleSyncCall(method, args);
+        }
+    }
+
+    private Object createAsyncResult(final Method method, final Object[] args) {
+        return CompletableFuture.supplyAsync(new Supplier<Object>() {
+            public Object get() {
+                try {
+                    return handleSyncCall(method, args);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    private Object handleSyncCall(Method method, Object[] args) throws Throwable {
+        Object result;
         try (
                 Socket socket = new Socket(this.host, this.port);
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())
@@ -50,20 +74,19 @@ public class TcpInvocationHandler implements InvocationHandler {
             out.writeObject(method.getName());
             out.writeObject(args);
             out.flush();
-            return parseResult(socket);
-        } catch (Exception e) {
+            result = parseResult(socket);
+        } catch (Throwable e) {
             throw new RuntimeException("Error calling " + host + ":" + port + " method: " + method.getName(), e);
         }
+        if (result instanceof Throwable) {
+            throw (Throwable)result;
+        }
+        return result;
     }
 
-    private Object parseResult(Socket socket) throws IOException, ClassNotFoundException, Throwable {
+    private Object parseResult(Socket socket) throws Throwable {
         try (ObjectInputStream in = new LoaderObjectInputStream(socket.getInputStream(), cl)) {
-            Object result = in.readObject();
-            if (result instanceof Throwable) {
-                throw (Throwable)result;
-            } else {
-                return result;
-            }
+            return in.readObject();
         }
     }
 
