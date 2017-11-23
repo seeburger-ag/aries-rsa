@@ -26,11 +26,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,18 +80,35 @@ public class TCPServer implements Closeable, Runnable {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void handleCall(ObjectInputStream ois, ObjectOutputStream objectOutput) throws Exception {
         String methodName = (String)ois.readObject();
         Object[] args = (Object[])ois.readObject();
         Object result = invoker.invoke(methodName, args);
+        result = resolveAsnyc(result);
         if (result instanceof InvocationTargetException) {
             result = ((InvocationTargetException) result).getCause();
-        } else if (result instanceof Future) {
-            Future<Object> fu = (Future<Object>) result;
-            result = fu.get();
         }
         objectOutput.writeObject(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object resolveAsnyc(Object result) throws InterruptedException {
+        if (result instanceof Future) {
+            Future<Object> fu = (Future<Object>) result;
+            try {
+                result = fu.get();
+            } catch (ExecutionException e) {
+                result = e.getCause();
+            }
+        } else if (result instanceof Promise) {
+            Promise<Object> fu = (Promise<Object>) result;  
+            try {
+                result = fu.getValue();
+            } catch (InvocationTargetException e) {
+                result = e.getCause();
+            }
+        }
+        return result;
     }
 
     @Override

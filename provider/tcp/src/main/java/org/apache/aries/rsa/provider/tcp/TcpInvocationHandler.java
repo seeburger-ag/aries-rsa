@@ -29,6 +29,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
+
 public class TcpInvocationHandler implements InvocationHandler {
     private String host;
     private int port;
@@ -46,22 +49,42 @@ public class TcpInvocationHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (Future.class.isAssignableFrom(method.getReturnType())) {
-            return createAsyncResult(method, args);
+            return createFutureResult(method, args);
+        } else if (Promise.class.isAssignableFrom(method.getReturnType())) {
+                return createPromiseResult(method, args);
         } else {
             return handleSyncCall(method, args);
         }
     }
 
-    private Object createAsyncResult(final Method method, final Object[] args) {
+    private Object createFutureResult(final Method method, final Object[] args) {
         return CompletableFuture.supplyAsync(new Supplier<Object>() {
             public Object get() {
                 try {
                     return handleSyncCall(method, args);
+                } catch (RuntimeException e) {
+                    throw e;
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
             }
         });
+    }
+    
+    private Object createPromiseResult(final Method method, final Object[] args) {
+        final Deferred<Object> deferred = new Deferred<Object>();
+        new Thread(new Runnable() {
+            
+            @Override
+            public void run() {
+                try {
+                    deferred.resolve(handleSyncCall(method, args));
+                } catch (Throwable e) {
+                    deferred.fail(e);
+                }
+            }
+        }).start();
+        return deferred.getPromise();
     }
 
     private Object handleSyncCall(Method method, Object[] args) throws Throwable {

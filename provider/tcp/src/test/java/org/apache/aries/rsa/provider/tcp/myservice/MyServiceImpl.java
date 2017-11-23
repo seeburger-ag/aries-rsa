@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
+
 public class MyServiceImpl implements MyService {
 
     @Override
@@ -32,16 +35,13 @@ public class MyServiceImpl implements MyService {
     }
 
     @Override
-    public void callSlow() {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-        } 
+    public void callSlow(int delay) {
+        sleep(delay); 
     }
 
     @Override
     public void callException() {
-        throw new IllegalArgumentException("Throwing expected exception");
+        throw new ExpectedTestException();
     }
 
     @Override
@@ -54,17 +54,43 @@ public class MyServiceImpl implements MyService {
     }
 
     @Override
-    public Future<String> callAsync(final int delay) {
+    public Future<String> callAsyncFuture(final int delay) {
         return supplyAsync(new Supplier<String>() {
             public String get() {
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
+                if (delay == -1) {
+                    throw new ExpectedTestException();
                 }
+                sleep(delay);
                 return "Finished";
             }
             
         });
+    }
+    
+    @Override
+    public Promise<String> callAsyncPromise(final int delay) {
+        final Deferred<String> deferred = new Deferred<String>();
+        new Thread(new Runnable() {
+            
+            @Override
+            public void run() {
+                if (delay == -1) {
+                    deferred.fail(new ExpectedTestException());
+                    return;
+                }
+                sleep(delay);
+                deferred.resolve("Finished");
+            }
+        }).start();
+        
+        return deferred.getPromise();
+    }
+
+    private void sleep(int delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+        }
     }
 
 }
