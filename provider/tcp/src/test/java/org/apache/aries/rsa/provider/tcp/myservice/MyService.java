@@ -26,7 +26,9 @@ import javax.jws.Oneway;
 public interface MyService {
     String echo(String msg);
 
-    void call(String msg);
+    void callSlow();
+    
+    void callException();
 
     // Oneway not yet supported
     @Oneway

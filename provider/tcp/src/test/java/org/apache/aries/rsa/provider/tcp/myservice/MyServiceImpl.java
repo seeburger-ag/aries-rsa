@@ -32,16 +32,16 @@ public class MyServiceImpl implements MyService {
     }
 
     @Override
-    public void call(String msg) {
-        if ("throw exception".equals(msg)) {
-            throw new IllegalArgumentException("Throwing expected exception");
-        }
-        if ("slow".equals(msg)) {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-            }
-        }
+    public void callSlow() {
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+        } 
+    }
+
+    @Override
+    public void callException() {
+        throw new IllegalArgumentException("Throwing expected exception");
     }
 
     @Override

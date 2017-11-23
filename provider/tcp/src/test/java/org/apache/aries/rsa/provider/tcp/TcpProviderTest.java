@@ -73,7 +73,7 @@ public class TcpProviderTest {
     @Test
     public void testCallTimeout() {
         try {
-            myServiceProxy.call("slow");
+            myServiceProxy.callSlow();
             Assert.fail("Expecting timeout");
         } catch (RuntimeException e) {
             Assert.assertEquals(SocketTimeoutException.class, e.getCause().getClass());
@@ -90,7 +90,7 @@ public class TcpProviderTest {
     
     @Test(expected=IllegalArgumentException.class)
     public void testCallException() {
-        myServiceProxy.call("throw exception");
+        myServiceProxy.callException();
     }
     
     @Test
