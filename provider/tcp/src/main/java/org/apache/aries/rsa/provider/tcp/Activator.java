@@ -32,7 +32,7 @@ public class Activator implements BundleActivator {
     public void start(BundleContext context) throws Exception {
         DistributionProvider provider = new TCPProvider();
         Dictionary<String, Object> props = new Hashtable<>();
-        props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{ "osgi.async" });
+        props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{ "osgi.basic", "osgi.async" });
         props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, provider.getSupportedTypes());
         context.registerService(DistributionProvider.class, provider, props);
     }
