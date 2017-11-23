@@ -21,6 +21,7 @@ package org.apache.aries.rsa.provider.tcp.myservice;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
@@ -55,6 +56,20 @@ public class MyServiceImpl implements MyService {
 
     @Override
     public Future<String> callAsyncFuture(final int delay) {
+        return supplyAsync(new Supplier<String>() {
+            public String get() {
+                if (delay == -1) {
+                    throw new ExpectedTestException();
+                }
+                sleep(delay);
+                return "Finished";
+            }
+            
+        });
+    }
+    
+    @Override
+    public CompletionStage<String> callAsyncCompletionStage(final int delay) {
         return supplyAsync(new Supplier<String>() {
             public String get() {
                 if (delay == -1) {

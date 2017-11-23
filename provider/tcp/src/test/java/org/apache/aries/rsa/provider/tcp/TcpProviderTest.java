@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,6 +130,25 @@ public class TcpProviderTest {
         Future<String> result = myServiceProxy.callAsyncFuture(-1);
         try {
             result.get();
+        } catch (ExecutionException e) {
+            throw e.getCause();
+        }
+    }
+    
+    @Test
+    public void testAsyncCompletionStage() throws Exception {
+        CompletionStage<String> result = myServiceProxy.callAsyncCompletionStage(100);
+        CompletableFuture<String> fresult = result.toCompletableFuture();
+        String answer = fresult.get(1, TimeUnit.SECONDS);
+        assertEquals("Finished", answer);
+    }
+    
+    @Test(expected = ExpectedTestException.class)
+    public void testAsyncCompletionStageException() throws Throwable {
+        CompletionStage<String> result = myServiceProxy.callAsyncCompletionStage(-1);
+        CompletableFuture<String> fresult = result.toCompletableFuture();
+        try {
+            fresult.get();
         } catch (ExecutionException e) {
             throw e.getCause();
         }

@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,6 +98,13 @@ public class TCPServer implements Closeable, Runnable {
             Future<Object> fu = (Future<Object>) result;
             try {
                 result = fu.get();
+            } catch (ExecutionException e) {
+                result = e.getCause();
+            }
+        } else if (result instanceof CompletionStage) {
+            CompletionStage<Object> fu = (CompletionStage<Object>) result;
+            try {
+                result = fu.toCompletableFuture().get();
             } catch (ExecutionException e) {
                 result = e.getCause();
             }

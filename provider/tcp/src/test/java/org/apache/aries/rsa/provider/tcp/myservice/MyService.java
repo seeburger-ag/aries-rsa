@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.provider.tcp.myservice;
 
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 
 import javax.jws.Oneway;
@@ -40,6 +41,8 @@ public interface MyService {
     
     Future<String> callAsyncFuture(int delay);
 
-    Promise<String> callAsyncPromise(int delay); 
+    Promise<String> callAsyncPromise(int delay);
+
+    CompletionStage<String> callAsyncCompletionStage(int delay); 
 
 }

@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
@@ -48,10 +49,11 @@ public class TcpInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (Future.class.isAssignableFrom(method.getReturnType())) {
+        if (Future.class.isAssignableFrom(method.getReturnType()) ||
+            CompletionStage.class.isAssignableFrom(method.getReturnType())) {
             return createFutureResult(method, args);
         } else if (Promise.class.isAssignableFrom(method.getReturnType())) {
-                return createPromiseResult(method, args);
+            return createPromiseResult(method, args);
         } else {
             return handleSyncCall(method, args);
         }
@@ -70,7 +72,7 @@ public class TcpInvocationHandler implements InvocationHandler {
             }
         });
     }
-    
+
     private Object createPromiseResult(final Method method, final Object[] args) {
         final Deferred<Object> deferred = new Deferred<Object>();
         new Thread(new Runnable() {
