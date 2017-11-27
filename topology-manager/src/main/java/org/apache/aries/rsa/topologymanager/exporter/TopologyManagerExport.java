@@ -120,10 +120,8 @@ public class TopologyManagerExport implements ServiceListener {
         for (RemoteServiceAdmin remoteServiceAdmin : rsaSetCopy) {
             LOG.debug("TopologyManager: handling remoteServiceAdmin " + remoteServiceAdmin);
             if (endpointRepo.isAlreadyExportedForRsa(sref, remoteServiceAdmin)) {
-                // already handled by this remoteServiceAdmin
                 LOG.debug("already handled by this remoteServiceAdmin -> skipping");
             } else {
-
                 exportServiceUsingRemoteServiceAdmin(sref, remoteServiceAdmin, addProps);
             }
         }
@@ -132,9 +130,11 @@ public class TopologyManagerExport implements ServiceListener {
     private boolean shouldExport(ServiceReference<?> sref, Map<String, ?> addProps) {
         List<String> exported= StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
         List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
-        int length = exported == null ? 0 : exported.size();
-        length += addExported == null ? 0 : addExported.size();
-        return length>0;
+        return sizeOf(exported) + sizeOf(addExported) > 0;
+    }
+
+    private int sizeOf(List<String> list) {
+        return list == null ? 0 : list.size();
     }
 
     private Object getSymbolicName(Bundle bundle) {
@@ -151,7 +151,7 @@ public class TopologyManagerExport implements ServiceListener {
             endpointRepo.removeService(sref);
             return;
         }
-        // do the export
+
         LOG.debug("exporting {}...", sref);
         // TODO: additional parameter Map?
         Collection<ExportRegistration> exportRegs = remoteServiceAdmin.exportService(sref, addProps);
