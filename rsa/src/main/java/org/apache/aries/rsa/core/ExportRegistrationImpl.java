@@ -161,4 +161,10 @@ public class ExportRegistrationImpl implements ExportRegistration {
         }
         return r;
     }
+
+    @Override
+    public EndpointDescription update(Map<String, ?> properties) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

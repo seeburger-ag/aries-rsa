@@ -227,4 +227,10 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     public EndpointDescription getImportedEndpointAlways() {
         return endpoint;
     }
+
+    @Override
+    public boolean update(EndpointDescription endpoint) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }
