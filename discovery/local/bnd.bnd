@@ -3,8 +3,8 @@ Private-Package: org.apache.aries.rsa.discovery.local
 Export-Package: \
 	org.apache.aries.rsa.discovery.endpoint,\
 	org.osgi.xmlns.rsa.v1_0
-Provide-Capability: osgi.extender;osgi.extender="osgi.remoteserviceadmin.localdiscovery";\
-	version:Version="1.0";\
-	uses:="org.osgi.service.remoteserviceadmin"
-Provide-Capability: osgi.remoteserviceadmin.discovery;\
-	protocols:List<String>="local"; version:Version=1.0
+Provide-Capability: osgi.extender;osgi.extender="osgi.remoteserviceadmin";\
+	version:Version="1.1.0";\
+	uses:="org.osgi.service.remoteserviceadmin",\
+	osgi.remoteserviceadmin.discovery;\
+	protocols:List<String>="local"; version:Version=1.1.0

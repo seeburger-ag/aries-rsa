@@ -1,3 +1,3 @@
 Bundle-Activator: org.apache.aries.rsa.discovery.zookeeper.Activator
 Provide-Capability: osgi.remoteserviceadmin.discovery;\
-	protocols:List<String>="zookeeper"; version:Version=1.0
+	protocols:List<String>="zookeeper"; version:Version=1.1.0

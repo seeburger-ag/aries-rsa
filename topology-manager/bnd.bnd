@@ -3,5 +3,5 @@ Require-Capability: \
 	osgi.remoteserviceadmin.discovery;filter:="(&(version>=1.0)(!(version>=2.0)))",\
 	osgi.remoteserviceadmin.distribution;filter:="(&(version>=1.0)(!(version>=2.0)))"
 Provide-Capability: \
-	osgi.remoteserviceadmin.topology; version:Version=1.0
+	osgi.remoteserviceadmin.topology; version:Version=1.1.0; policy:List<String>="promiscous"
 
