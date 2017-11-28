@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.aries.rsa.spi.Endpoint;
@@ -41,6 +42,7 @@ public class TcpEndpoint implements Endpoint {
         String endpointId = String.format("tcp://%s:%s",hostName, tcpServer.getPort());
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
+        effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic, osgi.async"));
         this.epd = new EndpointDescription(effectiveProperties);
     }
 

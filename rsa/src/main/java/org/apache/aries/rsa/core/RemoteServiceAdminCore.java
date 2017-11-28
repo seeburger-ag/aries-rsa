@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.util.EndpointHelper;

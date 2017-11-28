@@ -118,6 +118,7 @@ public class RsaTestBase {
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
+                         mvn("org.apache.felix", "org.apache.felix.eventadmin"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
                          mvn("org.apache.felix", "org.apache.felix.scr"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"),

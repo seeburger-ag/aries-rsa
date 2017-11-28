@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.core;
+package org.apache.aries.rsa.core.event;
 
 import java.util.List;
 
@@ -37,12 +37,14 @@ public class EventProducer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EventProducer.class);
     private final BundleContext bctx;
+    private EventAdminSender eventAdminSender;
 
     public EventProducer(BundleContext bc) {
         bctx = bc;
+        eventAdminSender = new EventAdminSender(bc);
     }
 
-    protected void publishNotification(List<ExportRegistration> erl) {
+    public void publishNotification(List<ExportRegistration> erl) {
         for (ExportRegistration exportRegistration : erl) {
             publishNotification(exportRegistration);
         }
@@ -56,7 +58,7 @@ public class EventProducer {
         }
     }
 
-    protected void publishNotification(ImportRegistration ir) {
+    public void publishNotification(ImportRegistration ir) {
         if (ir.getException() == null) {
             notify(RemoteServiceAdminEvent.IMPORT_REGISTRATION, ir.getImportReference(), null);
         } else {
@@ -116,5 +118,6 @@ public class EventProducer {
         } catch (InvalidSyntaxException e) {
             LOG.error(e.getMessage(), e);
         }
+        eventAdminSender.send(rsae);
     }
 }

@@ -45,6 +45,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
@@ -251,6 +252,7 @@ public class RemoteServiceAdminCoreTest {
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
         EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
         EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
+        EasyMock.expect(bc.getServiceReference(EventAdmin.class)).andReturn(null).atLeastOnce();
         EasyMock.replay(bc);
 
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);
@@ -410,6 +412,7 @@ public class RemoteServiceAdminCoreTest {
             .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
         EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
         EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
+        EasyMock.expect(bc.getServiceReference(EventAdmin.class)).andReturn(null).atLeastOnce();
         EasyMock.replay(bc);
 
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);

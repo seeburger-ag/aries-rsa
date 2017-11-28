@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.core;
+package org.apache.aries.rsa.core.event;
 
 import java.util.Arrays;
 import java.util.Dictionary;
@@ -24,6 +24,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.aries.rsa.core.ExportRegistrationImpl;
+import org.apache.aries.rsa.core.RemoteServiceAdminCore;
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;

@@ -1,5 +1,7 @@
 Bundle-Activator: org.apache.aries.rsa.core.Activator
-Private-Package: org.apache.aries.rsa.core
+Private-Package: \
+	org.apache.aries.rsa.core,\
+	org.apache.aries.rsa.core.event
 Export-Package: org.osgi.service.remoteserviceadmin
 Provide-Capability: osgi.service;\
 	objectClass:List<String>="org.osgi.service.remoteserviceadmin.RemoteServiceAdmin";\
