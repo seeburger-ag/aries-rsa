@@ -83,6 +83,7 @@ public class EndpointListenerNotifier implements EndpointListener {
 
     @Override
     public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
+        LOG.info("endpoint " + endpoint);
         notifyListeners(NotifyType.REMOVED, endpoint);
     }
 
@@ -107,6 +108,11 @@ public class EndpointListenerNotifier implements EndpointListener {
      */
     private void notifyListener(NotifyType type, EndpointListener listener, Set<Filter> filters, 
                         EndpointDescription endpoint) {
+        if (endpoint == null) {
+            throw new NullPointerException("Endpoint should not be null");
+            //LOG.warn("Endpoint should not be null");
+            //return;
+        }
         LOG.debug("Endpoint {}", type);
         Set<Filter> matchingFilters = getMatchingFilters(filters, endpoint);
         for (Filter filter : matchingFilters) {
@@ -120,6 +126,9 @@ public class EndpointListenerNotifier implements EndpointListener {
     
     private static Set<Filter> getMatchingFilters(Set<Filter> filters, EndpointDescription endpoint) {
         Set<Filter> matchingFilters = new HashSet<Filter>();
+        if (endpoint == null) {
+            return matchingFilters;
+        }
         Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
         for (Filter filter : filters) {
             if (filter.match(dict)) {

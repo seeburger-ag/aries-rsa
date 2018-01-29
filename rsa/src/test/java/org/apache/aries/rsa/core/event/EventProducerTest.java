@@ -103,7 +103,7 @@ public class EventProducerTest {
         EasyMock.replay(bc);
         EventProducer eventProducer = new EventProducer(bc);
 
-        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, rsaCore);
+        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, rsaCore, eventProducer);
         eventProducer.publishNotification(ereg);
 
         EasyMock.verify(rsaCore, sref, bundle, rsal, rsalSref, bc);
@@ -158,7 +158,7 @@ public class EventProducerTest {
         EasyMock.replay(bc);
         EventProducer eventProducer = new EventProducer(bc);
 
-        ExportRegistrationImpl ereg = new ExportRegistrationImpl(rsaCore, exportException);
+        ExportRegistrationImpl ereg = new ExportRegistrationImpl(rsaCore, eventProducer, exportException);
         eventProducer.publishNotification(Arrays.<ExportRegistration>asList(ereg));
 
         EasyMock.verify(rsaCore, sref, bundle, rsal, rsalSref, bc);

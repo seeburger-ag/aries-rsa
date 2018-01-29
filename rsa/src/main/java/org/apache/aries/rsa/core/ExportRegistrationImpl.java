@@ -21,14 +21,17 @@ package org.apache.aries.rsa.core;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +49,15 @@ public class ExportRegistrationImpl implements ExportRegistration {
     private int instanceCount;
     private volatile boolean closed;
 
-    private ExportRegistrationImpl(ExportRegistrationImpl parent, RemoteServiceAdminCore rsaCore,
-            ExportReferenceImpl exportReference, Closeable server, Throwable exception) {
+    private EventProducer sender;
+
+    private ExportRegistrationImpl(ExportRegistrationImpl parent, 
+            RemoteServiceAdminCore rsaCore,
+            EventProducer sender,
+            ExportReferenceImpl exportReference, 
+            Closeable server, 
+            Throwable exception) {
+        this.sender = sender;
         this.parent = parent != null ? parent.parent : this; // a parent points to itself
         this.parent.addInstance();
         this.rsaCore = rsaCore;
@@ -58,18 +68,18 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     // create a clone of the provided ExportRegistrationImpl that is linked to it
     public ExportRegistrationImpl(ExportRegistrationImpl parent) {
-        this(parent, parent.rsaCore, new ExportReferenceImpl(parent.exportReference),
+        this(parent, parent.rsaCore, parent.sender, new ExportReferenceImpl(parent.exportReference),
             parent.server, parent.exception);
     }
 
     // create a new (parent) instance which was exported successfully with the given server
-    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, RemoteServiceAdminCore rsaCore) {
-        this(null, rsaCore, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
+    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, RemoteServiceAdminCore rsaCore, EventProducer sender) {
+        this(null, rsaCore, sender, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
     }
 
     // create a new (parent) instance which failed to be exported with the given exception
-    public ExportRegistrationImpl(RemoteServiceAdminCore rsaCore, Throwable exception) {
-        this(null, rsaCore, null, null, exception);
+    public ExportRegistrationImpl(RemoteServiceAdminCore rsaCore, EventProducer sender, Throwable exception) {
+        this(null, rsaCore, sender, null, null, exception);
     }
 
     private void ensureParent() {
@@ -164,7 +174,11 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     @Override
     public EndpointDescription update(Map<String, ?> properties) {
-        // TODO Auto-generated method stub
-        return null;
+        Map<String, Object> newProps = new HashMap<String, Object>(getExportReference().getExportedEndpoint().getProperties()); 
+        for (String key : properties.keySet()) {
+            newProps.put(key, properties.get(key));
+        }
+        this.sender.notifyUpdate(this.getExportReference());
+        return new EndpointDescription(newProps);
     }
 }

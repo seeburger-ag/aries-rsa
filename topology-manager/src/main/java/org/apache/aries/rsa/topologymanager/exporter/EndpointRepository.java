@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
@@ -87,7 +88,10 @@ public class EndpointRepository {
 
     public synchronized void addService(ServiceReference sref) {
         if (!exportedServices.containsKey(sref)) {
-            LOG.info("Marking service from bundle {} for export", sref.getBundle().getSymbolicName());
+            Bundle bundle = sref.getBundle();
+            if (bundle != null) {
+                LOG.info("Marking service from bundle {} for export", bundle.getSymbolicName());
+            }
             exportedServices.put(sref, new LinkedHashMap<RemoteServiceAdmin, Collection<EndpointDescription>>());
         }
     }

@@ -214,9 +214,9 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             if (endpoint == null) {
                 return null;
             }
-            return new ExportRegistrationImpl(serviceReference, endpoint, this);
+            return new ExportRegistrationImpl(serviceReference, endpoint, this, eventProducer);
         } catch (Exception e) {
-            return new ExportRegistrationImpl(this, e);
+            return new ExportRegistrationImpl(this, eventProducer, e);
         }
     }
     
@@ -414,7 +414,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     protected ImportRegistrationImpl exposeServiceFactory(String[] interfaceNames,
                                             EndpointDescription epd,
                                             DistributionProvider handler) {
-        ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, this);
+        ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, this, eventProducer);
         try {
             EndpointDescription endpoint = imReg.getImportedEndpointDescription();
             Dictionary<String, Object> serviceProps = new Hashtable<String, Object>(endpoint.getProperties());

@@ -48,7 +48,7 @@ public class ClientServiceFactoryTest extends TestCase {
 
         IMocksControl control = EasyMock.createControl();
         EndpointDescription endpoint = createTestEndpointDesc();
-        ImportRegistrationImpl iri = new ImportRegistrationImpl(endpoint, null);
+        ImportRegistrationImpl iri = new ImportRegistrationImpl(endpoint, null, null);
 
         BundleContext consumerContext = control.createMock(BundleContext.class);
         Bundle consumerBundle = control.createMock(Bundle.class);

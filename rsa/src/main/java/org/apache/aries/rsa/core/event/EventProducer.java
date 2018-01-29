@@ -20,6 +20,7 @@ package org.apache.aries.rsa.core.event;
 
 import java.util.List;
 
+import org.apache.aries.rsa.core.ExportRegistrationImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -119,5 +120,14 @@ public class EventProducer {
             LOG.error(e.getMessage(), e);
         }
         eventAdminSender.send(rsae);
+    }
+
+    public void notifyUpdate(ExportReference exportRef) {
+        notify(RemoteServiceAdminEvent.EXPORT_UPDATE, exportRef, null);
+    }
+
+    public void notifyUpdate(ImportRegistration importReg) {
+        notify(RemoteServiceAdminEvent.IMPORT_UPDATE, importReg.getImportReference(), importReg.getException());
+        
     }
 }

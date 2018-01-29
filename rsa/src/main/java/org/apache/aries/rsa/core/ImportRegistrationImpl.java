@@ -19,8 +19,10 @@
 package org.apache.aries.rsa.core;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -45,14 +47,17 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     private ImportRegistrationImpl parent;
     private List<ImportRegistrationImpl> children; // used only in parent
 
+    private EventProducer eventProducer;
+
     public ImportRegistrationImpl(Throwable ex) {
         exception = ex;
         initParent();
     }
 
-    public ImportRegistrationImpl(EndpointDescription endpoint, RemoteServiceAdminCore rsac) {
+    public ImportRegistrationImpl(EndpointDescription endpoint, RemoteServiceAdminCore rsac, EventProducer eventProducer) {
         this.endpoint = endpoint;
         this.rsaCore = rsac;
+        this.eventProducer = eventProducer;
         initParent();
     }
 
@@ -230,7 +235,8 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     @Override
     public boolean update(EndpointDescription endpoint) {
-        // TODO Auto-generated method stub
-        return false;
+        importedService.setProperties(new Hashtable<>(endpoint.getProperties()));
+        eventProducer.notifyUpdate(this);
+        return true;
     }
 }

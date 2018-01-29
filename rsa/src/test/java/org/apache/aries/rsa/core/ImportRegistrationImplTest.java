@@ -53,7 +53,7 @@ public class ImportRegistrationImplTest {
 
         c.replay();
 
-        ImportRegistrationImpl i = new ImportRegistrationImpl(endpoint, rsac);
+        ImportRegistrationImpl i = new ImportRegistrationImpl(endpoint, rsac, null);
 
         assertNull(i.getException());
         assertEquals(i, i.getParent());
@@ -73,7 +73,7 @@ public class ImportRegistrationImplTest {
 
         c.replay();
 
-        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac);
+        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac, null);
 
         ImportRegistrationImpl i2 = new ImportRegistrationImpl(i1);
 
@@ -143,7 +143,7 @@ public class ImportRegistrationImplTest {
 
         c.replay();
 
-        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac);
+        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac, null);
 
         ImportRegistrationImpl i2 = new ImportRegistrationImpl(i1);
 
