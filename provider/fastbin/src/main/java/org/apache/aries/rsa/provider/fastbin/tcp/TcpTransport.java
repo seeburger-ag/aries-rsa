@@ -414,18 +414,6 @@ public class TcpTransport implements Transport {
         return remoteAddress;
     }
 
-    private boolean assertConnected() {
-        try {
-            if ( !isConnected() ) {
-                throw new IOException("Not connected.");
-            }
-            return true;
-        } catch (IOException e) {
-            onTransportFailure(e);
-        }
-        return false;
-    }
-
     public void suspendRead() {
         if( isConnected() && readSource!=null ) {
             readSource.suspend();

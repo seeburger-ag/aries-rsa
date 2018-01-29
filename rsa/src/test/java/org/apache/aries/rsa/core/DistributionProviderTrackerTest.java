@@ -34,11 +34,12 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
+@SuppressWarnings({
+    "unchecked", "rawtypes"
+   })
 public class DistributionProviderTrackerTest {
 
-    @SuppressWarnings({
-     "unchecked", "rawtypes"
-    })
+
     @Test
     public void testAddingRemoved() throws InvalidSyntaxException {
         IMocksControl c = EasyMock.createControl();

@@ -32,6 +32,7 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
+@SuppressWarnings("rawtypes")
 public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
 
     @SuppressWarnings("unchecked")

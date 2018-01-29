@@ -40,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("rawtypes")
 public class TransportFailureTest {
 
     private static long SLEEP_TIME = 100;

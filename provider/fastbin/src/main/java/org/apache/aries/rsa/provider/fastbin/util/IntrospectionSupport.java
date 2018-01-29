@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
-
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class IntrospectionSupport {
 	
     private IntrospectionSupport() {

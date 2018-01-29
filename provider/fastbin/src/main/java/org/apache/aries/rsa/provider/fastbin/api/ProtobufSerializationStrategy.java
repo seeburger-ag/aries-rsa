@@ -32,6 +32,7 @@ import org.fusesource.hawtbuf.proto.PBMessageFactory;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class ProtobufSerializationStrategy implements SerializationStrategy {
 
     public static final ProtobufSerializationStrategy INSTANCE = new ProtobufSerializationStrategy();

@@ -30,6 +30,7 @@ import org.fusesource.hawtbuf.DataByteArrayOutputStream;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class ObjectSerializationStrategy implements SerializationStrategy {
     public static final ObjectSerializationStrategy INSTANCE = new ObjectSerializationStrategy();
 

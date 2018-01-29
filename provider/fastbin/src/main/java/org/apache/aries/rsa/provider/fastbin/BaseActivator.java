@@ -38,6 +38,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public class BaseActivator implements BundleActivator, Runnable {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());

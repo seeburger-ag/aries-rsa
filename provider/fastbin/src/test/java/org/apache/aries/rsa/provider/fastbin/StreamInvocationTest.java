@@ -40,7 +40,6 @@ import java.util.concurrent.Future;
 import org.apache.aries.rsa.provider.fastbin.InvocationTest.HelloImpl;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
 import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker;
-import org.apache.aries.rsa.provider.fastbin.streams.StreamProvider;
 import org.apache.aries.rsa.provider.fastbin.tcp.ClientInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.ServerInvokerImpl;
 import org.fusesource.hawtdispatch.Dispatch;

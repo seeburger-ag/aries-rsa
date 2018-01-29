@@ -31,6 +31,7 @@ import java.util.Map;
 
 /**
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class URISupport {
 
     public static class CompositeData {

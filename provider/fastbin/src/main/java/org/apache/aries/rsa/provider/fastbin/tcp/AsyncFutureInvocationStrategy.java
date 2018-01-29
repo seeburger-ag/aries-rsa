@@ -39,9 +39,8 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
 
     private FutureCompleter completer = new FutureCompleter();

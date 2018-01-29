@@ -20,7 +20,6 @@ package org.apache.aries.rsa.core.event;
 
 import java.util.List;
 
-import org.apache.aries.rsa.core.ExportRegistrationImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;

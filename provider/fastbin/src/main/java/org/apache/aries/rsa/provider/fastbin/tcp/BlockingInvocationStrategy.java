@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(BlockingInvocationStrategy.class);

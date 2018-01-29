@@ -25,6 +25,7 @@ import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ClassLoaderObjectInputStream extends ObjectInputStream {
 
     /** <p>Maps primitive type names to corresponding class objects.</p> */

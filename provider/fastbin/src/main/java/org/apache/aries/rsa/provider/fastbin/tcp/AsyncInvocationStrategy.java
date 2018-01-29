@@ -21,11 +21,9 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.rmi.RemoteException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
@@ -41,6 +39,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(AsyncInvocationStrategy.class);
@@ -49,6 +48,7 @@ public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
 
         private final ClassLoader loader;
         private final Method method;
+        
         private final AsyncCallback callback;
         private final SerializationStrategy serializationStrategy;
         private final DispatchQueue queue;

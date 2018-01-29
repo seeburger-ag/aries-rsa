@@ -31,7 +31,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
-import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

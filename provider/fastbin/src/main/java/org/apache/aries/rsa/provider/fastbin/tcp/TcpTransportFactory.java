@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  */
+@SuppressWarnings("rawtypes")
 public class TcpTransportFactory {
     private static final Logger LOG = LoggerFactory.getLogger(TcpTransportFactory.class);
 

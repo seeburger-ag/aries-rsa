@@ -33,6 +33,7 @@ import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public abstract class AbstractInvocationStrategy implements InvocationStrategy
 {
 

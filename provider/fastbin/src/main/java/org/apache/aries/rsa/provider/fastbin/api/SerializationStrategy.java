@@ -26,6 +26,7 @@ import org.fusesource.hawtbuf.DataByteArrayOutputStream;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public interface SerializationStrategy {
 
     String name();
