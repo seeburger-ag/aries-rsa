@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.topologymanager.importer;
+package org.apache.aries.rsa.topologymanager.importer.local;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.aries.rsa.topologymanager.importer.ReferenceCounter;
+import org.apache.aries.rsa.topologymanager.importer.local.ReferenceCounter;
 
 public class ReferenceCounterTest {
 

@@ -16,11 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.topologymanager.importer;
+package org.apache.aries.rsa.topologymanager.importer.local;
 
-import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+public interface ServiceInterestListener {
 
-public interface RSATracker {
-    void added(RemoteServiceAdmin rsa);
-    void removed(RemoteServiceAdmin rsa);
+    void addServiceInterest(String filter);
+
+    void removeServiceInterest(String filter);
 }

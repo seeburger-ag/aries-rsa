@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.topologymanager.importer;
+package org.apache.aries.rsa.topologymanager.importer.local;
 
+import org.apache.aries.rsa.topologymanager.importer.local.FilterHelper;
 import org.junit.Assert;
 import org.junit.Test;
 

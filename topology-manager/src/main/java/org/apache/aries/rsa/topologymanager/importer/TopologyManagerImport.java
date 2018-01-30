@@ -46,9 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens for remote endpoints using the EndpointListener interface and the EndpointListenerManager.
- * Listens for local service interests using the ListenerHookImpl that calls back through the
- * ServiceInterestListener interface.
+ * Listens for remote endpoints using the EndpointListener. The scope of this listener is managed by
+ * the EndpointListenerManager.
  * Manages local creation and destruction of service imports using the available RemoteServiceAdmin services.
  */
 public class TopologyManagerImport implements EndpointListener, RemoteServiceAdminListener {

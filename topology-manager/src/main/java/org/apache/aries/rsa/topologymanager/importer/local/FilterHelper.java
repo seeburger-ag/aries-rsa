@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.topologymanager.importer;
+package org.apache.aries.rsa.topologymanager.importer.local;
 
 import java.util.HashSet;
 import java.util.Set;

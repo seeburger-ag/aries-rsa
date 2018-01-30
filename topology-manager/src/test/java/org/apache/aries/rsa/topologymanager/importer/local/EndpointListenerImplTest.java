@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.topologymanager.importer;
+package org.apache.aries.rsa.topologymanager.importer.local;
 
 import java.util.Dictionary;
 import java.util.List;
 
-import org.apache.aries.rsa.topologymanager.importer.EndpointListenerManager;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
+import org.apache.aries.rsa.topologymanager.importer.local.EndpointListenerManager;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
