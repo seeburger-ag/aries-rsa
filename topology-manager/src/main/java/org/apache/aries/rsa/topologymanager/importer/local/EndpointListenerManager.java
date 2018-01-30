@@ -24,9 +24,13 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +45,28 @@ import org.slf4j.LoggerFactory;
  */
 public class EndpointListenerManager implements ServiceInterestListener{
 
+    private final class EndpointListenerAdapter implements EndpointListener {
+        @Override
+        public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+            endpointListener.endpointChanged(event, matchedFilter);
+        }
+
+        @Override
+        public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            endpointListener.endpointChanged(event, matchedFilter);
+        }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerManager.class);
 
     private final BundleContext bctx;
     private volatile ServiceRegistration<EndpointListener> serviceRegistration;
+    private volatile ServiceRegistration<EndpointEventListener> serviceRegistration2;
+    
     private final List<String> filters = new ArrayList<String>();
-    private final EndpointListener endpointListener;
+    private final EndpointEventListener endpointListener;
     private final ListenerHookImpl listenerHook;
     private RSFindHook findHook;
     
@@ -55,7 +75,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
      */
     private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<String>();
 
-    public EndpointListenerManager(BundleContext bc, EndpointListener endpointListener) {
+    public EndpointListenerManager(BundleContext bc, EndpointEventListener endpointListener) {
         this.bctx = bc;
         this.endpointListener = endpointListener;
         this.listenerHook = new ListenerHookImpl(bc, this);
@@ -63,8 +83,12 @@ public class EndpointListenerManager implements ServiceInterestListener{
     }
 
     public void start() {
-        serviceRegistration = bctx.registerService(EndpointListener.class, endpointListener,
+        EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
+        serviceRegistration = bctx.registerService(EndpointListener.class, endpointListenerAdapter,
                                                    getRegistrationProperties());
+        serviceRegistration2 = bctx.registerService(EndpointEventListener.class, endpointListener,
+                getRegistrationProperties());
+
         bctx.registerService(ListenerHook.class, listenerHook, null);
         bctx.registerService(FindHook.class, findHook, null);
     }
@@ -72,6 +96,9 @@ public class EndpointListenerManager implements ServiceInterestListener{
     public void stop() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
+        }
+        if (serviceRegistration2 != null) {
+            serviceRegistration2.unregister();
         }
     }
 

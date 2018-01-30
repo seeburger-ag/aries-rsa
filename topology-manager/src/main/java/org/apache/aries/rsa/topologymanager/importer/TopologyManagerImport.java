@@ -19,24 +19,18 @@
 package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.hooks.service.FindHook;
-import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
@@ -50,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * the EndpointListenerManager.
  * Manages local creation and destruction of service imports using the available RemoteServiceAdmin services.
  */
-public class TopologyManagerImport implements EndpointListener, RemoteServiceAdminListener {
+public class TopologyManagerImport implements EndpointEventListener, RemoteServiceAdminListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerImport.class);
     private ExecutorService execService;
@@ -83,20 +77,6 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
 
     public void stop() {
         execService.shutdown();
-    }
-
-    @Override
-    public void endpointAdded(EndpointDescription endpoint, String filter) {
-        LOG.debug("Endpoint added for filter {}, endpoint {}", filter, endpoint);
-        importPossibilities.put(filter, endpoint);
-        triggerSyncImports(filter);
-    }
-
-    @Override
-    public void endpointRemoved(EndpointDescription endpoint, String filter) {
-        LOG.debug("Endpoint removed for filter {}, endpoint {}", filter, endpoint);
-        importPossibilities.remove(filter, endpoint);
-        triggerSyncImports(filter);
     }
 
     public void add(RemoteServiceAdmin rsa) {
@@ -212,6 +192,28 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
             importedServices.remove(ir);
             ir.close();
         }
+    }
+
+    @Override
+    public void endpointChanged(EndpointEvent event, String filter) {
+        EndpointDescription endpoint = event.getEndpoint();
+        LOG.debug("Endpoint event received type {}, filter {}, endpoint {}", event.getType(), filter, endpoint);
+        switch (event.getType()) {
+            case EndpointEvent.ADDED :
+                importPossibilities.put(filter, endpoint);
+                break;
+            case EndpointEvent.REMOVED : 
+                importPossibilities.remove(filter, endpoint);
+                break;
+            case EndpointEvent.MODIFIED :
+                importPossibilities.remove(filter, endpoint);
+                importPossibilities.put(filter, endpoint);
+                break;
+            case EndpointEvent.MODIFIED_ENDMATCH :
+                importPossibilities.remove(filter, endpoint);
+                break;
+        }
+        triggerSyncImports(filter);
     }
     
 }

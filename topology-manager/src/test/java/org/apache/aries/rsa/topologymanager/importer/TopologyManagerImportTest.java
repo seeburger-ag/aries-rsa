@@ -18,24 +18,23 @@
  */
 package org.apache.aries.rsa.topologymanager.importer;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Dictionary;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
-
-import static org.junit.Assert.assertTrue;
 
 public class TopologyManagerImportTest {
 
@@ -59,7 +58,8 @@ public class TopologyManagerImportTest {
 
         TopologyManagerImport tm = new TopologyManagerImport(bc);
         tm.start();
-        tm.endpointAdded(endpoint, "myFilter");
+        EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+        tm.endpointChanged(event, "myFilter");
         tm.add(rsa);
         assertTrue("rsa.ImportService should have been called",
                    sema.tryAcquire(100, TimeUnit.SECONDS));
