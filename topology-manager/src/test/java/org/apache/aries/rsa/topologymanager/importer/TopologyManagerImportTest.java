@@ -39,39 +39,20 @@ import static org.junit.Assert.assertTrue;
 
 public class TopologyManagerImportTest {
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
     @Test
     public void testImportForNewlyAddedRSA() throws InterruptedException {
         IMocksControl c = EasyMock.createControl();
-
         c.makeThreadSafe(true);
-
         final Semaphore sema = new Semaphore(0);
-
-        ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
-        sreg.unregister();
-        EasyMock.expectLastCall().once();
-        
-        BundleContext bc = c.createMock(BundleContext.class);
-        EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
-                                           EasyMock.anyObject(),
-                                           (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid").atLeastOnce();
+        BundleContext bc = getBundleContext(c);
 
         EndpointDescription endpoint = c.createMock(EndpointDescription.class);
         RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);
-        final ImportRegistration ireg = c.createMock(ImportRegistration.class);
-        EasyMock.expect(ireg.getException()).andReturn(null).anyTimes();
-        ImportReference iref = c.createMock(ImportReference.class);
-        EasyMock.expect(ireg.getImportReference()).andReturn(iref).anyTimes();
-        EasyMock.expect(iref.getImportedEndpoint()).andReturn(endpoint).anyTimes();
-
+        final ImportRegistration ir = getRegistration(c, endpoint);
         EasyMock.expect(rsa.importService(EasyMock.eq(endpoint))).andAnswer(new IAnswer<ImportRegistration>() {
             public ImportRegistration answer() throws Throwable {
                 sema.release();
-                return ireg;
+                return ir;
             }
         }).once();
         c.replay();
@@ -84,5 +65,27 @@ public class TopologyManagerImportTest {
                    sema.tryAcquire(100, TimeUnit.SECONDS));
         tm.stop();
         c.verify();
+    }
+
+    private ImportRegistration getRegistration(IMocksControl c, EndpointDescription endpoint) {
+        final ImportRegistration ireg = c.createMock(ImportRegistration.class);
+        EasyMock.expect(ireg.getException()).andReturn(null).anyTimes();
+        ImportReference iref = c.createMock(ImportReference.class);
+        EasyMock.expect(ireg.getImportReference()).andReturn(iref).anyTimes();
+        EasyMock.expect(iref.getImportedEndpoint()).andReturn(endpoint).anyTimes();
+        return ireg;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private BundleContext getBundleContext(IMocksControl c) {
+        ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
+        sreg.unregister();
+        EasyMock.expectLastCall().once();
+        BundleContext bc = c.createMock(BundleContext.class);
+        EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
+                                           EasyMock.anyObject(),
+                                           (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
+        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid").atLeastOnce();
+        return bc;
     }
 }
