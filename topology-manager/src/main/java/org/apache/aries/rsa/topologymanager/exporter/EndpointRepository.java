@@ -29,7 +29,8 @@ import java.util.Set;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +48,9 @@ public class EndpointRepository {
     private final Map<ServiceReference, Map<RemoteServiceAdmin, Collection<EndpointDescription>>> exportedServices
         = new LinkedHashMap<ServiceReference, Map<RemoteServiceAdmin, Collection<EndpointDescription>>>();
 
-    private EndpointListener notifier;
+    private EndpointEventListener notifier;
     
-    public void setNotifier(EndpointListener notifier) {
+    public void setNotifier(EndpointEventListener notifier) {
         this.notifier = notifier;
     }
     
@@ -132,13 +133,15 @@ public class EndpointRepository {
 
     private void endpointsAdded(List<EndpointDescription> endpoints) {
         for (EndpointDescription epd : endpoints) {
-            notifier.endpointAdded(epd, null);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, epd);
+            notifier.endpointChanged(event, null);
         }
     }
     
     private void endpointsRemoved(List<EndpointDescription> endpoints) {
         for (EndpointDescription epd : endpoints) {
-            notifier.endpointRemoved(epd, null);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, epd);
+            notifier.endpointChanged(event, null);
         }
     }
 }

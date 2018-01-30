@@ -38,6 +38,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
@@ -46,6 +47,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("deprecation")
 public class Activator implements BundleActivator {
     public static final String RSA_EXPORT_POLICY_FILTER = "rsa.export.policy.filter";
     static final String DOSGI_SERVICES = "(" + RemoteConstants.SERVICE_EXPORTED_INTERFACES + "=*)";
@@ -56,9 +58,11 @@ public class Activator implements BundleActivator {
     private EndpointListenerNotifier notifier;
     private ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> rsaTracker;
     private ThreadPoolExecutor exportExecutor;
+    
     private ServiceTracker<EndpointListener, EndpointListener> epListenerTracker;
     private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
     private EndpointListenerManager endpointListenerManager;
+    private EndpointEventListenerTracker epeListenerTracker;
 
     public void start(final BundleContext bc) throws Exception {
         Dictionary<String, String> props = new Hashtable<String, String>();
@@ -101,6 +105,7 @@ public class Activator implements BundleActivator {
         EndpointRepository endpointRepo = new EndpointRepository();
         notifier = new EndpointListenerNotifier(endpointRepo);
         epListenerTracker = new EndpointListenerTracker(bc);
+        epeListenerTracker = new EndpointEventListenerTracker(bc);
         endpointRepo.setNotifier(notifier);
         exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         exportManager = new TopologyManagerExport(endpointRepo, exportExecutor, policy);
@@ -111,6 +116,7 @@ public class Activator implements BundleActivator {
         bc.addServiceListener(exportManager);
         rsaTracker.open();
         epListenerTracker.open();
+        epeListenerTracker.open();
         exportExistingServices(bc);
         importManager.start();
     }
@@ -152,7 +158,7 @@ public class Activator implements BundleActivator {
         @Override
         public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
             EndpointListener listener = super.addingService(reference);
-            notifier.add(listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
+            notifier.add(listener, EndpointListenerNotifier.filtersFromEL(reference));
             return listener;
         }
 
@@ -160,12 +166,39 @@ public class Activator implements BundleActivator {
         public void modifiedService(ServiceReference<EndpointListener> reference,
                                     EndpointListener listener) {
             super.modifiedService(reference, listener);
-            notifier.add(listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
+            notifier.add(listener, EndpointListenerNotifier.filtersFromEL(reference));
         }
 
         @Override
         public void removedService(ServiceReference<EndpointListener> reference,
                                    EndpointListener listener) {
+            notifier.remove(listener);
+            super.removedService(reference, listener);
+        }
+    }
+    
+    private final class EndpointEventListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
+        private EndpointEventListenerTracker(BundleContext context) {
+            super(context, EndpointEventListener.class, null);
+        }
+
+        @Override
+        public EndpointEventListener addingService(ServiceReference<EndpointEventListener> reference) {
+            EndpointEventListener listener = super.addingService(reference);
+            notifier.add(listener, EndpointListenerNotifier.filtersFromEEL(reference));
+            return listener;
+        }
+
+        @Override
+        public void modifiedService(ServiceReference<EndpointEventListener> reference,
+                EndpointEventListener listener) {
+            super.modifiedService(reference, listener);
+            notifier.add(listener, EndpointListenerNotifier.filtersFromEEL(reference));
+        }
+
+        @Override
+        public void removedService(ServiceReference<EndpointEventListener> reference,
+                EndpointEventListener listener) {
             notifier.remove(listener);
             super.removedService(reference, listener);
         }

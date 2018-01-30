@@ -32,6 +32,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,20 +41,29 @@ import org.slf4j.LoggerFactory;
 /**
  * Tracks EndpointListeners and allows to notify them of endpoints.
  */
-public class EndpointListenerNotifier implements EndpointListener {
+@SuppressWarnings("deprecation")
+public class EndpointListenerNotifier implements EndpointEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerNotifier.class);
-    private enum NotifyType { ADDED, REMOVED };
-    private Map<EndpointListener, Set<Filter>> listeners;
+    private Map<EndpointEventListener, Set<Filter>> listeners;
     private EndpointRepository endpointRepo;
 
     public EndpointListenerNotifier(final EndpointRepository endpointRepo) {
         this.endpointRepo = endpointRepo;
-        this.listeners = new ConcurrentHashMap<EndpointListener, Set<Filter>>();
+        this.listeners = new ConcurrentHashMap<EndpointEventListener, Set<Filter>>();
+    }
+   
+    public static Set<Filter> filtersFromEL(ServiceReference<EndpointListener> sref) {
+        List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
+        return getFilterSet(scopes);
     }
     
-    public static Set<Filter> getFiltersFromEndpointListenerScope(ServiceReference<EndpointListener> sref) {
+    public static Set<Filter> filtersFromEEL(ServiceReference<EndpointEventListener> sref) {
+        List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
+        return getFilterSet(scopes);
+    }
+
+    private static Set<Filter> getFilterSet(List<String> scopes) {
         Set<Filter> filters = new HashSet<Filter>();
-        List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
         for (String scope : scopes) {
             try {
                 filters.add(FrameworkUtil.createFilter(scope));
@@ -65,37 +76,42 @@ public class EndpointListenerNotifier implements EndpointListener {
 
     public void add(EndpointListener ep, Set<Filter> filters) {
         LOG.debug("new EndpointListener detected");
-        listeners.put(ep, filters);
+        EndpointListenerAdapter adapter = new EndpointListenerAdapter(ep);
+        listeners.put(adapter, filters);
         for (EndpointDescription endpoint : endpointRepo.getAllEndpoints()) {
-            notifyListener(NotifyType.ADDED, ep, filters, endpoint);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            notifyListener(event, adapter, filters);
         }
     }
     
     public void remove(EndpointListener ep) {
         LOG.debug("EndpointListener modified");
+        EndpointListenerAdapter adapter = new EndpointListenerAdapter(ep);
+        listeners.remove(adapter);
+    }
+    
+    public void add(EndpointEventListener ep, Set<Filter> filters) {
+        LOG.debug("new EndpointListener detected");
+        listeners.put(ep, filters);
+        for (EndpointDescription endpoint : endpointRepo.getAllEndpoints()) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            notifyListener(event, ep, filters);
+        }
+    }
+    
+    public void remove(EndpointEventListener ep) {
+        LOG.debug("EndpointListener modified");
         listeners.remove(ep);
     }
     
-    @Override
-    public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        notifyListeners(NotifyType.ADDED, endpoint);
-    }
-
-    @Override
-    public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-        LOG.info("endpoint " + endpoint);
-        notifyListeners(NotifyType.REMOVED, endpoint);
-    }
-
     /**
-     * Notifies all endpoint listeners about endpoints being added or removed.
-     *
-     * @param added specifies whether endpoints were added (true) or removed (false)
-     * @param endpoints the endpoints the listeners should be notified about
+     * NOTICE: filter will be ignored
      */
-    private void notifyListeners(NotifyType type, EndpointDescription endpoint) {
-        for (EndpointListener listener : listeners.keySet()) {
-            notifyListener(type, listener, listeners.get(listener), endpoint);
+    @Override
+    public void endpointChanged(EndpointEvent event, String filter) {
+        for (EndpointEventListener listener : listeners.keySet()) {
+            Set<Filter> filters = listeners.get(listener);
+            notifyListener(event, listener, filters);
         }
     }
 
@@ -106,21 +122,10 @@ public class EndpointListenerNotifier implements EndpointListener {
      * @param endpointListenerRef the ServiceReference of an EndpointListener to notify
      * @param endpoints the endpoints the listener should be notified about
      */
-    private void notifyListener(NotifyType type, EndpointListener listener, Set<Filter> filters, 
-                        EndpointDescription endpoint) {
-        if (endpoint == null) {
-            throw new NullPointerException("Endpoint should not be null");
-            //LOG.warn("Endpoint should not be null");
-            //return;
-        }
-        LOG.debug("Endpoint {}", type);
-        Set<Filter> matchingFilters = getMatchingFilters(filters, endpoint);
+    private void notifyListener(EndpointEvent event, EndpointEventListener listener, Set<Filter> filters) {
+        Set<Filter> matchingFilters = getMatchingFilters(filters, event.getEndpoint());
         for (Filter filter : matchingFilters) {
-            if (type == NotifyType.ADDED) {
-                listener.endpointAdded(endpoint, filter.toString());
-            } else {
-                listener.endpointRemoved(endpoint, filter.toString());
-            }
+            listener.endpointChanged(event, filter.toString());
         }
     }
     
@@ -140,5 +145,4 @@ public class EndpointListenerNotifier implements EndpointListener {
         }
         return matchingFilters;
     }
-
 }

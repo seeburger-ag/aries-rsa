@@ -54,6 +54,7 @@ public class TopologyManagerImportTest {
                 return ir;
             }
         }).once();
+        
         ir.close();
         EasyMock.expectLastCall();
         c.replay();

@@ -20,7 +20,6 @@ package org.apache.aries.rsa.topologymanager.exporter;
 
 import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 import org.easymock.EasyMock;
@@ -30,7 +29,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
@@ -43,27 +42,18 @@ public class EndpointRepositoryTest {
         IMocksControl c = EasyMock.createControl();
         ServiceReference<?> sref = createService(c);
         RemoteServiceAdmin rsa = c.createMock(RemoteServiceAdmin.class);
-        EndpointListener notifier = c.createMock(EndpointListener.class);
-        
-        notifier.endpointAdded(ep1, null);
-        EasyMock.expectLastCall();
+        RecordingEndpointEventListener notifier = new RecordingEndpointEventListener();
         
         c.replay();
         EndpointRepository repo = new EndpointRepository();
         repo.setNotifier(notifier);
-        List<EndpointDescription> endpoints = Arrays.asList(ep1);
-        repo.addEndpoints(sref, rsa, endpoints);
-        c.verify();
-
-        c.reset();
-        notifier.endpointRemoved(ep1, null);
-        EasyMock.expectLastCall();
-
-        c.replay();
+        repo.addEndpoints(sref, rsa, Arrays.asList(ep1));
         repo.removeRemoteServiceAdmin(rsa);
         c.verify();
-    }
 
+        notifier.matches(new EndpointEvent(EndpointEvent.ADDED, ep1), new EndpointEvent(EndpointEvent.REMOVED, ep1));
+    }
+    
     private ServiceReference<?> createService(IMocksControl c) {
         ServiceReference<?> sref = c.createMock(ServiceReference.class);
         Bundle bundle = c.createMock(Bundle.class);
@@ -79,4 +69,6 @@ public class EndpointRepositoryTest {
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "any");
         return new EndpointDescription(props);
     }
+    
+    
 }
