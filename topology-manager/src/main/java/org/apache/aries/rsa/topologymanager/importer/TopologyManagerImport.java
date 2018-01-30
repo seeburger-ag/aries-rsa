@@ -51,7 +51,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
 
     private final BundleContext bctx;
     private Set<RemoteServiceAdmin> rsaSet;
-
+    private boolean stopped;
 
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
@@ -72,11 +72,21 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     }
     
     public void start() {
+        stopped = false;
         bctx.registerService(RemoteServiceAdminListener.class, this, null);
     }
 
     public void stop() {
+        stopped = true;
         execService.shutdown();
+        closeAllImports();
+    }
+
+    private void closeAllImports() {
+        importPossibilities.clear();
+        for (String filter : importedServices.keySet()) {
+            unImportForGoneEndpoints(filter);
+        }
     }
 
     public void add(RemoteServiceAdmin rsa) {
@@ -196,6 +206,9 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
 
     @Override
     public void endpointChanged(EndpointEvent event, String filter) {
+        if (stopped) {
+            return;
+        }
         EndpointDescription endpoint = event.getEndpoint();
         LOG.debug("Endpoint event received type {}, filter {}, endpoint {}", event.getType(), filter, endpoint);
         switch (event.getType()) {

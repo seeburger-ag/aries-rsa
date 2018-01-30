@@ -66,4 +66,8 @@ public class MultiMap<T> {
             remove(key, toRemove);
         }
     }
+
+    public void clear() {
+        map.clear();
+    }
 }

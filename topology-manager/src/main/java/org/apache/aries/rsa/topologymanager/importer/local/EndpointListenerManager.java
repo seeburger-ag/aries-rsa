@@ -85,9 +85,9 @@ public class EndpointListenerManager implements ServiceInterestListener{
     public void start() {
         EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
         serviceRegistration = bctx.registerService(EndpointListener.class, endpointListenerAdapter,
-                                                   getRegistrationProperties());
+                                                   getELProperties());
         serviceRegistration2 = bctx.registerService(EndpointEventListener.class, endpointListener,
-                getRegistrationProperties());
+                getEELProperties());
 
         bctx.registerService(ListenerHook.class, listenerHook, null);
         bctx.registerService(FindHook.class, findHook, null);
@@ -124,21 +124,32 @@ public class EndpointListenerManager implements ServiceInterestListener{
         updateRegistration();
     }
 
-    private Dictionary<String, Object> getRegistrationProperties() {
+    private Dictionary<String, Object> getELProperties() {
         Dictionary<String, Object> p = new Hashtable<String, Object>();
-
-        synchronized (filters) {
-            LOG.debug("Current filter: {}", filters);
-            p.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, new ArrayList<String>(filters));
-        }
-
+        p.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
         return p;
+    }
+    
+    private Dictionary<String, Object> getEELProperties() {
+        Dictionary<String, Object> p = new Hashtable<String, Object>();
+        p.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
+        return p;
+    }
+    
+    public List<String> copyFilters() {
+        synchronized (filters) {
+            return new ArrayList<>(filters);
+        }
     }
 
     private void updateRegistration() {
         if (serviceRegistration != null) {
-            serviceRegistration.setProperties(getRegistrationProperties());
+            serviceRegistration.setProperties(getELProperties());
         }
+        if (serviceRegistration2 != null) {
+            serviceRegistration2.setProperties(getEELProperties());
+        }
+
     }
 
     @Override
