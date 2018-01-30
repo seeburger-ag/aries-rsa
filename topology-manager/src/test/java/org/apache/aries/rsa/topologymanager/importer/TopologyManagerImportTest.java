@@ -79,13 +79,10 @@ public class TopologyManagerImportTest {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private BundleContext getBundleContext(IMocksControl c) {
         ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
-        sreg.unregister();
-        EasyMock.expectLastCall().once();
         BundleContext bc = c.createMock(BundleContext.class);
         EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
                                            EasyMock.anyObject(),
                                            (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid").atLeastOnce();
         return bc;
     }
 }

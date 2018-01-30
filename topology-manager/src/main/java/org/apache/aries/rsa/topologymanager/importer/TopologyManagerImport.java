@@ -51,24 +51,14 @@ import org.slf4j.LoggerFactory;
  * ServiceInterestListener interface.
  * Manages local creation and destruction of service imports using the available RemoteServiceAdmin services.
  */
-public class TopologyManagerImport implements EndpointListener, RemoteServiceAdminListener, ServiceInterestListener {
+public class TopologyManagerImport implements EndpointListener, RemoteServiceAdminListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerImport.class);
     private ExecutorService execService;
 
-    private final EndpointListenerManager endpointListenerManager;
     private final BundleContext bctx;
     private Set<RemoteServiceAdmin> rsaSet;
-    private final ListenerHookImpl listenerHook;
-    private RSFindHook findHook;
 
-    /**
-     * Contains an instance of the Class Import Interest for each distinct import request. If the same filter
-     * is requested multiple times the existing instance of the Object increments an internal reference
-     * counter. If an interest is removed, the related ServiceInterest object is used to reduce the reference
-     * counter until it reaches zero. in this case the interest is removed.
-     */
-    private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<String>();
 
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
@@ -85,58 +75,35 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new HashSet<RemoteServiceAdmin>();
         bctx = bc;
-        endpointListenerManager = new EndpointListenerManager(bctx, this);
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-        listenerHook = new ListenerHookImpl(bc, this);
-        findHook = new RSFindHook(bc, this);
     }
     
     public void start() {
         bctx.registerService(RemoteServiceAdminListener.class, this, null);
-        bctx.registerService(ListenerHook.class, listenerHook, null);
-        bctx.registerService(FindHook.class, findHook, null);
-        endpointListenerManager.start();
     }
 
     public void stop() {
-        endpointListenerManager.stop();
         execService.shutdown();
-        // this is called from Activator.stop(), which implicitly unregisters our registered services
-    }
-
-    @Override
-    public void addServiceInterest(String filter) {
-        if (importInterestsCounter.add(filter) == 1) {
-            endpointListenerManager.extendScope(filter);
-        }
-    }
-
-    @Override
-    public void removeServiceInterest(String filter) {
-        if (importInterestsCounter.remove(filter) == 0) {
-            LOG.debug("last reference to import interest is gone -> removing interest filter: {}", filter);
-            endpointListenerManager.reduceScope(filter);
-        }
     }
 
     @Override
     public void endpointAdded(EndpointDescription endpoint, String filter) {
         LOG.debug("Endpoint added for filter {}, endpoint {}", filter, endpoint);
         importPossibilities.put(filter, endpoint);
-        triggerImport(filter);
+        triggerSyncImports(filter);
     }
 
     @Override
     public void endpointRemoved(EndpointDescription endpoint, String filter) {
         LOG.debug("Endpoint removed for filter {}, endpoint {}", filter, endpoint);
         importPossibilities.remove(filter, endpoint);
-        triggerImport(filter);
+        triggerSyncImports(filter);
     }
 
     public void add(RemoteServiceAdmin rsa) {
         rsaSet.add(rsa);
         for (String filter : importPossibilities.keySet()) {
-            triggerImport(filter);
+            triggerSyncImports(filter);
         }
     }
     
@@ -147,24 +114,24 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
     @Override
     public void remoteAdminEvent(RemoteServiceAdminEvent event) {
         if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION) {
-            removeAndClose(event.getImportReference());
+            unImport(event.getImportReference());
         }
     }
 
-    private void triggerImport(final String filter) {
+    private void triggerSyncImports(final String filter) {
         LOG.debug("Import of a service for filter {} was queued", filter);
         if (!rsaSet.isEmpty()) {
             execService.execute(new Runnable() {
                 public void run() {
-                    doImport(filter);
+                    syncImports(filter);
                 }
             });
         }
     }
     
-    private void doImport(final String filter) {
+    private void syncImports(final String filter) {
         try {
-            unexportNotAvailableServices(filter);
+            unImportForGoneEndpoints(filter);
             importServices(filter);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -173,7 +140,7 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
     }
 
     private void importServices(String filter) {
-        List<ImportRegistration> importRegistrations = importedServices.get(filter);
+        Set<ImportRegistration> importRegistrations = importedServices.get(filter);
         for (EndpointDescription endpoint : importPossibilities.get(filter)) {
             // TODO but optional: if the service is already imported and the endpoint is still
             // in the list of possible imports check if a "better" endpoint is now in the list
@@ -187,12 +154,10 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
         }
     }
 
-    private boolean alreadyImported(EndpointDescription endpoint, List<ImportRegistration> importRegistrations) {
-        if (importRegistrations != null) {
-            for (ImportRegistration ir : importRegistrations) {
-                if (endpoint.equals(ir.getImportReference().getImportedEndpoint())) {
-                    return true;
-                }
+    private boolean alreadyImported(EndpointDescription endpoint, Set<ImportRegistration> importRegistrations) {
+        for (ImportRegistration ir : importRegistrations) {
+            if (endpoint.equals(ir.getImportReference().getImportedEndpoint())) {
+                return true;
             }
         }
         return false;
@@ -219,24 +184,24 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
         return null;
     }
 
-    private void unexportNotAvailableServices(String filter) {
-        List<ImportRegistration> importRegistrations = importedServices.get(filter);
-        List<EndpointDescription> endpoints = importPossibilities.get(filter);
+    private void unImportForGoneEndpoints(String filter) {
+        Set<ImportRegistration> importRegistrations = importedServices.get(filter);
+        Set<EndpointDescription> endpoints = importPossibilities.get(filter);
         for (ImportRegistration ir : importRegistrations) {
             EndpointDescription endpoint = ir.getImportReference().getImportedEndpoint();
             if (!endpoints.contains(endpoint)) {
-                removeAndClose(ir.getImportReference());
+                unImport(ir.getImportReference());
             }
         }
     }
 
-    private void removeAndClose(ImportReference ref) {
+    private void unImport(ImportReference ref) {
         List<ImportRegistration> removed = new ArrayList<ImportRegistration>();
-        for (String key : importedServices.keySet()) {
+        HashSet<String> imported = new HashSet<>(importedServices.keySet());
+        for (String key : imported) {
             for (ImportRegistration ir : importedServices.get(key)) {
                 if (ir.getImportReference().equals(ref)) {
                     removed.add(ir);
-                    importedServices.remove(key, ir);
                 }
             }
         }
@@ -245,6 +210,7 @@ public class TopologyManagerImport implements EndpointListener, RemoteServiceAdm
 
     private void closeAll(List<ImportRegistration> removed) {
         for (ImportRegistration ir : removed) {
+            importedServices.remove(ir);
             ir.close();
         }
     }

@@ -29,6 +29,7 @@ import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointRepository;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
+import org.apache.aries.rsa.topologymanager.importer.EndpointListenerManager;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -57,6 +58,7 @@ public class Activator implements BundleActivator {
     private ThreadPoolExecutor exportExecutor;
     private ServiceTracker<EndpointListener, EndpointListener> epListenerTracker;
     private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
+    private EndpointListenerManager endpointListenerManager;
 
     public void start(final BundleContext bc) throws Exception {
         Dictionary<String, String> props = new Hashtable<String, String>();
@@ -103,6 +105,8 @@ public class Activator implements BundleActivator {
         exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         exportManager = new TopologyManagerExport(endpointRepo, exportExecutor, policy);
         importManager = new TopologyManagerImport(bc);
+        endpointListenerManager = new EndpointListenerManager(bc, importManager);
+        endpointListenerManager.start();
         rsaTracker = new RSATracker(bc, RemoteServiceAdmin.class, null);
         bc.addServiceListener(exportManager);
         rsaTracker.open();
@@ -121,6 +125,7 @@ public class Activator implements BundleActivator {
         bc.removeServiceListener(exportManager);
         exportExecutor.shutdown();
         importManager.stop();
+        endpointListenerManager.stop();
         rsaTracker.close();
         exportManager = null;
     }

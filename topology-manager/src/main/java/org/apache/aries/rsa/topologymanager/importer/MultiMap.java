@@ -20,8 +20,7 @@ package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,27 +29,27 @@ import java.util.Set;
  */
 public class MultiMap<T> {
 
-    private Map<String, List<T>> map;
+    private Map<String, Set<T>> map;
     
     public MultiMap() {
         map = new HashMap<>();
     }
     
     public synchronized void put(String key, T value) {
-        List<T> values = map.get(key);
+        Set<T> values = map.get(key);
         if (values == null) {
-            values = new LinkedList<>();
+            values = new HashSet<>();
             map.put(key, values);
         }
         values.add(value);
     }
     
-    public synchronized List<T> get(String key) {
-        return map.getOrDefault(key, Collections.<T>emptyList());
+    public synchronized Set<T> get(String key) {
+        return map.getOrDefault(key, Collections.<T>emptySet());
     }
 
     public synchronized void remove(String key, T value) {
-        List<T> values = map.get(key);
+        Set<T> values = map.get(key);
         values.remove(value);
         if (values.isEmpty()) {
             map.remove(key);
@@ -59,5 +58,12 @@ public class MultiMap<T> {
 
     public synchronized Set<String> keySet() {
         return map.keySet();
+    }
+
+    public void remove(T toRemove) {
+        Set<String> keys = new HashSet<>(map.keySet());
+        for (String key : keys) {
+            remove(key, toRemove);
+        }
     }
 }

@@ -25,14 +25,21 @@ import java.util.List;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.hooks.service.FindHook;
+import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages an EndpointListener and adjusts its scope according to requested service filters.
+ * Manages the endpoint listener for the import of external services.
+ * The endpoint listener scope reflects the combined filters of all services 
+ * that are asked for (by listeners and service lookups) in the current system. 
+ * 
+ * Discovery will then send callbacks when external endpoints are added / removed that match
+ * the interest in the local system.
  */
-public class EndpointListenerManager {
+public class EndpointListenerManager implements ServiceInterestListener{
 
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerManager.class);
 
@@ -40,15 +47,26 @@ public class EndpointListenerManager {
     private volatile ServiceRegistration<EndpointListener> serviceRegistration;
     private final List<String> filters = new ArrayList<String>();
     private final EndpointListener endpointListener;
+    private final ListenerHookImpl listenerHook;
+    private RSFindHook findHook;
+    
+    /**
+     * Count service interest by filter. This allows to modify the scope of the EndpointListener as seldom as possible
+     */
+    private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<String>();
 
     public EndpointListenerManager(BundleContext bc, EndpointListener endpointListener) {
         this.bctx = bc;
         this.endpointListener = endpointListener;
+        this.listenerHook = new ListenerHookImpl(bc, this);
+        findHook = new RSFindHook(bc, this);
     }
 
-    protected void start() {
+    public void start() {
         serviceRegistration = bctx.registerService(EndpointListener.class, endpointListener,
                                                    getRegistrationProperties());
+        bctx.registerService(ListenerHook.class, listenerHook, null);
+        bctx.registerService(FindHook.class, findHook, null);
     }
 
     public void stop() {
@@ -93,6 +111,21 @@ public class EndpointListenerManager {
     private void updateRegistration() {
         if (serviceRegistration != null) {
             serviceRegistration.setProperties(getRegistrationProperties());
+        }
+    }
+
+    @Override
+    public void addServiceInterest(String filter) {
+        if (importInterestsCounter.add(filter) == 1) {
+            extendScope(filter);
+        }
+    }
+
+    @Override
+    public void removeServiceInterest(String filter) {
+        if (importInterestsCounter.remove(filter) == 0) {
+            LOG.debug("last reference to import interest is gone -> removing interest filter: {}", filter);
+            reduceScope(filter);
         }
     }
 }
