@@ -41,7 +41,7 @@ public class ExportReferenceImpl implements ExportReference {
         return endpoint;
     }
 
-    public ServiceReference getExportedService() {
+    public ServiceReference<?> getExportedService() {
         return serviceReference;
     }
 

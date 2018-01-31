@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class DistributionProviderTracker extends ServiceTracker<DistributionProvider, ServiceRegistration> {
-    private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DistributionProviderTracker.class);
 
     public DistributionProviderTracker(BundleContext context) {
         super(context, DistributionProvider.class, null);

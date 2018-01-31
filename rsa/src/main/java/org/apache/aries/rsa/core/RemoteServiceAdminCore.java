@@ -72,6 +72,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private DistributionProvider provider;
     private BundleContext apictx;
     private PackageUtil packageUtil;
+    private CloseHandler closeHandler;
 
     public RemoteServiceAdminCore(BundleContext context, 
             BundleContext apiContext, 
@@ -83,6 +84,15 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         this.eventProducer = eventProducer;
         this.provider = provider;
         this.packageUtil = packageUtil;
+        this.closeHandler = new CloseHandler() {
+            public void onClose(ExportRegistration exportReg) {
+                removeExportRegistration((ExportRegistrationImpl) exportReg);
+            }
+
+            public void onClose(ImportRegistration importReg) {
+                removeImportRegistration((ImportRegistrationImpl) importReg);
+            }
+        };
         // listen for exported services being unregistered so we can close the export
         createExportedServicesListener();
     }
@@ -209,6 +219,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private ExportRegistration exportService(List<String> interfaceNames,
             ServiceReference<?> serviceReference, Map<String, Object> serviceProperties) {
         LOG.info("interfaces selected for export: " + interfaceNames);
+
         try {
             Class<?>[] interfaces = getInterfaces(interfaceNames, serviceReference.getBundle());
             Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
@@ -224,9 +235,9 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             if (endpoint == null) {
                 return null;
             }
-            return new ExportRegistrationImpl(serviceReference, endpoint, this, eventProducer);
+            return new ExportRegistrationImpl(serviceReference, endpoint, closeHandler, eventProducer);
         } catch (Exception e) {
-            return new ExportRegistrationImpl(this, eventProducer, e);
+            return new ExportRegistrationImpl(e, closeHandler, eventProducer);
         }
     }
     
@@ -426,7 +437,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     protected ImportRegistrationImpl exposeServiceFactory(String[] interfaceNames,
                                             EndpointDescription epd,
                                             DistributionProvider handler) {
-        ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, this, eventProducer);
+        ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, closeHandler, eventProducer);
         try {
             EndpointDescription endpoint = imReg.getImportedEndpointDescription();
             Dictionary<String, Object> serviceProps = new Hashtable<String, Object>(endpoint.getProperties());

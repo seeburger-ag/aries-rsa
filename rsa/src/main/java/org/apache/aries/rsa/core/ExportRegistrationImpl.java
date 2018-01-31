@@ -39,7 +39,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExportRegistrationImpl.class);
 
-    private final RemoteServiceAdminCore rsaCore;
+    private final CloseHandler closeHandler;
     private final ExportReferenceImpl exportReference;
     private final Closeable server;
     private final Throwable exception;
@@ -51,7 +51,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
     private EventProducer sender;
 
     private ExportRegistrationImpl(ExportRegistrationImpl parent, 
-            RemoteServiceAdminCore rsaCore,
+            CloseHandler rsaCore,
             EventProducer sender,
             ExportReferenceImpl exportReference, 
             Closeable server, 
@@ -59,7 +59,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
         this.sender = sender;
         this.parent = parent != null ? parent.parent : this; // a parent points to itself
         this.parent.addInstance();
-        this.rsaCore = rsaCore;
+        this.closeHandler = rsaCore;
         this.exportReference = exportReference;
         this.server = server;
         this.exception = exception;
@@ -67,18 +67,18 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     // create a clone of the provided ExportRegistrationImpl that is linked to it
     public ExportRegistrationImpl(ExportRegistrationImpl parent) {
-        this(parent, parent.rsaCore, parent.sender, new ExportReferenceImpl(parent.exportReference),
+        this(parent, parent.closeHandler, parent.sender, new ExportReferenceImpl(parent.exportReference),
             parent.server, parent.exception);
     }
 
     // create a new (parent) instance which was exported successfully with the given server
-    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, RemoteServiceAdminCore rsaCore, EventProducer sender) {
-        this(null, rsaCore, sender, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
+    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, CloseHandler closeHandler, EventProducer sender) {
+        this(null, closeHandler, sender, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
     }
 
     // create a new (parent) instance which failed to be exported with the given exception
-    public ExportRegistrationImpl(RemoteServiceAdminCore rsaCore, EventProducer sender, Throwable exception) {
-        this(null, rsaCore, sender, null, null, exception);
+    public ExportRegistrationImpl(Throwable exception, CloseHandler closeHandler, EventProducer sender) {
+        this(null, closeHandler, sender, null, null, exception);
     }
 
     private void ensureParent() {
@@ -118,7 +118,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
             closed = true;
         }
 
-        rsaCore.removeExportRegistration(this);
+        closeHandler.onClose(this);
         if (exportReference != null) {
             exportReference.close();
         }

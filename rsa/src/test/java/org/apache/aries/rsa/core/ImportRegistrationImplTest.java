@@ -49,11 +49,11 @@ public class ImportRegistrationImplTest {
     public void testDefaultCtor() {
         IMocksControl c = EasyMock.createNiceControl();
         EndpointDescription endpoint = c.createMock(EndpointDescription.class);
-        RemoteServiceAdminCore rsac = c.createMock(RemoteServiceAdminCore.class);
+        CloseHandler closeHandler = c.createMock(CloseHandler.class);
 
         c.replay();
 
-        ImportRegistrationImpl i = new ImportRegistrationImpl(endpoint, rsac, null);
+        ImportRegistrationImpl i = new ImportRegistrationImpl(endpoint, closeHandler, null);
 
         assertNull(i.getException());
         assertEquals(i, i.getParent());
@@ -65,7 +65,7 @@ public class ImportRegistrationImplTest {
     public void testCloneAndClose() {
         IMocksControl c = EasyMock.createControl();
         EndpointDescription endpoint = c.createMock(EndpointDescription.class);
-        RemoteServiceAdminCore rsac = c.createMock(RemoteServiceAdminCore.class);
+        CloseHandler closeHandler = c.createMock(CloseHandler.class);
 
         ServiceRegistration sr = c.createMock(ServiceRegistration.class);
         ServiceReference sref = c.createMock(ServiceReference.class);
@@ -73,7 +73,7 @@ public class ImportRegistrationImplTest {
 
         c.replay();
 
-        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac, null);
+        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, closeHandler, null);
 
         ImportRegistrationImpl i2 = new ImportRegistrationImpl(i1);
 
@@ -99,7 +99,7 @@ public class ImportRegistrationImplTest {
         c.verify();
         c.reset();
 
-        rsac.removeImportRegistration(EasyMock.eq(i3));
+        closeHandler.onClose(EasyMock.eq(i3));
         EasyMock.expectLastCall().once();
 
         c.replay();
@@ -112,7 +112,7 @@ public class ImportRegistrationImplTest {
         c.verify();
         c.reset();
 
-        rsac.removeImportRegistration(EasyMock.eq(i1));
+        closeHandler.onClose(EasyMock.eq(i1));
         EasyMock.expectLastCall().once();
 
         c.replay();
@@ -122,7 +122,7 @@ public class ImportRegistrationImplTest {
         c.verify();
         c.reset();
 
-        rsac.removeImportRegistration(EasyMock.eq(i2));
+        closeHandler.onClose(EasyMock.eq(i2));
         EasyMock.expectLastCall().once();
 
         sr.unregister();
@@ -139,11 +139,11 @@ public class ImportRegistrationImplTest {
     public void testCloseAll() {
         IMocksControl c = EasyMock.createControl();
         EndpointDescription endpoint = c.createMock(EndpointDescription.class);
-        RemoteServiceAdminCore rsac = c.createMock(RemoteServiceAdminCore.class);
+        CloseHandler closeHandler = c.createMock(CloseHandler.class);
 
         c.replay();
 
-        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, rsac, null);
+        ImportRegistrationImpl i1 = new ImportRegistrationImpl(endpoint, closeHandler, null);
 
         ImportRegistrationImpl i2 = new ImportRegistrationImpl(i1);
 
@@ -156,7 +156,7 @@ public class ImportRegistrationImplTest {
         c.verify();
         c.reset();
 
-        rsac.removeImportRegistration(EasyMock.eq(i2));
+        closeHandler.onClose(EasyMock.eq(i2));
         EasyMock.expectLastCall().once();
 
         c.replay();
@@ -166,9 +166,9 @@ public class ImportRegistrationImplTest {
         c.verify();
         c.reset();
 
-        rsac.removeImportRegistration(EasyMock.eq(i1));
+        closeHandler.onClose(EasyMock.eq(i1));
         EasyMock.expectLastCall().once();
-        rsac.removeImportRegistration(EasyMock.eq(i3));
+        closeHandler.onClose(EasyMock.eq(i3));
         EasyMock.expectLastCall().once();
 
         c.replay();

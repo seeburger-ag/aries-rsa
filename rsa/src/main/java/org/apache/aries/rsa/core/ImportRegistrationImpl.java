@@ -40,7 +40,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     private volatile ServiceRegistration importedService; // used only in parent
     private EndpointDescription endpoint;
     private volatile ClientServiceFactory clientServiceFactory;
-    private RemoteServiceAdminCore rsaCore;
+    private CloseHandler closeHandler;
     private boolean closed;
     private boolean detached; // used only in parent
 
@@ -54,9 +54,9 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
         initParent();
     }
 
-    public ImportRegistrationImpl(EndpointDescription endpoint, RemoteServiceAdminCore rsac, EventProducer eventProducer) {
+    public ImportRegistrationImpl(EndpointDescription endpoint, CloseHandler closeHandler, EventProducer eventProducer) {
         this.endpoint = endpoint;
-        this.rsaCore = rsac;
+        this.closeHandler = closeHandler;
         this.eventProducer = eventProducer;
         initParent();
     }
@@ -70,7 +70,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
         exception = parent.getException();
         endpoint = parent.getImportedEndpointDescription();
         clientServiceFactory = parent.clientServiceFactory;
-        rsaCore = parent.rsaCore;
+        closeHandler = parent.closeHandler;
 
         parent.instanceAdded(this);
     }
@@ -135,7 +135,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
             }
             closed = true;
         }
-        rsaCore.removeImportRegistration(this);
+        closeHandler.onClose(this);
         parent.instanceClosed(this);
     }
 
@@ -173,7 +173,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     }
 
     @Override
-    public ServiceReference getImportedService() {
+    public ServiceReference<?> getImportedService() {
         return isInvalid() || parent.importedService == null ? null : parent.importedService.getReference();
     }
 
@@ -233,6 +233,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
         return endpoint;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean update(EndpointDescription endpoint) {
         importedService.setProperties(new Hashtable<>(endpoint.getProperties()));

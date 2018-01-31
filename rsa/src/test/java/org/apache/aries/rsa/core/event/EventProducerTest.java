@@ -28,8 +28,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.aries.rsa.core.CloseHandler;
 import org.apache.aries.rsa.core.ExportRegistrationImpl;
-import org.apache.aries.rsa.core.RemoteServiceAdminCore;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -53,18 +53,18 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 public class EventProducerTest {
     
     private IMocksControl c;
-    private RemoteServiceAdminCore rsaCore;
     private Capture<RemoteServiceAdminEvent> capturedEvent;
     private Bundle bundle;
     private BundleContext bc;
+    private CloseHandler closeHandler;
 
     @Before
     public void before() throws InvalidSyntaxException {
         c = EasyMock.createNiceControl();
-        rsaCore = c.createMock(RemoteServiceAdminCore.class);
         capturedEvent = EasyMock.newCapture();
         bundle = createBundle();
         bc = bundleContextWithRsal(bundle);
+        closeHandler = c.createMock(CloseHandler.class);
     }
     
     @Test
@@ -78,7 +78,7 @@ public class EventProducerTest {
         c.replay();
 
         EventProducer eventProducer = new EventProducer(bc);
-        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, rsaCore, eventProducer);
+        ExportRegistrationImpl ereg = new ExportRegistrationImpl(sref, endpoint, closeHandler, eventProducer);
         eventProducer.publishNotification(ereg);
 
         RemoteServiceAdminEvent rsae = capturedEvent.getValue();
@@ -98,7 +98,7 @@ public class EventProducerTest {
 
         EventProducer eventProducer = new EventProducer(bc);
         final Exception exportException = new Exception();
-        ExportRegistrationImpl ereg = new ExportRegistrationImpl(rsaCore, eventProducer, exportException);
+        ExportRegistrationImpl ereg = new ExportRegistrationImpl(exportException, closeHandler, eventProducer);
         eventProducer.publishNotification(Arrays.<ExportRegistration>asList(ereg));
 
         RemoteServiceAdminEvent rsae = capturedEvent.getValue();
