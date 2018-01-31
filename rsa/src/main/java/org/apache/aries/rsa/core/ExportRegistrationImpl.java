@@ -98,9 +98,11 @@ public class ExportRegistrationImpl implements ExportRegistration {
     }
 
     public ExportReference getExportReference() {
+        /* TODO check if we need to throw exception here
         if (exportReference == null) {
             throw new IllegalStateException(getException());
         }
+        */
         return closed ? null : exportReference;
     }
 

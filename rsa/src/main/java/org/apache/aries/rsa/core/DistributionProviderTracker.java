@@ -24,6 +24,7 @@ import static org.osgi.service.remoteserviceadmin.RemoteConstants.REMOTE_INTENTS
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -49,9 +50,13 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         LOG.debug("RemoteServiceAdmin Implementation is starting up");
         DistributionProvider provider = context.getService(reference);
         BundleContext apiContext = getAPIContext();
+        PackageUtil packageUtil = new PackageUtil(context);
+        EventProducer eventProducer = new EventProducer(context);
         RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context, 
                                                                     apiContext, 
-                                                                    provider);
+                                                                    eventProducer,
+                                                                    provider,
+                                                                    packageUtil);
         RemoteServiceadminFactory rsaf = new RemoteServiceadminFactory(rsaCore);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
         props.put(REMOTE_INTENTS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_INTENTS_SUPPORTED));

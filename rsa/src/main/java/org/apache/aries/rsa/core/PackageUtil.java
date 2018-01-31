@@ -27,13 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("deprecation")
-public final class PackageUtil {
+public class PackageUtil {
 
     public static final Logger LOG = LoggerFactory.getLogger(PackageUtil.class);
+    private BundleContext bc;
 
-    private PackageUtil() {
+    public PackageUtil(BundleContext bc) {
+        this.bc = bc;
     }
-
+    
     /**
      * Tries to retrieve the version of iClass via the PackageAdmin.
      *
@@ -42,7 +44,7 @@ public final class PackageUtil {
      * @return the version of the interface or "0.0.0" if no version information could be found or an error
      *         occurred during the retrieval
      */
-    public static String getVersion(Class<?> iClass, BundleContext bc) {
+    public String getVersion(Class<?> iClass) {
         ServiceReference<PackageAdmin> paRef = bc.getServiceReference(PackageAdmin.class);
         if (paRef != null) {
             PackageAdmin pa = bc.getService(paRef);

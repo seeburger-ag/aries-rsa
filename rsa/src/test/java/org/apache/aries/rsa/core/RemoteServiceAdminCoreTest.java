@@ -18,10 +18,16 @@
  */
 package org.apache.aries.rsa.core;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,101 +37,104 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.EventAdmin;
-import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.framework.Version;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 @SuppressWarnings({
-    "rawtypes", "unchecked", "deprecation"
+    "rawtypes", "unchecked"
    })
 public class RemoteServiceAdminCoreTest {
 
     private static final String MYCONFIG = "myconfig";
+    private IMocksControl c;
+    private BundleContext rsaContext;
+    private RemoteServiceAdminCore rsaCore;
+    private BundleContext apiContext;
+    private DummyProvider provider;
+    
+    @Before
+    public void setup() throws InvalidSyntaxException {
+        c = EasyMock.createControl();      
+        rsaContext = c.createMock(BundleContext.class);
+        Bundle b = createDummyRsaBundle(rsaContext);
+        expect(rsaContext.getProperty(Constants.FRAMEWORK_VERSION)).andReturn("1111").anyTimes();
+        expect(rsaContext.getProperty(Constants.FRAMEWORK_UUID)).andReturn("some_uuid1").anyTimes();
+
+        expect(rsaContext.getBundle()).andReturn(b).anyTimes();
+        apiContext = c.createMock(BundleContext.class);
+        provider = new DummyProvider();
+        PackageUtil packageUtil = new PackageUtil(rsaContext) {
+            @Override
+            public String getVersion(Class<?> iClass) {
+                return "1.0.0";
+            }
+        };
+        EventProducer eventProducer = new EventProducer(rsaContext) {
+            protected void notifyListeners(org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent rsae) {
+                // skip
+            };
+        };
+        rsaCore = new RemoteServiceAdminCore(rsaContext, apiContext, eventProducer, provider, packageUtil) {
+            protected void createExportedServicesListener() {
+                // Skip
+            }
+        };
+    }
 
     @Test
     public void testDontExportOwnServiceProxies() throws InvalidSyntaxException {
-        IMocksControl c = EasyMock.createControl();
-        Bundle b = c.createMock(Bundle.class);
-        BundleContext bc = c.createMock(BundleContext.class);
-
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        bc.addServiceListener(EasyMock.<ServiceListener>anyObject(), EasyMock.<String>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        bc.removeServiceListener(EasyMock.<ServiceListener>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-
-        Dictionary<String, String> d = new Hashtable<String, String>();
-        EasyMock.expect(b.getHeaders()).andReturn(d).anyTimes();
-
-        ServiceReference sref = c.createMock(ServiceReference.class);
-        EasyMock.expect(sref.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(sref.getPropertyKeys())
-            .andReturn(new String[]{"objectClass", "service.exported.interfaces"}).anyTimes();
-        EasyMock.expect(sref.getProperty("objectClass")).andReturn(new String[] {"a.b.C"}).anyTimes();
-        EasyMock.expect(sref.getProperty(RemoteConstants.SERVICE_IMPORTED)).andReturn(true).anyTimes();
-        EasyMock.expect(sref.getProperty("service.exported.interfaces")).andReturn("*").anyTimes();
-
-        DistributionProvider provider = c.createMock(DistributionProvider.class);
+        Map<String, Object> sProps = new HashMap<>();
+        sProps.put("objectClass", new String[] {"a.b.C"});
+        sProps.put(RemoteConstants.SERVICE_IMPORTED, true);
+        sProps.put("service.exported.interfaces", "*");
+        ServiceReference sref = mockServiceReference(sProps);
 
         c.replay();
 
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, provider);
-
-        // must return an empty List as sref if from the same bundle
         List<ExportRegistration> exRefs = rsaCore.exportService(sref, null);
 
         assertNotNull(exRefs);
         assertEquals(0, exRefs.size());
-
-        // must be empty
         assertEquals(rsaCore.getExportedServices().size(), 0);
 
         c.verify();
     }
 
     @Test
-    public void testImport() {
-        IMocksControl c = EasyMock.createNiceControl();
-        Bundle b = c.createMock(Bundle.class);
-        BundleContext bc = c.createMock(BundleContext.class);
-
-        Dictionary<String, String> d = new Hashtable<String, String>();
-        EasyMock.expect(b.getHeaders()).andReturn(d).anyTimes();
-
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(b.getSymbolicName()).andReturn("BundleName").anyTimes();
-
+    public void testDoNotImportUnsupportedConfig() {
         EndpointDescription endpoint = creatEndpointDesc("unsupportedConfiguration");
-
-        DistributionProvider provider = c.createMock(DistributionProvider.class);
-        EasyMock.expect(provider.getSupportedTypes())
-            .andReturn(new String[]{MYCONFIG}).atLeastOnce();
+        
         c.replay();
 
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, provider);
-
-        // must be null as the endpoint doesn't contain any usable configurations
         assertNull(rsaCore.importService(endpoint));
-        // must be empty
         assertEquals(0, rsaCore.getImportedEndpoints().size());
+        
+        c.verify();
+    }
 
+    @Test
+    public void testImport() {
+        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
+
+        c.replay();
         EndpointDescription endpoint2 = creatEndpointDesc(MYCONFIG);
 
         ImportRegistration ireg = rsaCore.importService(endpoint2);
@@ -156,28 +165,11 @@ public class RemoteServiceAdminCoreTest {
         c.verify();
     }
 
-
     @Test
     public void testImportWithMultipleInterfaces() {
-        IMocksControl c = EasyMock.createNiceControl();
-        Bundle b = c.createMock(Bundle.class);
-        BundleContext bc = c.createMock(BundleContext.class);
+        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class","java.lang.Runnable"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
 
-        Dictionary<String, String> d = new Hashtable<String, String>();
-        EasyMock.expect(b.getHeaders()).andReturn(d).anyTimes();
-
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-
-        EasyMock.expect(bc.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class","java.lang.Runnable"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
-        EasyMock.expect(b.getSymbolicName()).andReturn("BundleName").anyTimes();
-
-        DistributionProvider provider = c.createMock(DistributionProvider.class);
-        EasyMock.expect(provider.getSupportedTypes())
-            .andReturn(new String[]{MYCONFIG}).atLeastOnce();
         c.replay();
-
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, provider);
-
 
         Map<String, Object> p = new HashMap<String, Object>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
@@ -191,7 +183,6 @@ public class RemoteServiceAdminCoreTest {
         ImportRegistration ireg = rsaCore.importService(endpoint);
 
         assertNotNull(ireg);
-
         assertEquals(1, rsaCore.getImportedEndpoints().size());
 
         // lets import the same endpoint once more -> should get a copy of the ImportRegistration
@@ -210,6 +201,194 @@ public class RemoteServiceAdminCoreTest {
         c.verify();
     }
 
+    @Test
+    public void testExport() throws Exception {
+        final Map<String, Object> sProps = new HashMap<String, Object>();
+        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
+        sProps.put("service.id", 51L);
+        sProps.put("myProp", "myVal");
+        sProps.put("service.exported.interfaces", "*");
+        ServiceReference sref = mockServiceReference(sProps);
+
+        provider.endpoint = createEndpoint(sProps);
+        c.replay();
+
+        // Export the service for the first time
+        List<ExportRegistration> eregs = rsaCore.exportService(sref, null);
+        assertEquals(1, eregs.size());
+        ExportRegistration ereg = eregs.iterator().next();
+        assertNull(ereg.getException());
+        assertSame(sref, ereg.getExportReference().getExportedService());
+        EndpointDescription endpoint = ereg.getExportReference().getExportedEndpoint();
+
+        Map<String, Object> edProps = endpoint.getProperties();
+        assertEquals("http://something", edProps.get("endpoint.id"));
+        assertNotNull(edProps.get("service.imported"));
+        assertTrue(Arrays.equals(new String[] {"java.lang.Runnable"},
+                                 (Object[]) edProps.get("objectClass")));
+        assertTrue(Arrays.equals(new String[] {MYCONFIG},
+                                 (Object[]) edProps.get("service.imported.configs")));
+
+        // Ask to export the same service again, this should not go through the whole process again but simply return
+        // a copy of the first instance.
+        ServiceReference sref2 = mockServiceReference(sProps);
+        List<ExportRegistration> eregs2 = rsaCore.exportService(sref2, null);
+        assertEquals(1, eregs2.size());
+        ExportRegistration ereg2 = eregs2.iterator().next();
+        assertNull(ereg2.getException());
+        assertEquals(ereg.getExportReference().getExportedEndpoint().getProperties(),
+                ereg2.getExportReference().getExportedEndpoint().getProperties());
+
+        // Look at the exportedServices data structure
+        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices = getInternalExportedServices();
+
+        assertEquals("One service was exported", 1, exportedServices.size());
+        Collection<ExportRegistration> firstRegs = exportedServices.values().iterator().next();
+        assertEquals("There are 2 export registrations (identical copies)",
+                2, firstRegs.size());
+
+        // Unregister one of the exports
+        rsaCore.removeExportRegistration((ExportRegistrationImpl) eregs.get(0));
+        assertEquals("One service was exported", 1, exportedServices.size());
+        assertEquals("There 1 export registrations left", 1, firstRegs.size());
+
+        // Unregister the other export
+        rsaCore.removeExportRegistration((ExportRegistrationImpl) eregs2.get(0));
+        assertEquals("No more exported services", 0, exportedServices.size());
+    }
+
+    @Test
+    public void testExportWrongConfig() throws Exception {
+        final Map<String, Object> sProps = new HashMap<String, Object>();
+        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
+        sProps.put("service.id", 51L);
+        sProps.put("myProp", "myVal");
+        sProps.put("service.exported.interfaces", "*");
+        sProps.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "org.apache.cxf.ws");
+        ServiceReference sref = mockServiceReference(sProps);
+
+        c.replay();
+        List<ExportRegistration> ereg = rsaCore.exportService(sref, null);
+
+        // Service should not be exported as the exported config does not match
+        assertEquals(0, ereg.size());
+        c.verify();
+    }
+
+    @Test
+    public void testExportOneConfigSupported() throws Exception {
+        final Map<String, Object> sProps = new HashMap<String, Object>();
+        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
+        sProps.put("service.id", 51L);
+        sProps.put("myProp", "myVal");
+        sProps.put("service.exported.interfaces", "*");
+        sProps.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, new String[]{MYCONFIG, "aconfig"});
+        ServiceReference sref = mockServiceReference(sProps);
+        provider.endpoint = createEndpoint(sProps);
+        c.replay();
+
+        List<ExportRegistration> ereg = rsaCore.exportService(sref, null);
+        assertEquals(1, ereg.size());
+        ExportRegistration first = ereg.iterator().next();
+        EndpointDescription exportedEndpoint = first.getExportReference().getExportedEndpoint();
+        assertThat(exportedEndpoint.getConfigurationTypes(), contains(MYCONFIG));
+    }
+
+    @Test
+    public void testExportException() throws Exception {
+        final Map<String, Object> sProps = new HashMap<String, Object>();
+        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
+        sProps.put("service.id", 51L);
+        sProps.put("service.exported.interfaces", "*");
+        ServiceReference sref = mockServiceReference(sProps);
+
+        provider.ex = new TestException();
+
+        List<ExportRegistration> ereg = rsaCore.exportService(sref, sProps);
+        assertEquals(1, ereg.size());
+        assertTrue(ereg.get(0).getException() instanceof TestException);
+
+        Collection<ExportReference> exportedServices = rsaCore.getExportedServices();
+        assertEquals("No service was exported", 0, exportedServices.size());
+    }
+
+    @Test
+    public void testCreateEndpointProps() {
+        c.replay();
+        Map<String, Object> sd = new HashMap<String, Object>();
+        sd.put(org.osgi.framework.Constants.SERVICE_ID, 42);
+        Map<String, Object> props = rsaCore.createEndpointProps(sd, new Class[]{String.class});
+
+        Assert.assertFalse(props.containsKey(org.osgi.framework.Constants.SERVICE_ID));
+        assertEquals(42, props.get(RemoteConstants.ENDPOINT_SERVICE_ID));
+        assertEquals("some_uuid1", props.get(RemoteConstants.ENDPOINT_FRAMEWORK_UUID));
+        assertEquals(Arrays.asList("java.lang.String"),
+                     Arrays.asList((Object[]) props.get(org.osgi.framework.Constants.OBJECTCLASS)));
+        assertEquals("1.0.0", props.get("endpoint.package.version.java.lang"));
+        c.verify();
+    }
+
+    private Map<Map<String, Object>, Collection<ExportRegistration>> getInternalExportedServices()
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = RemoteServiceAdminCore.class.getDeclaredField("exportedServices");
+        field.setAccessible(true);
+        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices =
+                (Map<Map<String, Object>, Collection<ExportRegistration>>) field.get(rsaCore);
+        return exportedServices;
+    }
+
+    private Endpoint createEndpoint(final Map<String, Object> sProps) {
+        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
+        eProps.put("endpoint.id", "http://something");
+        eProps.put("service.imported.configs", new String[] {MYCONFIG});
+        final EndpointDescription epd = new EndpointDescription(eProps);
+        Endpoint er = c.createMock(Endpoint.class);
+        expect(er.description()).andReturn(epd);
+        return er;
+    }
+
+    private Bundle createDummyRsaBundle(BundleContext bc) {
+        Bundle b = c.createMock(Bundle.class);
+        expect(b.getBundleContext()).andReturn(bc).anyTimes();
+        expect(b.getSymbolicName()).andReturn("rsabundle").anyTimes();
+        expect(b.getBundleId()).andReturn(10l).anyTimes();
+        expect(b.getVersion()).andReturn(new Version("1.0.0")).anyTimes();
+        expect(b.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
+        return b;
+    }
+
+    private ServiceReference mockServiceReference(final Map<String, Object> sProps) {
+        BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
+    
+        Bundle sb = EasyMock.createNiceMock(Bundle.class);
+        expect(sb.getBundleContext()).andReturn(bc).anyTimes();
+        try {
+            expect((Class)sb.loadClass(Runnable.class.getName())).andReturn(Runnable.class);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+        EasyMock.replay(sb);
+    
+        expect(bc.getBundle()).andReturn(sb).anyTimes();
+        EasyMock.replay(bc);
+    
+        ServiceReference sref = EasyMock.createNiceMock(ServiceReference.class);
+        expect(sref.getBundle()).andReturn(sb).anyTimes();
+        expect(sref.getPropertyKeys()).andReturn(sProps.keySet().toArray(new String[] {})).anyTimes();
+        expect(sref.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+            @Override
+            public Object answer() throws Throwable {
+                return sProps.get(EasyMock.getCurrentArguments()[0]);
+            }
+        }).anyTimes();
+        EasyMock.replay(sref);
+        
+        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
+        EasyMock.replay(svcObject);
+
+        return sref;
+    }
+    
     private EndpointDescription creatEndpointDesc(String configType) {
         Map<String, Object> p = new HashMap<String, Object>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
@@ -217,468 +396,36 @@ public class RemoteServiceAdminCoreTest {
             "es.schaaf.my.class"
         });
         p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, configType);
-        EndpointDescription endpoint = new EndpointDescription(p);
-        return endpoint;
-    }
-
-    @Test
-    public void testExport() throws Exception {
-        BundleContext bc = EasyMock.createMock(BundleContext.class);
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_VERSION)).andReturn(null).anyTimes();
-        bc.addServiceListener(EasyMock.<ServiceListener>anyObject(), EasyMock.<String>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        bc.removeServiceListener(EasyMock.<ServiceListener>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        EasyMock.expect(bc.getServiceReferences(EasyMock.<String>anyObject(),
-                                                EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-        EasyMock.expect(bc.getAllServiceReferences(EasyMock.<String>anyObject(),
-                                                   EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-
-        Bundle b = createDummyRsaBundle(bc);
-
-        final Map<String, Object> sProps = new HashMap<String, Object>();
-        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
-        sProps.put("service.id", 51L);
-        sProps.put("myProp", "myVal");
-        sProps.put("service.exported.interfaces", "*");
-        ServiceReference sref = mockServiceReference(sProps);
-
-        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
-        EasyMock.replay(svcObject);
-
-        EasyMock.expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(bc.createFilter("(service.id=51)"))
-            .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
-        EasyMock.expect(bc.getServiceReference(EventAdmin.class)).andReturn(null).atLeastOnce();
-        EasyMock.replay(bc);
-
-        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
-        eProps.put("endpoint.id", "http://something");
-        eProps.put("service.imported.configs", new String[] {"org.apache.cxf.ws"});
-        final EndpointDescription epd = new EndpointDescription(eProps);
-        Endpoint er = new Endpoint() {
-            
-            @Override
-            public void close() throws IOException {
-            }
-            
-            @Override
-            public EndpointDescription description() {
-                return epd;
-            }
-        };
-
-        DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
-        EasyMock.expect(handler.exportService(anyObject(),
-                                              anyObject(BundleContext.class), 
-                                              anyObject(Map.class), isA(Class[].class))).andReturn(er);
-        EasyMock.replay(handler);
-
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, handler);
-
-        // Export the service for the first time
-        List<ExportRegistration> ereg = rsaCore.exportService(sref, null);
-        assertEquals(1, ereg.size());
-        assertNull(ereg.get(0).getException());
-        assertSame(sref, ereg.get(0).getExportReference().getExportedService());
-        EndpointDescription endpoint = ereg.get(0).getExportReference().getExportedEndpoint();
-
-        Map<String, Object> edProps = endpoint.getProperties();
-        assertEquals("http://something", edProps.get("endpoint.id"));
-        assertNotNull(edProps.get("service.imported"));
-        assertTrue(Arrays.equals(new String[] {"java.lang.Runnable"},
-                                 (Object[]) edProps.get("objectClass")));
-        assertTrue(Arrays.equals(new String[] {"org.apache.cxf.ws"},
-                                 (Object[]) edProps.get("service.imported.configs")));
-
-        // Ask to export the same service again, this should not go through the whole process again but simply return
-        // a copy of the first instance.
-        final Map<String, Object> sProps2 = new HashMap<String, Object>();
-        sProps2.put("objectClass", new String[] {"java.lang.Runnable"});
-        sProps2.put("service.id", 51L);
-        sProps2.put("service.exported.interfaces", "*");
-        ServiceReference sref2 = mockServiceReference(sProps2);
-        Map<String, Object> props2 = new HashMap<String, Object>();
-        props2.put("myProp", "myVal");
-        List<ExportRegistration> ereg2 = rsaCore.exportService(sref2, props2);
-
-        assertEquals(1, ereg2.size());
-        assertNull(ereg2.get(0).getException());
-        assertEquals(ereg.get(0).getExportReference().getExportedEndpoint().getProperties(),
-                ereg2.get(0).getExportReference().getExportedEndpoint().getProperties());
-
-        // Look at the exportedServices data structure
-        Field field = RemoteServiceAdminCore.class.getDeclaredField("exportedServices");
-        field.setAccessible(true);
-        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices =
-                (Map<Map<String, Object>, Collection<ExportRegistration>>) field.get(rsaCore);
-
-        assertEquals("One service was exported", 1, exportedServices.size());
-        assertEquals("There are 2 export registrations (identical copies)",
-                2, exportedServices.values().iterator().next().size());
-
-        // Unregister one of the exports
-        rsaCore.removeExportRegistration((ExportRegistrationImpl) ereg.get(0));
-        assertEquals("One service was exported", 1, exportedServices.size());
-        assertEquals("There 1 export registrations left",
-                1, exportedServices.values().iterator().next().size());
-
-        // Unregister the other export
-        rsaCore.removeExportRegistration((ExportRegistrationImpl) ereg2.get(0));
-        assertEquals("No more exported services", 0, exportedServices.size());
-    }
-
-    @Test
-    public void testExportWrongConfig() throws Exception {
-        BundleContext bc = EasyMock.createMock(BundleContext.class);
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_VERSION)).andReturn(null).anyTimes();
-        bc.addServiceListener(EasyMock.<ServiceListener>anyObject(), EasyMock.<String>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        bc.removeServiceListener(EasyMock.<ServiceListener>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        EasyMock.expect(bc.getServiceReferences(EasyMock.<String>anyObject(),
-                                                EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-        EasyMock.expect(bc.getAllServiceReferences(EasyMock.<String>anyObject(),
-                                                   EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-
-        Bundle b = createDummyRsaBundle(bc);
-
-        final Map<String, Object> sProps = new HashMap<String, Object>();
-        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
-        sProps.put("service.id", 51L);
-        sProps.put("myProp", "myVal");
-        sProps.put("service.exported.interfaces", "*");
-        ServiceReference sref = mockServiceReference(sProps);
-
-        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
-        EasyMock.replay(svcObject);
-
-        EasyMock.expect((Runnable)bc.getService(sref)).andReturn(svcObject).anyTimes();
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(bc.createFilter("(service.id=51)"))
-            .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
-        EasyMock.replay(bc);
-
-        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
-        eProps.put("endpoint.id", "http://something");
-        eProps.put("service.imported.configs", new String[] {"org.apache.cxf.ws"});
-
-        DistributionProvider handler = EasyMock.createStrictMock(DistributionProvider.class);
-        EasyMock.expect(handler.getSupportedTypes()).andReturn(new String[]{"something"});
-        //export service should never be called since the exported confgi does not match
-        EasyMock.replay(handler);
-
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, handler);
-        Map<String, String> extraProperties = new HashMap<>();
-        extraProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "org.apache.cxf.ws");
-        // Export the service for the first time
-        List<ExportRegistration> ereg = rsaCore.exportService(sref, extraProperties);
-        assertEquals(0, ereg.size());
-    }
-
-    @Test
-    public void testExportOneConfigSupported() throws Exception {
-        BundleContext bc = EasyMock.createMock(BundleContext.class);
-        EasyMock.expect(bc.getProperty(Constants.FRAMEWORK_VERSION)).andReturn(null).anyTimes();
-        bc.addServiceListener(EasyMock.<ServiceListener>anyObject(), EasyMock.<String>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        bc.removeServiceListener(EasyMock.<ServiceListener>anyObject());
-        EasyMock.expectLastCall().anyTimes();
-        EasyMock.expect(bc.getServiceReferences(EasyMock.<String>anyObject(),
-                                                EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-        EasyMock.expect(bc.getAllServiceReferences(EasyMock.<String>anyObject(),
-                                                   EasyMock.<String>anyObject())).andReturn(null).anyTimes();
-
-        Bundle b = createDummyRsaBundle(bc);
-
-        final Map<String, Object> sProps = new HashMap<String, Object>();
-        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
-        sProps.put("service.id", 51L);
-        sProps.put("myProp", "myVal");
-        sProps.put("service.exported.interfaces", "*");
-        ServiceReference sref = mockServiceReference(sProps);
-
-        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
-        EasyMock.replay(svcObject);
-
-        EasyMock.expect((Runnable)bc.getService(sref)).andReturn(svcObject).anyTimes();
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(bc.createFilter("(service.id=51)"))
-            .andReturn(FrameworkUtil.createFilter("(service.id=51)")).anyTimes();
-        EasyMock.expect(bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID)).andReturn("1111");
-        EasyMock.expect(bc.getServiceReference(PackageAdmin.class)).andReturn(null);
-        EasyMock.expect(bc.getServiceReference(EventAdmin.class)).andReturn(null).atLeastOnce();
-        EasyMock.replay(bc);
-
-        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
-        eProps.put("endpoint.id", "http://something");
-        eProps.put("service.imported.configs", new String[] {"org.apache.cxf.ws","aconfig"});
-        final EndpointDescription epd = new EndpointDescription(eProps);
-        Endpoint er = new Endpoint() {
-
-            @Override
-            public void close() throws IOException {
-            }
-
-            @Override
-            public EndpointDescription description() {
-                return epd;
-            }
-        };
-
-        DistributionProvider handler = EasyMock.createStrictMock(DistributionProvider.class);
-        EasyMock.expect(handler.getSupportedTypes()).andReturn(new String[]{"something","aconfig"});
-        EasyMock.expect(handler.exportService(anyObject(),
-                                              anyObject(BundleContext.class),
-                                              anyObject(Map.class), isA(Class[].class))).andReturn(er);
-        //export service should never be called since the exported confgi does not match
-        EasyMock.replay(handler);
-
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, handler);
-        Map<String, Object> extraProperties = new HashMap<>();
-        extraProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, new String[]{"org.apache.cxf.ws","aconfig"});
-        // Export the service for the first time
-        List<ExportRegistration> ereg = rsaCore.exportService(sref, extraProperties);
-        assertEquals(1, ereg.size());
-    }
-
-    private Bundle createDummyRsaBundle(BundleContext bc) {
-        Bundle b = EasyMock.createNiceMock(Bundle.class);
-        EasyMock.expect(b.getBundleContext()).andReturn(bc).anyTimes();
-        EasyMock.expect(b.getSymbolicName()).andReturn("rsabundle").anyTimes();
-        EasyMock.expect(b.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
-        EasyMock.replay(b);
-        return b;
-    }
-
-    @Test
-    public void testExportException() throws Exception {
-        BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
-
-        Bundle b = createDummyRsaBundle(bc);
-
-        final Map<String, Object> sProps = new HashMap<String, Object>();
-        sProps.put("objectClass", new String[] {"java.lang.Runnable"});
-        sProps.put("service.id", 51L);
-        sProps.put("service.exported.interfaces", "*");
-        ServiceReference sref = mockServiceReference(sProps);
-
-        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
-        EasyMock.replay(svcObject);
-
-        EasyMock.expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.replay(bc);
-
-        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
-        eProps.put("endpoint.id", "http://something");
-        eProps.put("service.imported.configs", new String[] {"org.apache.cxf.ws"});
-
-        DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
-        EasyMock.expect(handler.exportService(anyObject(),
-                                              anyObject(BundleContext.class), 
-                                              anyObject(Map.class), isA(Class[].class))).andThrow(new TestException());
-        EasyMock.replay(handler);
-
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(bc, bc, handler);
-
-        List<ExportRegistration> ereg = rsaCore.exportService(sref, sProps);
-        assertEquals(1, ereg.size());
-        assertTrue(ereg.get(0).getException() instanceof TestException);
-
-        // Look at the exportedServices data structure
-        Field field = RemoteServiceAdminCore.class.getDeclaredField("exportedServices");
-        field.setAccessible(true);
-        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices =
-                (Map<Map<String, Object>, Collection<ExportRegistration>>) field.get(rsaCore);
-
-        assertEquals("One service was exported", 1, exportedServices.size());
-        assertEquals("There is 1 export registration",
-                1, exportedServices.values().iterator().next().size());
-
-    }
-
-    private ServiceReference mockServiceReference(final Map<String, Object> sProps) throws ClassNotFoundException {
-        BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
-
-        Bundle b = EasyMock.createNiceMock(Bundle.class);
-        EasyMock.expect(b.getBundleContext()).andReturn(bc).anyTimes();
-        EasyMock.expect((Class)b.loadClass(Runnable.class.getName())).andReturn(Runnable.class);
-        EasyMock.replay(b);
-
-        EasyMock.expect(bc.getBundle()).andReturn(b).anyTimes();
-        EasyMock.replay(bc);
-
-        ServiceReference sref = EasyMock.createNiceMock(ServiceReference.class);
-        EasyMock.expect(sref.getBundle()).andReturn(b).anyTimes();
-        EasyMock.expect(sref.getPropertyKeys()).andReturn(sProps.keySet().toArray(new String[] {})).anyTimes();
-        EasyMock.expect(sref.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
-            @Override
-            public Object answer() throws Throwable {
-                return sProps.get(EasyMock.getCurrentArguments()[0]);
-            }
-        }).anyTimes();
-        EasyMock.replay(sref);
-        return sref;
+        return new EndpointDescription(p);
     }
 
     @SuppressWarnings("serial")
     private static class TestException extends RuntimeException {
     }
-    
-    @Test
-    public void testOverlayProperties() {
-        Map<String, Object> sProps = new HashMap<String, Object>();
-        Map<String, Object> aProps = new HashMap<String, Object>();
 
-        RemoteServiceAdminCore.overlayProperties(sProps, aProps);
-        assertEquals(0, sProps.size());
+    class DummyProvider implements DistributionProvider {
+        
+        Endpoint endpoint;
+        RuntimeException ex;
 
-        sProps.put("aaa", "aval");
-        sProps.put("bbb", "bval");
-        sProps.put(Constants.OBJECTCLASS, new String[] {"X"});
-        sProps.put(Constants.SERVICE_ID, 17L);
-
-        aProps.put("AAA", "achanged");
-        aProps.put("CCC", "CVAL");
-        aProps.put(Constants.OBJECTCLASS, new String[] {"Y"});
-        aProps.put(Constants.SERVICE_ID.toUpperCase(), 51L);
-
-        Map<String, Object> aPropsOrg = new HashMap<String, Object>(aProps);
-        RemoteServiceAdminCore.overlayProperties(sProps, aProps);
-        assertEquals("The additional properties should not be modified", aPropsOrg, aProps);
-
-        assertEquals(5, sProps.size());
-        assertEquals("achanged", sProps.get("aaa"));
-        assertEquals("bval", sProps.get("bbb"));
-        assertEquals("CVAL", sProps.get("CCC"));
-        assertTrue("Should not be possible to override the objectClass property",
-                Arrays.equals(new String[] {"X"}, (Object[]) sProps.get(Constants.OBJECTCLASS)));
-        assertEquals("Should not be possible to override the service.id property",
-                17L, sProps.get(Constants.SERVICE_ID));
-    }
-    
-    @Test
-    public void testOverlayProperties2() {
-        Map<String, Object> original = new HashMap<String, Object>();
-
-        original.put("MyProp", "my value");
-        original.put(Constants.OBJECTCLASS, "myClass");
-
-        Map<String, Object> copy = new HashMap<String, Object>();
-        copy.putAll(original);
-
-        // nothing should change here
-        Map<String, Object> overload = new HashMap<String, Object>();
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size(), copy.size());
-        for (Object key : original.keySet()) {
-            assertEquals(original.get(key), copy.get(key));
+        @Override
+        public String[] getSupportedTypes() {
+            return new String[]{MYCONFIG};
         }
 
-        copy.clear();
-        copy.putAll(original);
-
-        // a property should be added
-        overload = new HashMap<String, Object>();
-        overload.put("new", "prop");
-
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size() + 1, copy.size());
-        for (Object key : original.keySet()) {
-            assertEquals(original.get(key), copy.get(key));
-        }
-        assertNotNull(overload.get("new"));
-        assertEquals("prop", overload.get("new"));
-
-        copy.clear();
-        copy.putAll(original);
-
-        // only one property should be added
-        overload = new HashMap<String, Object>();
-        overload.put("new", "prop");
-        overload.put("NEW", "prop");
-
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size() + 1, copy.size());
-        for (Object key : original.keySet()) {
-            assertEquals(original.get(key), copy.get(key));
-        }
-        assertNotNull(overload.get("new"));
-        assertEquals("prop", overload.get("new"));
-
-        copy.clear();
-        copy.putAll(original);
-
-        // nothing should change here
-        overload = new HashMap<String, Object>();
-        overload.put(Constants.OBJECTCLASS, "assd");
-        overload.put(Constants.SERVICE_ID, "asasdasd");
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size(), copy.size());
-        for (Object key : original.keySet()) {
-            assertEquals(original.get(key), copy.get(key));
-        }
-
-        copy.clear();
-        copy.putAll(original);
-
-        // overwrite own prop
-        overload = new HashMap<String, Object>();
-        overload.put("MyProp", "newValue");
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size(), copy.size());
-        for (Object key : original.keySet()) {
-            if (!"MyProp".equals(key)) {
-                assertEquals(original.get(key), copy.get(key));
+        @Override
+        public Endpoint exportService(Object serviceO, BundleContext serviceContext,
+                Map<String, Object> effectiveProperties, Class[] exportedInterfaces) {
+            if (ex != null) {
+                throw ex;
             }
+            return endpoint;
         }
-        assertEquals("newValue", copy.get("MyProp"));
 
-        copy.clear();
-        copy.putAll(original);
-
-        // overwrite own prop in different case
-        overload = new HashMap<String, Object>();
-        overload.put("MYPROP", "newValue");
-        RemoteServiceAdminCore.overlayProperties(copy, overload);
-
-        assertEquals(original.size(), copy.size());
-        for (Object key : original.keySet()) {
-            if (!"MyProp".equals(key)) {
-                assertEquals(original.get(key), copy.get(key));
-            }
+        @Override
+        public Object importEndpoint(ClassLoader cl, BundleContext consumerContext, Class[] interfaces,
+                EndpointDescription endpoint) {
+            return null;
         }
-        assertEquals("newValue", copy.get("MyProp"));
-    }
-    
-    @Test
-    public void testCreateEndpointProps() {
-        BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
-        EasyMock.expect(bc.getProperty("org.osgi.framework.uuid")).andReturn("some_uuid1");
-        EasyMock.replay(bc);
-
-        Map<String, Object> sd = new HashMap<String, Object>();
-        sd.put(org.osgi.framework.Constants.SERVICE_ID, 42);
-        DistributionProvider provider = null;
-        RemoteServiceAdminCore rsa = new RemoteServiceAdminCore(bc, bc, provider);
-        Map<String, Object> props = rsa.createEndpointProps(sd, new Class[]{String.class});
-
-        Assert.assertFalse(props.containsKey(org.osgi.framework.Constants.SERVICE_ID));
-        assertEquals(42, props.get(RemoteConstants.ENDPOINT_SERVICE_ID));
-        assertEquals("some_uuid1", props.get(RemoteConstants.ENDPOINT_FRAMEWORK_UUID));
-        assertEquals(Arrays.asList("java.lang.String"),
-                     Arrays.asList((Object[]) props.get(org.osgi.framework.Constants.OBJECTCLASS)));
-        assertEquals("0.0.0", props.get("endpoint.package.version.java.lang"));
     }
 }
