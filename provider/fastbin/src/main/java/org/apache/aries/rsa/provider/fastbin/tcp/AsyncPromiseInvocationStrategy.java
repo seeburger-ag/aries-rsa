@@ -75,7 +75,6 @@ public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-    @SuppressWarnings({"rawtypes"})
     private class AsyncResponseFuture implements ResponseFuture, AsyncCallback {
 
         private final ClassLoader loader;

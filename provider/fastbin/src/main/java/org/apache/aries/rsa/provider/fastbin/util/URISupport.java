@@ -128,7 +128,6 @@ public class URISupport {
         return uri.getQuery() == null ? emptyMap() : parseQuery(stripPrefix(uri.getQuery(), "?"));
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, String> emptyMap() {
         return Collections.EMPTY_MAP;
     }

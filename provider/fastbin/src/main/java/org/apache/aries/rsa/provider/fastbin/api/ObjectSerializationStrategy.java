@@ -44,6 +44,7 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
         oos.flush();
     }
 
+    @SuppressWarnings("unchecked")
     public void decodeResponse(ClassLoader loader, Class<?> type, DataByteArrayInputStream source, AsyncCallback result) throws IOException, ClassNotFoundException {
         ClassLoaderObjectInputStream ois = new ClassLoaderObjectInputStream(source);
         ois.setClassLoader(loader);

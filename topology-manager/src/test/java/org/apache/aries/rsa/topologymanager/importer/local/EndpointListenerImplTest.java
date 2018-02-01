@@ -32,6 +32,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 
+@SuppressWarnings("deprecation")
 public class EndpointListenerImplTest extends Assert {
 
     int testCase;
@@ -55,7 +56,7 @@ public class EndpointListenerImplTest extends Assert {
 
         // expect property changes based on later calls
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-
+           
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
                 Dictionary props = (Dictionary)args[0];

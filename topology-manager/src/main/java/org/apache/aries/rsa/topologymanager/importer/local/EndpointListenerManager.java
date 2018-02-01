@@ -24,7 +24,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
  * Discovery will then send callbacks when external endpoints are added / removed that match
  * the interest in the local system.
  */
+@SuppressWarnings("deprecation")
 public class EndpointListenerManager implements ServiceInterestListener{
 
     private final class EndpointListenerAdapter implements EndpointListener {
