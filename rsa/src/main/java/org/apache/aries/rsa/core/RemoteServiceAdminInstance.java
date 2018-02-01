@@ -38,6 +38,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
 public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
 
+    // Context of the bundle requesting the RemoteServiceAdmin
     private final BundleContext bctx;
     private final RemoteServiceAdminCore rsaCore;
 

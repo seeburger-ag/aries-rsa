@@ -34,7 +34,8 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class InterfaceMonitor implements Watcher, StatCallback {
 
     private final String znode;
     private final ZooKeeper zk;
-    private final EndpointListener endpointListener;
+    private final EndpointEventListener endpointListener;
     private final boolean recursive;
     private volatile boolean closed;
 
@@ -64,7 +65,7 @@ public class InterfaceMonitor implements Watcher, StatCallback {
 
     private EndpointDescriptionParser parser;
 
-    public InterfaceMonitor(ZooKeeper zk, String objClass, EndpointListener endpointListener, String scope) {
+    public InterfaceMonitor(ZooKeeper zk, String objClass, EndpointEventListener endpointListener, String scope) {
         this.zk = zk;
         this.znode = Utils.getZooKeeperPath(objClass);
         this.recursive = objClass == null || objClass.isEmpty();
@@ -152,7 +153,8 @@ public class InterfaceMonitor implements Watcher, StatCallback {
     public synchronized void close() {
         closed = true;
         for (EndpointDescription endpoint : nodes.values()) {
-            endpointListener.endpointRemoved(endpoint, null);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+            endpointListener.endpointChanged(event, null);
         }
         nodes.clear();
     }
@@ -170,7 +172,8 @@ public class InterfaceMonitor implements Watcher, StatCallback {
         // whatever is left in prevNodes now has been removed from Discovery
         LOG.debug("processChildren done. Nodes that are missing now and need to be removed: {}", prevNodes.values());
         for (EndpointDescription endpoint : prevNodes.values()) {
-            endpointListener.endpointRemoved(endpoint, null);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+            endpointListener.endpointChanged(event, null);
         }
         nodes = newNodes;
     }
@@ -204,7 +207,8 @@ public class InterfaceMonitor implements Watcher, StatCallback {
                     LOG.debug("Properties: {}", endpoint.getProperties());
                     if (prevEndpoint == null) {
                         // This guy is new
-                        endpointListener.endpointAdded(endpoint, null);
+                        EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+                        endpointListener.endpointChanged(event, null);
                     } else if (!prevEndpoint.getProperties().equals(endpoint.getProperties())) {
                         // TODO
                     }

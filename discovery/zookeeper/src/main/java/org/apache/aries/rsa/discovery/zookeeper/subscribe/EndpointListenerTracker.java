@@ -20,36 +20,36 @@ package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * Tracks interest in EndpointListeners. Delegates to InterfaceMonitorManager to manage
  * interest in the scopes of each EndpointListener.
  */
-public class EndpointListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+public class EndpointListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
     private final InterfaceMonitorManager imManager;
 
     public EndpointListenerTracker(BundleContext bctx, InterfaceMonitorManager imManager) {
-        super(bctx, EndpointListener.class, null);
+        super(bctx, EndpointEventListener.class, null);
         this.imManager = imManager;
     }
 
     @Override
-    public EndpointListener addingService(ServiceReference<EndpointListener> endpointListener) {
+    public EndpointEventListener addingService(ServiceReference<EndpointEventListener> endpointListener) {
         imManager.addInterest(endpointListener);
         return null;
     }
 
     @Override
-    public void modifiedService(ServiceReference<EndpointListener> endpointListener, EndpointListener service) {
+    public void modifiedService(ServiceReference<EndpointEventListener> endpointListener, EndpointEventListener service) {
         // called when an EndpointListener updates its service properties,
         // e.g. when its interest scope is expanded/reduced
         imManager.addInterest(endpointListener);
     }
 
     @Override
-    public void removedService(ServiceReference<EndpointListener> endpointListener, EndpointListener service) {
+    public void removedService(ServiceReference<EndpointEventListener> endpointListener, EndpointEventListener service) {
         imManager.removeInterest(endpointListener);
     }
 

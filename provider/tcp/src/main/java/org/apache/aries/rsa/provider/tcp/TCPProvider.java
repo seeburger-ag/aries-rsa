@@ -21,18 +21,28 @@ package org.apache.aries.rsa.provider.tcp;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.spi.IntentUnsatisfiedException;
+import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class TCPProvider implements DistributionProvider {
     private static final String TCP_CONFIG_TYPE = "aries.tcp";
+    private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.sync"};
+    
+    private Logger logger = LoggerFactory.getLogger(TCPProvider.class);
 
     @Override
     public String[] getSupportedTypes() {
@@ -44,8 +54,28 @@ public class TCPProvider implements DistributionProvider {
                                   BundleContext serviceContext,
                                   Map<String, Object> effectiveProperties,
                                   Class[] exportedInterfaces) {
+
         effectiveProperties.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, getSupportedTypes());
+        Set<String> intents = getCombinedIntents(effectiveProperties);
+        intents.removeAll(Arrays.asList(SUPPORTED_INTENTS));
+        if (!intents.isEmpty()) {
+            logger.warn("Unsupported intents found: {}. Not exporting service", intents);
+            return null;
+        }
         return new TcpEndpoint(serviceO, effectiveProperties);
+    }
+
+    private Set<String> getCombinedIntents(Map<String, Object> effectiveProperties) {
+        Set<String> combinedIntents = new HashSet<>();
+        List<String> intents = StringPlus.normalize(effectiveProperties.get(RemoteConstants.SERVICE_EXPORTED_INTENTS));
+        if (intents != null) {
+            combinedIntents.addAll(intents);
+        }
+        List<String> intentsExtra = StringPlus.normalize(effectiveProperties.get(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA));
+        if (intentsExtra != null) {
+            combinedIntents.addAll(intentsExtra);
+        }
+        return combinedIntents;
     }
 
     @Override

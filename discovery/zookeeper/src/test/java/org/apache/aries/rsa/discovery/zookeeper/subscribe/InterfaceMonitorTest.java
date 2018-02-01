@@ -18,11 +18,11 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+
 import java.util.Collections;
 
-import junit.framework.TestCase;
-
-import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterfaceMonitor;
 import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -32,10 +32,9 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
+import junit.framework.TestCase;
 
 public class InterfaceMonitorTest extends TestCase {
 
@@ -49,7 +48,7 @@ public class InterfaceMonitorTest extends TestCase {
         String interf = "es.schaaf.test";
         String node = Utils.getZooKeeperPath(interf);
 
-        EndpointListener endpointListener = c.createMock(EndpointListener.class);
+        EndpointEventListener endpointListener = c.createMock(EndpointEventListener.class);
         InterfaceMonitor im = new InterfaceMonitor(zk, interf, endpointListener, scope);
         zk.exists(eq(node), eq(im), eq(im), EasyMock.anyObject());
         EasyMock.expectLastCall().once();

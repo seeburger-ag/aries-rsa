@@ -33,7 +33,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     private final BundleContext bctx;
 
     private PublishingEndpointListenerFactory endpointListenerFactory;
-    private ServiceTracker<EndpointListener, EndpointListener> endpointListenerTracker;
+    private ServiceTracker<EndpointEventListener, EndpointEventListener> endpointListenerTracker;
     private InterfaceMonitorManager imManager;
     private ZooKeeper zkClient;
     private boolean closed;
@@ -62,7 +62,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     public synchronized void updated(Dictionary<String, ?> configuration) throws ConfigurationException {
         LOG.debug("Received configuration update for Zookeeper Discovery: {}", configuration);
         // make changes only if config actually changed, to prevent unnecessary ZooKeeper reconnections
-        if (!ZooKeeperDiscovery.toMap(configuration).equals(ZooKeeperDiscovery.toMap(curConfiguration))) {
+        if (!toMap(configuration).equals(toMap(curConfiguration))) {
             stop(false);
             curConfiguration = configuration;
             // config is null if it doesn't exist, is being deleted or has not yet been loaded

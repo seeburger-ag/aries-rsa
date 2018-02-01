@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
 public class InterfaceMonitorManagerTest {
 
@@ -42,8 +42,8 @@ public class InterfaceMonitorManagerTest {
     public void testEndpointListenerTrackerCustomizer() {
         IMocksControl c = EasyMock.createNiceControl();
         BundleContext ctx = c.createMock(BundleContext.class);
-        ServiceReference<EndpointListener> sref = createService(c, "(objectClass=mine)", "mine");
-        ServiceReference<EndpointListener> sref2 = createService(c, "(objectClass=mine)", "mine");
+        ServiceReference<EndpointEventListener> sref = createService(c, "(objectClass=mine)", "mine");
+        ServiceReference<EndpointEventListener> sref2 = createService(c, "(objectClass=mine)", "mine");
         ZooKeeper zk = c.createMock(ZooKeeper.class);
         InterfaceMonitorManager eltc = new InterfaceMonitorManager(ctx, zk);
 
@@ -87,10 +87,10 @@ public class InterfaceMonitorManagerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceReference<EndpointListener> createService(IMocksControl c, String scope, String objectClass) {
-        ServiceReference<EndpointListener> sref = c.createMock(ServiceReference.class);
+    private ServiceReference<EndpointEventListener> createService(IMocksControl c, String scope, String objectClass) {
+        ServiceReference<EndpointEventListener> sref = c.createMock(ServiceReference.class);
         final Dictionary<String, String> props = new Hashtable<>();
-        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, scope);
+        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, scope);
         props.put(Constants.OBJECTCLASS, objectClass);
         String[] keys = Collections.list(props.keys()).toArray(new String[]{});
         EasyMock.expect(sref.getPropertyKeys()).andReturn(keys).anyTimes();
@@ -102,7 +102,7 @@ public class InterfaceMonitorManagerTest {
         return sref;
     }
 
-    private void assertScopeIncludes(ServiceReference<EndpointListener> sref, InterfaceMonitorManager imm) {
+    private void assertScopeIncludes(ServiceReference<EndpointEventListener> sref, InterfaceMonitorManager imm) {
         List<String> srefScope = imm.getEndpointListenerScopes().get(sref);
         assertEquals(1, srefScope.size());
         assertEquals("(objectClass=mine)", srefScope.get(0));
