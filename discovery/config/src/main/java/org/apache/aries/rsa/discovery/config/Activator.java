@@ -19,17 +19,21 @@
 
 package org.apache.aries.rsa.discovery.config;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.ManagedServiceFactory;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
-import org.osgi.util.tracker.ServiceTracker;
-
 import java.util.Hashtable;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedServiceFactory;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
     private static final String FACTORY_PID = "org.apache.aries.rsa.discovery.config";
 
-    private ServiceTracker<EndpointListener, EndpointListener> listenerTracker;
+    private ServiceTracker<EndpointEventListener, EndpointEventListener> listenerTracker;
     private ServiceRegistration<ManagedServiceFactory> registration;
 
     public void start(BundleContext context) {
@@ -46,23 +50,23 @@ public class Activator implements BundleActivator {
         listenerTracker.close();
     }
 
-    private final class EPListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+    private final class EPListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
         private final ConfigDiscovery configDiscovery;
 
         private EPListenerTracker(BundleContext context, ConfigDiscovery configDiscovery) {
-            super(context, EndpointListener.class, null);
+            super(context, EndpointEventListener.class, null);
             this.configDiscovery = configDiscovery;
         }
 
         @Override
-        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-            EndpointListener service = super.addingService(reference);
+        public EndpointEventListener addingService(ServiceReference<EndpointEventListener> reference) {
+            EndpointEventListener service = super.addingService(reference);
             configDiscovery.addListener(reference, service);
             return service;
         }
 
         @Override
-        public void modifiedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void modifiedService(ServiceReference<EndpointEventListener> reference, EndpointEventListener service) {
             super.modifiedService(reference, service);
             configDiscovery.removeListener(service);
 
@@ -73,7 +77,7 @@ public class Activator implements BundleActivator {
         }
 
         @Override
-        public void removedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void removedService(ServiceReference<EndpointEventListener> reference, EndpointEventListener service) {
             super.removedService(reference, service);
             configDiscovery.removeListener(service);
         }

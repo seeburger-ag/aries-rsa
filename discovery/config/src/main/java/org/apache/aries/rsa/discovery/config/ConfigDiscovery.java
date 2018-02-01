@@ -26,15 +26,16 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 class ConfigDiscovery implements ManagedServiceFactory {
     private final Map<EndpointDescription, String> endpointDescriptions = new ConcurrentHashMap<>();
-    private final Map<EndpointListener, Collection<String>> listenerToFilters = new HashMap<>();
-    private final Map<String, Collection<EndpointListener>> filterToListeners = new HashMap<>();
+    private final Map<EndpointEventListener, Collection<String>> listenerToFilters = new HashMap<>();
+    private final Map<String, Collection<EndpointEventListener>> filterToListeners = new HashMap<>();
 
     @Override
     public String getName() {
@@ -51,8 +52,8 @@ class ConfigDiscovery implements ManagedServiceFactory {
         removeServiceDeclaredInConfig(pid);
     }
 
-    void addListener(ServiceReference<EndpointListener> endpointListenerRef, EndpointListener endpointListener) {
-        List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
+    void addListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
+        List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         if (filters.isEmpty()) {
             return;
         }
@@ -60,7 +61,7 @@ class ConfigDiscovery implements ManagedServiceFactory {
         synchronized (listenerToFilters) {
             listenerToFilters.put(endpointListener, filters);
             for (String filter : filters) {
-                Collection<EndpointListener> listeners = filterToListeners.get(filter);
+                Collection<EndpointEventListener> listeners = filterToListeners.get(filter);
                 if (listeners == null) {
                     listeners = new ArrayList<>();
                     filterToListeners.put(filter, listeners);
@@ -72,7 +73,7 @@ class ConfigDiscovery implements ManagedServiceFactory {
         triggerCallbacks(filters, endpointListener);
     }
 
-    void removeListener(EndpointListener endpointListener) {
+    void removeListener(EndpointEventListener endpointListener) {
         synchronized (listenerToFilters) {
             Collection<String> filters = listenerToFilters.remove(endpointListener);
             if (filters == null) {
@@ -80,7 +81,7 @@ class ConfigDiscovery implements ManagedServiceFactory {
             }
 
             for (String filter : filters) {
-                Collection<EndpointListener> listeners = filterToListeners.get(filter);
+                Collection<EndpointEventListener> listeners = filterToListeners.get(filter);
                 if (listeners != null) {
                     listeners.remove(endpointListener);
                     if (listeners.isEmpty()) {
@@ -91,11 +92,11 @@ class ConfigDiscovery implements ManagedServiceFactory {
         }
     }
 
-    private Map<String, Collection<EndpointListener>> getMatchingListeners(EndpointDescription endpoint) {
+    private Map<String, Collection<EndpointEventListener>> getMatchingListeners(EndpointDescription endpoint) {
         // return a copy of matched filters/listeners so that caller doesn't need to hold locks while triggering events
-        Map<String, Collection<EndpointListener>> matched = new HashMap<>();
+        Map<String, Collection<EndpointEventListener>> matched = new HashMap<>();
         synchronized (listenerToFilters) {
-            for (Map.Entry<String, Collection<EndpointListener>> entry : filterToListeners.entrySet()) {
+            for (Map.Entry<String, Collection<EndpointEventListener>> entry : filterToListeners.entrySet()) {
                 String filter = entry.getKey();
                 if (matchFilter(filter, endpoint)) {
                     matched.put(filter, new ArrayList<>(entry.getValue()));
@@ -109,7 +110,8 @@ class ConfigDiscovery implements ManagedServiceFactory {
     private void addDeclaredRemoteService(String pid, Dictionary config) {
         EndpointDescription endpoint = new EndpointDescription(PropertyValidator.validate(config));
         endpointDescriptions.put(endpoint, pid);
-        addedEndpointDescription(endpoint);
+        EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+        triggerCallbacks(event);
     }
 
     private void removeServiceDeclaredInConfig(String pid) {
@@ -117,46 +119,37 @@ class ConfigDiscovery implements ManagedServiceFactory {
              i.hasNext(); ) {
             Map.Entry<EndpointDescription, String> entry = i.next();
             if (pid.equals(entry.getValue())) {
-                removedEndpointDescription(entry.getKey());
+                EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, entry.getKey());
+                triggerCallbacks(event);
                 i.remove();
             }
         }
     }
 
-    private void addedEndpointDescription(EndpointDescription endpoint) {
-        triggerCallbacks(endpoint, true);
-    }
-
-    private void removedEndpointDescription(EndpointDescription endpoint) {
-        triggerCallbacks(endpoint, false);
-    }
-
-    private void triggerCallbacks(EndpointDescription endpoint, boolean added) {
-        for (Map.Entry<String, Collection<EndpointListener>> entry : getMatchingListeners(endpoint).entrySet()) {
+    private void triggerCallbacks(EndpointEvent event) {
+        EndpointDescription endpoint = event.getEndpoint();
+        for (Map.Entry<String, Collection<EndpointEventListener>> entry : getMatchingListeners(endpoint).entrySet()) {
             String filter = entry.getKey();
-            for (EndpointListener listener : entry.getValue()) {
-                triggerCallbacks(listener, filter, endpoint, added);
+            for (EndpointEventListener listener : entry.getValue()) {
+                triggerCallbacks(listener, filter, event);
             }
         }
     }
 
-    private void triggerCallbacks(EndpointListener endpointListener, String filter,
-                                  EndpointDescription endpoint, boolean added) {
-        if (!matchFilter(filter, endpoint)) {
+    private void triggerCallbacks(EndpointEventListener endpointListener, String filter,
+                                  EndpointEvent event) {
+        if (!matchFilter(filter, event.getEndpoint())) {
             return;
         }
 
-        if (added) {
-            endpointListener.endpointAdded(endpoint, filter);
-        } else {
-            endpointListener.endpointRemoved(endpoint, filter);
-        }
+        endpointListener.endpointChanged(event, filter);
     }
 
-    private void triggerCallbacks(Collection<String> filters, EndpointListener endpointListener) {
+    private void triggerCallbacks(Collection<String> filters, EndpointEventListener endpointListener) {
         for (String filter : filters) {
             for (EndpointDescription endpoint : endpointDescriptions.keySet()) {
-                triggerCallbacks(endpointListener, filter, endpoint, true);
+                EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+                triggerCallbacks(endpointListener, filter, event);
             }
         }
     }
