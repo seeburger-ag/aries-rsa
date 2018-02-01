@@ -21,16 +21,14 @@ package org.apache.aries.rsa.discovery.zookeeper.publish;
 import java.util.Dictionary;
 import java.util.List;
 
-import junit.framework.TestCase;
-
-import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
-import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListenerFactory;
 import org.apache.zookeeper.ZooKeeper;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
+
+import junit.framework.TestCase;
 
 public class PublishingEndpointListenerFactoryTest extends TestCase {
 
@@ -45,7 +43,7 @@ public class PublishingEndpointListenerFactoryTest extends TestCase {
 
         PublishingEndpointListenerFactory eplf = new PublishingEndpointListenerFactory(zk, ctx);
 
-        EasyMock.expect(ctx.registerService(EasyMock.eq(EndpointListener.class.getName()), EasyMock.eq(eplf),
+        EasyMock.expect(ctx.registerService(EasyMock.eq(EndpointEventListener.class.getName()), EasyMock.eq(eplf),
                                             (Dictionary<String, String>)EasyMock.anyObject())).andReturn(sreg).once();
 
         EasyMock.expect(ctx.getProperty(EasyMock.eq("org.osgi.framework.uuid"))).andReturn("myUUID").anyTimes();
@@ -67,7 +65,7 @@ public class PublishingEndpointListenerFactoryTest extends TestCase {
 
         PublishingEndpointListenerFactory eplf = new PublishingEndpointListenerFactory(zk, ctx);
 
-        EasyMock.expect(ctx.registerService(EasyMock.eq(EndpointListener.class.getName()), EasyMock.eq(eplf),
+        EasyMock.expect(ctx.registerService(EasyMock.eq(EndpointEventListener.class.getName()), EasyMock.eq(eplf),
                                 (Dictionary<String, String>)EasyMock.anyObject())).andReturn(sreg).once();
 
         EasyMock.expect(ctx.getProperty(EasyMock.eq("org.osgi.framework.uuid"))).andReturn("myUUID").anyTimes();
@@ -81,7 +79,7 @@ public class PublishingEndpointListenerFactoryTest extends TestCase {
 
         PublishingEndpointListener service = eplf.getService(null, null);
         assertNotNull(service);
-        assertTrue(service instanceof EndpointListener);
+        assertTrue(service instanceof EndpointEventListener);
 
         List<PublishingEndpointListener> listeners = eplf.getListeners();
         assertEquals(1, listeners.size());

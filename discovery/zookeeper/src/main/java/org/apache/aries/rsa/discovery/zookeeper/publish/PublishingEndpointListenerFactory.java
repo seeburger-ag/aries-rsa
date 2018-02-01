@@ -30,7 +30,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +74,11 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
     public synchronized void start() {
         Dictionary<String, String> props = new Hashtable<String, String>();
         String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
-        props.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, 
+        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, 
                   String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
                                 RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
         props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
-        serviceRegistration = bctx.registerService(EndpointListener.class.getName(), this, props);
+        serviceRegistration = bctx.registerService(EndpointEventListener.class.getName(), this, props);
     }
     
     public synchronized void stop() {

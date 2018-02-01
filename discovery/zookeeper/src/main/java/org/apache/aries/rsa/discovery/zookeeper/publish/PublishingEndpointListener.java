@@ -40,7 +40,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Listens for local Endpoints and publishes them to ZooKeeper.
  */
-public class PublishingEndpointListener implements EndpointListener {
+public class PublishingEndpointListener implements EndpointEventListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListener.class);
 
@@ -67,7 +68,24 @@ public class PublishingEndpointListener implements EndpointListener {
         endpointDescriptionParser = new EndpointDescriptionParser();
     }
 
-    public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
+    @Override
+    public void endpointChanged(EndpointEvent event, String filter) {
+        EndpointDescription endpoint = event.getEndpoint();
+        switch (event.getType()) {
+        case EndpointEvent.ADDED:
+            endpointAdded(endpoint, filter);
+            break;
+        case EndpointEvent.REMOVED:
+            endpointRemoved(endpoint, filter);
+            break;
+        case EndpointEvent.MODIFIED:
+            endpointRemoved(endpoint, filter);
+            endpointAdded(endpoint, filter);
+            break;
+        }
+    }
+    
+    private void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
         synchronized (endpoints) {
             if (closed) {
                 return;
@@ -135,7 +153,7 @@ public class PublishingEndpointListener implements EndpointListener {
         }
     }
 
-    public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
+    private void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
         LOG.info("Local EndpointDescription removed: {}", endpoint);
 
         synchronized (endpoints) {

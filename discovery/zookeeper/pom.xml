@@ -76,13 +76,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
             <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
 
 </project>

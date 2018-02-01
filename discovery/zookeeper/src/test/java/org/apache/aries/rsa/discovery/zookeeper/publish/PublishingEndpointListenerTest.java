@@ -42,6 +42,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 import junit.framework.TestCase;
@@ -64,10 +65,10 @@ public class PublishingEndpointListenerTest extends TestCase {
 
         PublishingEndpointListener eli = new PublishingEndpointListener(zk, ctx);
         EndpointDescription endpoint = createEndpoint();
-        eli.endpointAdded(endpoint, null);
-        eli.endpointAdded(endpoint, null); // should do nothing
-        eli.endpointRemoved(endpoint, null);
-        eli.endpointRemoved(endpoint, null); // should do nothing
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null);
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null); // should do nothing
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), null);
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), null); // should do nothing
 
         c.verify();
     }
@@ -106,7 +107,7 @@ public class PublishingEndpointListenerTest extends TestCase {
 
         List<EndpointDescription> endpoints = getEndpoints(eli);
         assertEquals("Precondition", 0, endpoints.size());
-        eli.endpointAdded(endpoint, null);
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null);
         assertEquals(1, endpoints.size());
 
         //TODO enable
@@ -126,7 +127,7 @@ public class PublishingEndpointListenerTest extends TestCase {
 
         PublishingEndpointListener eli = new PublishingEndpointListener(zk, ctx);
         EndpointDescription endpoint = createEndpoint();
-        eli.endpointAdded(endpoint, null);
+        eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null);
         eli.close(); // should result in zk.delete(...)
 
         c.verify();
