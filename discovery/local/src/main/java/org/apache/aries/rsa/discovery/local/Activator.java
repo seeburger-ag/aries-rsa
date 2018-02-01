@@ -21,11 +21,11 @@ package org.apache.aries.rsa.discovery.local;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator {
-    private ServiceTracker<EndpointListener, EndpointListener> listenerTracker;
+    private ServiceTracker<EndpointEventListener, EndpointEventListener> listenerTracker;
     private LocalDiscovery localDiscovery;
 
     public void start(BundleContext context) {
@@ -41,23 +41,23 @@ public class Activator implements BundleActivator {
         context.removeBundleListener(localDiscovery);
     }
 
-    private final class EPListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
+    private final class EPListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
         private final LocalDiscovery localDiscovery;
     
         private EPListenerTracker(BundleContext context, LocalDiscovery localDiscovery) {
-            super(context, EndpointListener.class, null);
+            super(context, EndpointEventListener.class, null);
             this.localDiscovery = localDiscovery;
         }
     
         @Override
-        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-            EndpointListener service = super.addingService(reference);
+        public EndpointEventListener addingService(ServiceReference<EndpointEventListener> reference) {
+            EndpointEventListener service = super.addingService(reference);
             localDiscovery.addListener(reference, service);
             return service;
         }
     
         @Override
-        public void modifiedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void modifiedService(ServiceReference<EndpointEventListener> reference, EndpointEventListener service) {
             super.modifiedService(reference, service);
             localDiscovery.removeListener(service);
     
@@ -68,7 +68,7 @@ public class Activator implements BundleActivator {
         }
     
         @Override
-        public void removedService(ServiceReference<EndpointListener> reference, EndpointListener service) {
+        public void removedService(ServiceReference<EndpointEventListener> reference, EndpointEventListener service) {
             super.removedService(reference, service);
             localDiscovery.removeListener(service);
         }
