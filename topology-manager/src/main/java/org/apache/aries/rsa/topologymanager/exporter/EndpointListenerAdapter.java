@@ -28,7 +28,7 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
  * EndpointEventListener interface
  */
 @SuppressWarnings("deprecation")
-class EndpointListenerAdapter implements EndpointEventListener {
+public class EndpointListenerAdapter implements EndpointEventListener {
     private EndpointListener epl;
 
     public EndpointListenerAdapter(EndpointListener epl) {

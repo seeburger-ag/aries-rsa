@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
+import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerAdapter;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointRepository;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
@@ -158,7 +159,8 @@ public class Activator implements BundleActivator {
         @Override
         public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
             EndpointListener listener = super.addingService(reference);
-            notifier.add(listener, EndpointListenerNotifier.filtersFromEL(reference));
+            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
+            notifier.add(adapter, EndpointListenerNotifier.filtersFromEL(reference));
             return listener;
         }
 
@@ -166,13 +168,15 @@ public class Activator implements BundleActivator {
         public void modifiedService(ServiceReference<EndpointListener> reference,
                                     EndpointListener listener) {
             super.modifiedService(reference, listener);
-            notifier.add(listener, EndpointListenerNotifier.filtersFromEL(reference));
+            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
+            notifier.add(adapter, EndpointListenerNotifier.filtersFromEL(reference));
         }
 
         @Override
         public void removedService(ServiceReference<EndpointListener> reference,
                                    EndpointListener listener) {
-            notifier.remove(listener);
+            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
+            notifier.remove(adapter);
             super.removedService(reference, listener);
         }
     }
@@ -192,8 +196,8 @@ public class Activator implements BundleActivator {
         @Override
         public void modifiedService(ServiceReference<EndpointEventListener> reference,
                 EndpointEventListener listener) {
-            super.modifiedService(reference, listener);
             notifier.add(listener, EndpointListenerNotifier.filtersFromEEL(reference));
+            super.modifiedService(reference, listener);
         }
 
         @Override

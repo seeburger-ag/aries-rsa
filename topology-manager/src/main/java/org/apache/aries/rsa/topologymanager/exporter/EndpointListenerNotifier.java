@@ -74,17 +74,7 @@ public class EndpointListenerNotifier implements EndpointEventListener {
         return filters;
     }
 
-    public void add(EndpointListener ep, Set<Filter> filters) {
-        LOG.debug("new EndpointListener detected");
-        EndpointListenerAdapter adapter = new EndpointListenerAdapter(ep);
-        listeners.put(adapter, filters);
-        for (EndpointDescription endpoint : endpointRepo.getAllEndpoints()) {
-            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
-            notifyListener(event, adapter, filters);
-        }
-    }
-    
-    public void remove(EndpointListener ep) {
+    public void removre(EndpointListener ep) {
         LOG.debug("EndpointListener modified");
         EndpointListenerAdapter adapter = new EndpointListenerAdapter(ep);
         listeners.remove(adapter);
