@@ -22,17 +22,18 @@ import static java.util.Arrays.asList;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
-import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +52,9 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
+
+import com.shazam.shazamcrest.MatcherAssert;
+import com.shazam.shazamcrest.matcher.Matchers;
 
 @SuppressWarnings({
     "rawtypes", "unchecked",
@@ -73,21 +77,24 @@ public class EndpointListenerNotifierTest {
         EndpointDescription endpoint1 = createEndpoint("myClass");
         EndpointDescription endpoint2 = createEndpoint("notMyClass");
 
-        EndpointRepository exportRepository = new EndpointRepository();
-        EndpointListenerNotifier notifier = new EndpointListenerNotifier(exportRepository);
-
         c.replay();
+        
+        EndpointListenerNotifier notifier = new EndpointListenerNotifier();
         Filter filter = FrameworkUtil.createFilter("(objectClass=myClass)");
-        notifier.add(epl, new HashSet(asList(filter)));
-        notifier.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint1), null);
-        notifier.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint2), null);
-        notifier.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint1), null);
-        notifier.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint2), null);
+        notifier.add(epl, new HashSet(asList(filter)), Collections.<EndpointDescription>emptyList());
+        notifier.sendEvent(new EndpointEvent(EndpointEvent.ADDED, endpoint1));
+        notifier.sendEvent(new EndpointEvent(EndpointEvent.ADDED, endpoint2));
+        notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint1));
+        notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint2));
         c.verify();
 
         // Expect listener to be called for endpoint1 but not for endpoint2 
-        assertThat(capturedEvents.getValues().get(0), samePropertyValuesAs(new EndpointEvent(EndpointEvent.ADDED, endpoint1)));
-        assertThat(capturedEvents.getValues().get(1), samePropertyValuesAs(new EndpointEvent(EndpointEvent.REMOVED, endpoint1)));
+        List<EndpointEvent> expected = Arrays.asList(
+                new EndpointEvent(EndpointEvent.ADDED, endpoint1),
+                new EndpointEvent(EndpointEvent.REMOVED, endpoint1)
+                );
+                
+        MatcherAssert.assertThat(capturedEvents.getValues(), Matchers.sameBeanAs(expected));
     }
 
     private EndpointDescription createEndpoint(String iface) {

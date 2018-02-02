@@ -26,9 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
-import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerAdapter;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
-import org.apache.aries.rsa.topologymanager.exporter.EndpointRepository;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
 import org.apache.aries.rsa.topologymanager.importer.local.EndpointListenerManager;
@@ -39,8 +37,6 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.osgi.util.tracker.ServiceTracker;
@@ -48,7 +44,6 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("deprecation")
 public class Activator implements BundleActivator {
     public static final String RSA_EXPORT_POLICY_FILTER = "rsa.export.policy.filter";
     static final String DOSGI_SERVICES = "(" + RemoteConstants.SERVICE_EXPORTED_INTERFACES + "=*)";
@@ -56,13 +51,13 @@ public class Activator implements BundleActivator {
 
     private TopologyManagerExport exportManager;
     private TopologyManagerImport importManager;
-    private EndpointListenerNotifier notifier;
+    EndpointListenerNotifier notifier;
     private ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> rsaTracker;
     private ThreadPoolExecutor exportExecutor;
     
-    private ServiceTracker<EndpointListener, EndpointListener> epListenerTracker;
     private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
     private EndpointListenerManager endpointListenerManager;
+    private EndpointListenerTracker epListenerTracker;
     private EndpointEventListenerTracker epeListenerTracker;
 
     public void start(final BundleContext bc) throws Exception {
@@ -103,13 +98,11 @@ public class Activator implements BundleActivator {
 
     public void doStart(final BundleContext bc, ExportPolicy policy) {
         LOG.debug("TopologyManager: start()");
-        EndpointRepository endpointRepo = new EndpointRepository();
-        notifier = new EndpointListenerNotifier(endpointRepo);
-        epListenerTracker = new EndpointListenerTracker(bc);
-        epeListenerTracker = new EndpointEventListenerTracker(bc);
-        endpointRepo.setNotifier(notifier);
+        notifier = new EndpointListenerNotifier();
         exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-        exportManager = new TopologyManagerExport(endpointRepo, exportExecutor, policy);
+        exportManager = new TopologyManagerExport(notifier, exportExecutor, policy);
+        epListenerTracker = new EndpointListenerTracker(bc, exportManager);
+        epeListenerTracker = new EndpointEventListenerTracker(bc, exportManager);
         importManager = new TopologyManagerImport(bc);
         endpointListenerManager = new EndpointListenerManager(bc, importManager);
         endpointListenerManager.start();
@@ -151,63 +144,6 @@ public class Activator implements BundleActivator {
         }
     }
     
-    private final class EndpointListenerTracker extends ServiceTracker<EndpointListener, EndpointListener> {
-        private EndpointListenerTracker(BundleContext context) {
-            super(context, EndpointListener.class, null);
-        }
-
-        @Override
-        public EndpointListener addingService(ServiceReference<EndpointListener> reference) {
-            EndpointListener listener = super.addingService(reference);
-            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
-            notifier.add(adapter, EndpointListenerNotifier.filtersFromEL(reference));
-            return listener;
-        }
-
-        @Override
-        public void modifiedService(ServiceReference<EndpointListener> reference,
-                                    EndpointListener listener) {
-            super.modifiedService(reference, listener);
-            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
-            notifier.add(adapter, EndpointListenerNotifier.filtersFromEL(reference));
-        }
-
-        @Override
-        public void removedService(ServiceReference<EndpointListener> reference,
-                                   EndpointListener listener) {
-            EndpointListenerAdapter adapter = new EndpointListenerAdapter(listener);
-            notifier.remove(adapter);
-            super.removedService(reference, listener);
-        }
-    }
-    
-    private final class EndpointEventListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
-        private EndpointEventListenerTracker(BundleContext context) {
-            super(context, EndpointEventListener.class, null);
-        }
-
-        @Override
-        public EndpointEventListener addingService(ServiceReference<EndpointEventListener> reference) {
-            EndpointEventListener listener = super.addingService(reference);
-            notifier.add(listener, EndpointListenerNotifier.filtersFromEEL(reference));
-            return listener;
-        }
-
-        @Override
-        public void modifiedService(ServiceReference<EndpointEventListener> reference,
-                EndpointEventListener listener) {
-            notifier.add(listener, EndpointListenerNotifier.filtersFromEEL(reference));
-            super.modifiedService(reference, listener);
-        }
-
-        @Override
-        public void removedService(ServiceReference<EndpointEventListener> reference,
-                EndpointEventListener listener) {
-            notifier.remove(listener);
-            super.removedService(reference, listener);
-        }
-    }
-
     private final class RSATracker extends ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> {
         private RSATracker(BundleContext context, Class<RemoteServiceAdmin> clazz,
                            ServiceTrackerCustomizer<RemoteServiceAdmin, RemoteServiceAdmin> customizer) {

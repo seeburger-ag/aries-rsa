@@ -29,7 +29,6 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceFactory;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -59,9 +58,6 @@ public class DistributionProviderTrackerTest {
                                                 EasyMock.isA(Dictionary.class)))
             .andReturn(rsaReg).atLeastOnce();
 
-        context.addServiceListener(EasyMock.isA(ServiceListener.class), EasyMock.isA(String.class));
-        EasyMock.expectLastCall();
-        
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {
@@ -99,9 +95,6 @@ public class DistributionProviderTrackerTest {
         EasyMock.expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class),
                                                 EasyMock.isA(Dictionary.class)))
             .andReturn(rsaReg).atLeastOnce();
-
-        context.addServiceListener(EasyMock.isA(ServiceListener.class), EasyMock.isA(String.class));
-        EasyMock.expectLastCall();
 
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();

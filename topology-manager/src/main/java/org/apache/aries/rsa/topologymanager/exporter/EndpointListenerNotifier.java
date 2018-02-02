@@ -18,6 +18,7 @@
  */
 package org.apache.aries.rsa.topologymanager.exporter;
 
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -42,13 +43,11 @@ import org.slf4j.LoggerFactory;
  * Tracks EndpointListeners and allows to notify them of endpoints.
  */
 @SuppressWarnings("deprecation")
-public class EndpointListenerNotifier implements EndpointEventListener {
+public class EndpointListenerNotifier {
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerNotifier.class);
     private Map<EndpointEventListener, Set<Filter>> listeners;
-    private EndpointRepository endpointRepo;
 
-    public EndpointListenerNotifier(final EndpointRepository endpointRepo) {
-        this.endpointRepo = endpointRepo;
+    public EndpointListenerNotifier() {
         this.listeners = new ConcurrentHashMap<EndpointEventListener, Set<Filter>>();
     }
    
@@ -73,32 +72,22 @@ public class EndpointListenerNotifier implements EndpointEventListener {
         }
         return filters;
     }
-
-    public void removre(EndpointListener ep) {
-        LOG.debug("EndpointListener modified");
-        EndpointListenerAdapter adapter = new EndpointListenerAdapter(ep);
-        listeners.remove(adapter);
-    }
     
-    public void add(EndpointEventListener ep, Set<Filter> filters) {
-        LOG.debug("new EndpointListener detected");
+    public void add(EndpointEventListener ep, Set<Filter> filters, Collection<EndpointDescription> endpoints) {
+        LOG.debug("EndpointListener added");
         listeners.put(ep, filters);
-        for (EndpointDescription endpoint : endpointRepo.getAllEndpoints()) {
+        for (EndpointDescription endpoint : endpoints) {
             EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
             notifyListener(event, ep, filters);
         }
     }
     
     public void remove(EndpointEventListener ep) {
-        LOG.debug("EndpointListener modified");
+        LOG.debug("EndpointListener removed");
         listeners.remove(ep);
     }
     
-    /**
-     * NOTICE: filter will be ignored
-     */
-    @Override
-    public void endpointChanged(EndpointEvent event, String filter) {
+    public void sendEvent(EndpointEvent event) {
         for (EndpointEventListener listener : listeners.keySet()) {
             Set<Filter> filters = listeners.get(listener);
             notifyListener(event, listener, filters);

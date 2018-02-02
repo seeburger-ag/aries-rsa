@@ -71,6 +71,8 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
         serviceBundle.start();
         assertEvent(RemoteServiceAdminEvent.EXPORT_REGISTRATION);
         
+        Thread.sleep(1000);
+        
         serviceBundle.stop();
         assertEvent(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION);
 

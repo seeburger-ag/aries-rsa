@@ -39,8 +39,6 @@ import org.apache.aries.rsa.util.EndpointHelper;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -93,24 +91,6 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
                 removeImportRegistration((ImportRegistrationImpl) importReg);
             }
         };
-        // listen for exported services being unregistered so we can close the export
-        createExportedServicesListener();
-    }
-
-    protected void createExportedServicesListener() {
-        this.exportedServiceListener = new ServiceListener() {
-            public void serviceChanged(ServiceEvent event) {
-                if (event.getType() == ServiceEvent.UNREGISTERING) {
-                    removeServiceExports(event.getServiceReference());
-                }
-            }
-        };
-        try {
-            String filter = "(" + RemoteConstants.SERVICE_EXPORTED_INTERFACES + "=*)";
-            bctx.addServiceListener(exportedServiceListener, filter);
-        } catch (InvalidSyntaxException ise) {
-            throw new RuntimeException(ise); // can never happen
-        }
     }
 
     @Override

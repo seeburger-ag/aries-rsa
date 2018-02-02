@@ -21,7 +21,6 @@ package org.apache.aries.rsa.core;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,7 +39,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
     private static final Logger LOG = LoggerFactory.getLogger(ExportRegistrationImpl.class);
 
     private final CloseHandler closeHandler;
-    private final ExportReferenceImpl exportReference;
+    private ExportReferenceImpl exportReference;
     private final Closeable server;
     private final Throwable exception;
 
@@ -138,14 +137,17 @@ public class ExportRegistrationImpl implements ExportRegistration {
             instanceCount--;
             if (instanceCount <= 0) {
                 LOG.debug("really closing ExportRegistration now!");
+                closeServer();
+            }
+        }
+    }
 
-                if (server != null) {
-                    try {
-                        server.close();
-                    } catch (IOException e) {
-                        LOG.warn("Error closing ExportRegistration", e);
-                    }
-                }
+    private void closeServer() {
+        if (server != null) {
+            try {
+                server.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing ExportRegistration", e);
             }
         }
     }
@@ -175,11 +177,13 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     @Override
     public EndpointDescription update(Map<String, ?> properties) {
-        Map<String, Object> newProps = new HashMap<String, Object>(getExportReference().getExportedEndpoint().getProperties()); 
-        for (String key : properties.keySet()) {
-            newProps.put(key, properties.get(key));
+        if (getExportReference() == null) {
+            return null;
         }
+        ServiceReference<?> sref = getExportReference().getExportedService();
+        EndpointDescription epd = new EndpointDescription(sref, properties);
+        exportReference = new ExportReferenceImpl(sref, epd);
         this.sender.notifyUpdate(this.getExportReference());
-        return new EndpointDescription(newProps);
+        return epd;
     }
 }
