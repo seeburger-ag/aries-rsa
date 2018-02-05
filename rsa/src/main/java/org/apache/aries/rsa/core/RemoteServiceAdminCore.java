@@ -39,6 +39,7 @@ import org.apache.aries.rsa.util.EndpointHelper;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -84,13 +85,26 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         this.packageUtil = packageUtil;
         this.closeHandler = new CloseHandler() {
             public void onClose(ExportRegistration exportReg) {
-                removeExportRegistration((ExportRegistrationImpl) exportReg);
+                removeExportRegistration(exportReg);
             }
 
             public void onClose(ImportRegistration importReg) {
                 removeImportRegistration((ImportRegistrationImpl) importReg);
             }
         };
+        createServiceListener();
+    }
+    
+    // listen for exported services being unregistered so we can close the export
+    protected void createServiceListener() {
+        this.exportedServiceListener = new ServiceListener() {
+            public void serviceChanged(ServiceEvent event) {
+                if (event.getType() == ServiceEvent.UNREGISTERING) {
+                    removeServiceExports(event.getServiceReference());
+                }
+            }
+        };
+        this.bctx.addServiceListener(exportedServiceListener);
     }
 
     @Override
@@ -216,6 +230,9 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
                 return null;
             }
             return new ExportRegistrationImpl(serviceReference, endpoint, closeHandler, eventProducer);
+        } catch (IllegalArgumentException e) {
+            // TCK expects this for garbage input
+            throw e;
         } catch (Exception e) {
             return new ExportRegistrationImpl(e, closeHandler, eventProducer);
         }
@@ -476,14 +493,14 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
      *
      * @param eri the export registration to remove
      */
-    protected void removeExportRegistration(ExportRegistrationImpl eri) {
+    protected void removeExportRegistration(ExportRegistration eri) {
         synchronized (exportedServices) {
             for (Iterator<Collection<ExportRegistration>> it = exportedServices.values().iterator(); it.hasNext();) {
                 Collection<ExportRegistration> value = it.next();
                 for (Iterator<ExportRegistration> it2 = value.iterator(); it2.hasNext();) {
                     ExportRegistration er = it2.next();
                     if (er.equals(eri)) {
-                        eventProducer.notifyRemoval(eri.getExportReferenceAlways());
+                        eventProducer.notifyRemoval(eri.getExportReference());
                         it2.remove();
                         if (value.isEmpty()) {
                             it.remove();

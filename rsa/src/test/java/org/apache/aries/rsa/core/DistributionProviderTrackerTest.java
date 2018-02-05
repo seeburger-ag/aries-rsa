@@ -18,6 +18,11 @@
  */
 package org.apache.aries.rsa.core;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
 import java.util.Dictionary;
 
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -29,6 +34,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -45,19 +51,21 @@ public class DistributionProviderTrackerTest {
         DistributionProvider provider = c.createMock(DistributionProvider.class);
         
         ServiceReference<DistributionProvider> providerRef = c.createMock(ServiceReference.class);
-        EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn("");
-        EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn("");
+        expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn("");
+        expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn("");
 
         BundleContext context = c.createMock(BundleContext.class);
         String filterSt = String.format("(objectClass=%s)", DistributionProvider.class.getName());
         Filter filter = FrameworkUtil.createFilter(filterSt);
-        EasyMock.expect(context.createFilter(filterSt)).andReturn(filter);
-        EasyMock.expect(context.getService(providerRef)).andReturn(provider);
+        expect(context.createFilter(filterSt)).andReturn(filter);
+        expect(context.getService(providerRef)).andReturn(provider);
         ServiceRegistration rsaReg = c.createMock(ServiceRegistration.class);
-        EasyMock.expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class), 
+        expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class), 
                                                 EasyMock.isA(Dictionary.class)))
             .andReturn(rsaReg).atLeastOnce();
-
+        context.addServiceListener(anyObject(ServiceListener.class));
+        expectLastCall().anyTimes();
+        
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {
@@ -83,19 +91,21 @@ public class DistributionProviderTrackerTest {
         DistributionProvider provider = c.createMock(DistributionProvider.class);
 
         ServiceReference<DistributionProvider> providerRef = c.createMock(ServiceReference.class);
-        EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn(null);
-        EasyMock.expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn(null);
+        expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn(null);
+        expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn(null);
 
         BundleContext context = c.createMock(BundleContext.class);
         String filterSt = String.format("(objectClass=%s)", DistributionProvider.class.getName());
         Filter filter = FrameworkUtil.createFilter(filterSt);
-        EasyMock.expect(context.createFilter(filterSt)).andReturn(filter);
-        EasyMock.expect(context.getService(providerRef)).andReturn(provider);
+        expect(context.createFilter(filterSt)).andReturn(filter);
+        expect(context.getService(providerRef)).andReturn(provider);
         ServiceRegistration rsaReg = c.createMock(ServiceRegistration.class);
-        EasyMock.expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class),
+        expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class),
                                                 EasyMock.isA(Dictionary.class)))
             .andReturn(rsaReg).atLeastOnce();
-
+        context.addServiceListener(anyObject(ServiceListener.class));
+        expectLastCall().anyTimes();
+        
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {

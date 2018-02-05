@@ -20,7 +20,10 @@ package org.apache.aries.rsa.core;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.hamcrest.Matchers.array;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -28,7 +31,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -50,6 +53,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -93,9 +97,7 @@ public class RemoteServiceAdminCoreTest {
             };
         };
         rsaCore = new RemoteServiceAdminCore(rsaContext, apiContext, eventProducer, provider, packageUtil) {
-            protected void createExportedServicesListener() {
-                // Skip
-            }
+            protected void createServiceListener() {};
         };
     }
 
@@ -224,10 +226,8 @@ public class RemoteServiceAdminCoreTest {
         Map<String, Object> edProps = endpoint.getProperties();
         assertEquals("http://something", edProps.get("endpoint.id"));
         assertNotNull(edProps.get("service.imported"));
-        assertTrue(Arrays.equals(new String[] {"java.lang.Runnable"},
-                                 (Object[]) edProps.get("objectClass")));
-        assertTrue(Arrays.equals(new String[] {MYCONFIG},
-                                 (Object[]) edProps.get("service.imported.configs")));
+        assertThat((String[]) edProps.get("objectClass"), array(equalTo("java.lang.Runnable")));
+        assertThat((String[]) edProps.get("service.imported.configs"), array(equalTo(MYCONFIG)));
 
         // Ask to export the same service again, this should not go through the whole process again but simply return
         // a copy of the first instance.
@@ -239,22 +239,17 @@ public class RemoteServiceAdminCoreTest {
         assertEquals(ereg.getExportReference().getExportedEndpoint().getProperties(),
                 ereg2.getExportReference().getExportedEndpoint().getProperties());
 
-        // Look at the exportedServices data structure
-        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices = getInternalExportedServices();
+        assertNumExports(2);
 
-        assertEquals("One service was exported", 1, exportedServices.size());
-        Collection<ExportRegistration> firstRegs = exportedServices.values().iterator().next();
-        assertEquals("There are 2 export registrations (identical copies)",
-                2, firstRegs.size());
+        ereg.close();
+        assertNumExports(1);
+        
+        ereg2.close();
+        assertNumExports(0);
+    }
 
-        // Unregister one of the exports
-        rsaCore.removeExportRegistration((ExportRegistrationImpl) eregs.get(0));
-        assertEquals("One service was exported", 1, exportedServices.size());
-        assertEquals("There 1 export registrations left", 1, firstRegs.size());
-
-        // Unregister the other export
-        rsaCore.removeExportRegistration((ExportRegistrationImpl) eregs2.get(0));
-        assertEquals("No more exported services", 0, exportedServices.size());
+    private void assertNumExports(int expectedNum) {
+        assertThat("Number of export references", rsaCore.getExportedServices().size(), equalTo(expectedNum));
     }
 
     @Test
@@ -328,22 +323,15 @@ public class RemoteServiceAdminCoreTest {
         c.verify();
     }
 
-    private Map<Map<String, Object>, Collection<ExportRegistration>> getInternalExportedServices()
-            throws NoSuchFieldException, IllegalAccessException {
-        Field field = RemoteServiceAdminCore.class.getDeclaredField("exportedServices");
-        field.setAccessible(true);
-        Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices =
-                (Map<Map<String, Object>, Collection<ExportRegistration>>) field.get(rsaCore);
-        return exportedServices;
-    }
-
-    private Endpoint createEndpoint(final Map<String, Object> sProps) {
+    private Endpoint createEndpoint(final Map<String, Object> sProps) throws IOException {
         Map<String, Object> eProps = new HashMap<String, Object>(sProps);
         eProps.put("endpoint.id", "http://something");
         eProps.put("service.imported.configs", new String[] {MYCONFIG});
         final EndpointDescription epd = new EndpointDescription(eProps);
         Endpoint er = c.createMock(Endpoint.class);
-        expect(er.description()).andReturn(epd);
+        expect(er.description()).andReturn(epd).anyTimes();
+        er.close();
+        expectLastCall();
         return er;
     }
 

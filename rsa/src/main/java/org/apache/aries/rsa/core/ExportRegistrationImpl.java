@@ -21,6 +21,7 @@ package org.apache.aries.rsa.core;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +31,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,6 +112,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
     }
 
     public final void close() {
+        closeHandler.onClose(this);
         synchronized (this) {
             if (closed) {
                 return;
@@ -117,7 +120,6 @@ public class ExportRegistrationImpl implements ExportRegistration {
             closed = true;
         }
 
-        closeHandler.onClose(this);
         if (exportReference != null) {
             exportReference.close();
         }
@@ -181,9 +183,21 @@ public class ExportRegistrationImpl implements ExportRegistration {
             return null;
         }
         ServiceReference<?> sref = getExportReference().getExportedService();
-        EndpointDescription epd = new EndpointDescription(sref, properties);
+        
+        HashMap<String, Object> props = new HashMap<>(properties);
+        EndpointDescription oldEpd = getExportReference().getExportedEndpoint();
+        copyIfNull(props, oldEpd, RemoteConstants.ENDPOINT_ID);
+        copyIfNull(props, oldEpd, RemoteConstants.SERVICE_IMPORTED_CONFIGS);
+
+        EndpointDescription epd = new EndpointDescription(sref, props);
         exportReference = new ExportReferenceImpl(sref, epd);
         this.sender.notifyUpdate(this.getExportReference());
         return epd;
+    }
+
+    private void copyIfNull(HashMap<String, Object> props, EndpointDescription oldEpd, String key) {
+        if (props.get(key) == null) {
+            props.put(key, oldEpd.getProperties().get(key));
+        }
     }
 }

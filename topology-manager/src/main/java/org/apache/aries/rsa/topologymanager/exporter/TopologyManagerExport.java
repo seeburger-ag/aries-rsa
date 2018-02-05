@@ -88,11 +88,15 @@ public class TopologyManagerExport implements ServiceListener {
     // track all service registrations so we can export any services that are configured to be exported
     // ServiceListener events may be delivered out of order, concurrently, re-entrant, etc. (see spec or docs)
     public void serviceChanged(ServiceEvent event) {
-        LOG.info("Received ServiceEvent type: {}, sref: {}", getTypeName(event), event.getServiceReference());
         ServiceReference<?> sref = event.getServiceReference();
+        if (!shouldExport(sref)) {
+            LOG.debug("Skipping service {}", sref);
+            return;
+        }
+        LOG.info("Received ServiceEvent type: {}, sref: {}", getTypeName(event), sref);
         switch (event.getType()) {
         case ServiceEvent.REGISTERED:
-            exportInBackground(sref);
+            doExport(sref);
             break;
 
         case ServiceEvent.MODIFIED:
@@ -151,11 +155,6 @@ public class TopologyManagerExport implements ServiceListener {
     }
 
     private void doExport(final ServiceReference<?> sref) {
-        Map<String, ?> addProps = policy.additionalParameters(sref);
-        if (!shouldExport(sref, addProps)) {
-            LOG.debug("Skipping service {}", sref);
-            return;
-        }
         LOG.debug("Exporting service {}", sref);
         toBeExported.add(sref);
         if (endpointRepo.size() == 0) {
@@ -167,15 +166,14 @@ public class TopologyManagerExport implements ServiceListener {
 
         for (RemoteServiceAdmin remoteServiceAdmin : endpointRepo.keySet()) {
             ServiceExportsRepository repo = endpointRepo.get(remoteServiceAdmin);
-            Collection<ExportRegistration> regs = exportService(remoteServiceAdmin, sref, addProps);
+            Collection<ExportRegistration> regs = exportService(remoteServiceAdmin, sref);
             repo.addService(sref, regs);
         }
     }
     
-    private static Collection<ExportRegistration> exportService(
+    private Collection<ExportRegistration> exportService(
             final RemoteServiceAdmin rsa,
-            final ServiceReference<?> sref, 
-            final Map<String, ?> addProps) {
+            final ServiceReference<?> sref) {
         // abort if the service was unregistered by the time we got here
         // (we check again at the end, but this optimization saves unnecessary heavy processing)
         if (sref.getBundle() == null) {
@@ -184,6 +182,7 @@ public class TopologyManagerExport implements ServiceListener {
         }
 
         LOG.debug("exporting Service {} using RemoteServiceAdmin {}", sref, rsa.getClass().getName());
+        Map<String, ?> addProps = policy.additionalParameters(sref);
         Collection<ExportRegistration> exportRegs = rsa.exportService(sref, addProps);
 
         // process successful/failed registrations
@@ -209,7 +208,8 @@ public class TopologyManagerExport implements ServiceListener {
         return exportRegs;
     }
 
-    private boolean shouldExport(ServiceReference<?> sref, Map<String, ?> addProps) {
+    private boolean shouldExport(ServiceReference<?> sref) {
+        Map<String, ?> addProps = policy.additionalParameters(sref);
         List<String> exported= StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
         List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
         return sizeOf(exported) + sizeOf(addExported) > 0;
