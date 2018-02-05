@@ -21,6 +21,7 @@ package org.apache.aries.rsa.core;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.core.event.EventProducer;
 import org.osgi.framework.ServiceReference;
@@ -41,7 +42,8 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     private EndpointDescription endpoint;
     private volatile ClientServiceFactory clientServiceFactory;
     private CloseHandler closeHandler;
-    private boolean closed;
+    private AtomicBoolean closed = new AtomicBoolean();
+    private AtomicBoolean closing = new AtomicBoolean();
     private boolean detached; // used only in parent
 
     private ImportRegistrationImpl parent;
@@ -64,9 +66,9 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     /**
      * Creates a clone of the given parent instance.
      */
-    public ImportRegistrationImpl(ImportRegistrationImpl ir) {
+    public ImportRegistrationImpl(ImportRegistration ir) {
         // we always want a link to the parent...
-        parent = ir.getParent();
+        parent = ((ImportRegistrationImpl)ir).getParent();
         exception = parent.getException();
         endpoint = parent.getImportedEndpointDescription();
         clientServiceFactory = parent.clientServiceFactory;
@@ -101,11 +103,11 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
      *
      * @param iri the child
      */
-    private void instanceClosed(ImportRegistrationImpl iri) {
+    private void instanceClosed(ImportRegistration iri) {
         ensureParent();
         synchronized (this) {
             children.remove(iri);
-            if (!children.isEmpty() || detached || !closed) {
+            if (!children.isEmpty() || detached || !closed.get()) {
                 return;
             }
             detached = true;
@@ -128,15 +130,15 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     public void close() {
         LOG.debug("close() called");
-
         synchronized (this) {
-            if (isInvalid()) {
+            boolean curClosing = closing.getAndSet(true);
+            if (curClosing || isInvalid()) {
                 return;
             }
-            closed = true;
         }
         closeHandler.onClose(this);
         parent.instanceClosed(this);
+        closed.set(true);
     }
 
     /**
@@ -192,7 +194,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     }
 
     private synchronized boolean isInvalid() {
-        return exception != null || closed;
+        return exception != null || closed.get();
     }
 
     /**
@@ -221,16 +223,6 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     public ImportRegistrationImpl getParent() {
         return parent;
-    }
-
-    /**
-     * Returns the imported endpoint even if this
-     * instance is closed or has an exception.
-     *
-     * @return the imported endpoint
-     */
-    public EndpointDescription getImportedEndpointAlways() {
-        return endpoint;
     }
 
     @SuppressWarnings("unchecked")

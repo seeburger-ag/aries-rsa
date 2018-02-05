@@ -19,7 +19,6 @@
 package org.apache.aries.rsa.core;
 
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 

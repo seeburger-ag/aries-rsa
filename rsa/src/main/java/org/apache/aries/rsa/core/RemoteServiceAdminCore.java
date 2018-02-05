@@ -59,8 +59,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     private final Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices
         = new LinkedHashMap<Map<String, Object>, Collection<ExportRegistration>>();
-    private final Map<EndpointDescription, Collection<ImportRegistrationImpl>> importedServices
-        = new LinkedHashMap<EndpointDescription, Collection<ImportRegistrationImpl>>();
+    private final Map<EndpointDescription, Collection<ImportRegistration>> importedServices
+        = new LinkedHashMap<EndpointDescription, Collection<ImportRegistration>>();
 
     // Is stored in exportedServices while the export is in progress as a marker
     private final List<ExportRegistration> exportInProgress = Collections.emptyList();
@@ -89,7 +89,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             }
 
             public void onClose(ImportRegistration importReg) {
-                removeImportRegistration((ImportRegistrationImpl) importReg);
+                removeImportRegistration(importReg);
             }
         };
         createServiceListener();
@@ -360,8 +360,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     public Collection<ImportReference> getImportedEndpoints() {
         synchronized (importedServices) {
             List<ImportReference> irs = new ArrayList<ImportReference>();
-            for (Collection<ImportRegistrationImpl> irl : importedServices.values()) {
-                for (ImportRegistrationImpl impl : irl) {
+            for (Collection<ImportRegistration> irl : importedServices.values()) {
+                for (ImportRegistration impl : irl) {
                     irs.add(impl.getImportReference());
                 }
             }
@@ -377,11 +377,11 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         LOG.debug("importService() Endpoint: {}", endpoint.getProperties());
 
         synchronized (importedServices) {
-            Collection<ImportRegistrationImpl> imRegs = importedServices.get(endpoint);
+            Collection<ImportRegistration> imRegs = importedServices.get(endpoint);
             if (imRegs != null && !imRegs.isEmpty()) {
                 LOG.debug("creating copy of existing import registrations");
-                ImportRegistrationImpl irParent = imRegs.iterator().next();
-                ImportRegistrationImpl ir = new ImportRegistrationImpl(irParent);
+                ImportRegistration irParent = imRegs.iterator().next();
+                ImportRegistration ir = new ImportRegistrationImpl(irParent);
                 imRegs.add(ir);
                 eventProducer.publishNotification(ir);
                 return ir;
@@ -405,7 +405,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
             ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
             if (imRegs == null) {
-                imRegs = new ArrayList<ImportRegistrationImpl>();
+                imRegs = new ArrayList<ImportRegistration>();
                 importedServices.put(endpoint, imRegs);
             }
             imRegs.add(imReg);
@@ -521,15 +521,15 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     // remove all import registrations
-    protected void removeImportRegistrations() {
-        Collection<ImportRegistrationImpl> copy = new ArrayList<ImportRegistrationImpl>();
+    protected void closeImportRegistrations() {
+        Collection<ImportRegistration> copy = new ArrayList<ImportRegistration>();
         synchronized (importedServices) {
-            for (Collection<ImportRegistrationImpl> irs : importedServices.values()) {
+            for (Collection<ImportRegistration> irs : importedServices.values()) {
                 copy.addAll(irs);
             }
         }
-        for (ImportRegistrationImpl ir : copy) {
-            removeImportRegistration(ir);
+        for (ImportRegistration ir : copy) {
+            ir.close();
         }
     }
 
@@ -551,23 +551,30 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         }
     }
 
-    protected void removeImportRegistration(ImportRegistrationImpl iri) {
+    protected void removeImportRegistration(ImportRegistration iri) {
         synchronized (importedServices) {
             LOG.debug("Removing importRegistration {}", iri);
 
-            Collection<ImportRegistrationImpl> imRegs = importedServices.get(iri.getImportedEndpointAlways());
+            ImportReference importRef = iri.getImportReference();
+            if (importRef == null) {
+                return;
+            }
+
+            EndpointDescription endpoint = importRef.getImportedEndpoint();
+            Collection<ImportRegistration> imRegs = importedServices.get(endpoint);
             if (imRegs != null && imRegs.contains(iri)) {
                 imRegs.remove(iri);
                 eventProducer.notifyRemoval(iri);
             }
             if (imRegs == null || imRegs.isEmpty()) {
-                importedServices.remove(iri.getImportedEndpointAlways());
+                importedServices.remove(endpoint);
             }
         }
     }
 
     public void close() {
-        removeImportRegistrations();
+        LOG.info("Closing " + this.getClass().getSimpleName());
+        closeImportRegistrations();
         if (exportedServiceListener != null) {
             bctx.removeServiceListener(exportedServiceListener);
         }
