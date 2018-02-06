@@ -38,10 +38,12 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Listens for local Endpoints and publishes them to ZooKeeper.
  */
-public class PublishingEndpointListener implements EndpointEventListener {
+@SuppressWarnings("deprecation")
+public class PublishingEndpointListener implements EndpointEventListener, EndpointListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListener.class);
 
@@ -79,13 +82,45 @@ public class PublishingEndpointListener implements EndpointEventListener {
             endpointRemoved(endpoint, filter);
             break;
         case EndpointEvent.MODIFIED:
-            endpointRemoved(endpoint, filter);
-            endpointAdded(endpoint, filter);
+            endpointModified(endpoint, filter);
             break;
         }
     }
     
-    private void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
+    private void endpointModified(EndpointDescription endpoint, String filter) {
+        try {
+            modifyEndpoint(endpoint);
+        } catch (Exception e) {
+            LOG.error("Error modifying endpoint data in zookeeper for endpoint {}", endpoint.getId(), e);
+        }
+    }
+
+    private void modifyEndpoint(EndpointDescription endpoint) throws URISyntaxException, KeeperException, InterruptedException {
+        Collection<String> interfaces = endpoint.getInterfaces();
+        String endpointKey = getKey(endpoint);
+        Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
+
+        // process plugins
+        Object[] plugins = discoveryPluginTracker.getServices();
+        if (plugins != null) {
+            for (Object plugin : plugins) {
+                if (plugin instanceof DiscoveryPlugin) {
+                    endpointKey = ((DiscoveryPlugin)plugin).process(props, endpointKey);
+                }
+            }
+        }
+        LOG.info("Changing endpoint in zookeeper: {}", endpoint);
+        for (String name : interfaces) {
+            String path = Utils.getZooKeeperPath(name);
+            String fullPath = path + '/' + endpointKey;
+            LOG.info("Changing ZooKeeper node for service with path {}", fullPath);
+            createPath(path, zk);
+            zk.setData(fullPath, getData(endpoint), -1);
+        }
+    }
+
+    @Override
+    public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
         synchronized (endpoints) {
             if (closed) {
                 return;
@@ -153,7 +188,8 @@ public class PublishingEndpointListener implements EndpointEventListener {
         }
     }
 
-    private void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
+    @Override
+    public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
         LOG.info("Local EndpointDescription removed: {}", endpoint);
 
         synchronized (endpoints) {
@@ -195,7 +231,9 @@ public class PublishingEndpointListener implements EndpointEventListener {
             current.append('/');
             current.append(part);
             try {
-                zk.create(current.toString(), new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                if (zk.exists(current.toString(), false) == null) {
+                    zk.create(current.toString(), new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                }
             } catch (NodeExistsException nee) {
                 // it's not the first node with this path to ever exist - that's normal
             }

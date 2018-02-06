@@ -31,6 +31,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
+import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Creates local EndpointListeners that publish to ZooKeeper.
  */
+@SuppressWarnings("deprecation")
 public class PublishingEndpointListenerFactory implements ServiceFactory<PublishingEndpointListener> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListenerFactory.class);
@@ -78,7 +80,8 @@ public class PublishingEndpointListenerFactory implements ServiceFactory<Publish
                   String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
                                 RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
         props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
-        serviceRegistration = bctx.registerService(EndpointEventListener.class.getName(), this, props);
+        String[] ifAr = {EndpointEventListener.class.getName(), EndpointListener.class.getName()};
+        serviceRegistration = bctx.registerService(ifAr, this, props);
     }
     
     public synchronized void stop() {

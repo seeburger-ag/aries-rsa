@@ -20,6 +20,7 @@ package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Collections;
 
@@ -29,6 +30,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.AsyncCallback.DataCallback;
 import org.apache.zookeeper.data.Stat;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
@@ -52,6 +54,8 @@ public class InterfaceMonitorTest extends TestCase {
         InterfaceMonitor im = new InterfaceMonitor(zk, interf, endpointListener, scope);
         zk.exists(eq(node), eq(im), eq(im), EasyMock.anyObject());
         EasyMock.expectLastCall().once();
+        zk.getData(eq(node), eq(im), EasyMock.anyObject(DataCallback.class), EasyMock.anyObject());
+        expectLastCall();
 
         expect(zk.exists(eq(node), eq(false))).andReturn(new Stat()).anyTimes();
         expect(zk.getChildren(eq(node), eq(false))).andReturn(Collections.<String> emptyList()).once();

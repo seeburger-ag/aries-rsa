@@ -33,7 +33,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
-import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     private final BundleContext bctx;
 
     private PublishingEndpointListenerFactory endpointListenerFactory;
-    private ServiceTracker<EndpointEventListener, EndpointEventListener> endpointListenerTracker;
+    private ServiceTracker<?, ?> endpointListenerTracker;
     private InterfaceMonitorManager imManager;
     private ZooKeeper zkClient;
     private boolean closed;

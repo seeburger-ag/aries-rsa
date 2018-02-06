@@ -91,6 +91,13 @@ public class InterfaceMonitor implements Watcher, StatCallback {
     private void watch() {
         LOG.debug("registering a ZooKeeper.exists({}) callback", znode);
         zk.exists(znode, this, this, null);
+        zk.getData(znode, this, new DataCallback() {
+            
+            @Override
+            public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+                processDelta();
+            }
+        }, null);
     }
 
     /**
@@ -199,18 +206,22 @@ public class InterfaceMonitor implements Watcher, StatCallback {
                 EndpointDescription endpoint = getEndpointDescriptionFromNode(childZNode);
                 if (endpoint != null) {
                     EndpointDescription prevEndpoint = prevNodes.get(child);
-                    LOG.info("found new node " + zn + "/[" + child + "]   ( []->child )  props: "
-                            + endpoint.getProperties().values());
+                    
                     newNodes.put(child, endpoint);
                     prevNodes.remove(child);
                     foundANode = true;
                     LOG.debug("Properties: {}", endpoint.getProperties());
                     if (prevEndpoint == null) {
                         // This guy is new
+                        LOG.info("found new node " + zn + "/[" + child + "]   ( []->child )  props: "
+                                + endpoint.getProperties().values());
                         EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
                         endpointListener.endpointChanged(event, null);
                     } else if (!prevEndpoint.getProperties().equals(endpoint.getProperties())) {
-                        // TODO
+                        LOG.info("Found changed node " + zn + "/[" + child + "]   ( []->child )  props: "
+                                + endpoint.getProperties().values());
+                        EndpointEvent event = new EndpointEvent(EndpointEvent.MODIFIED, endpoint);
+                        endpointListener.endpointChanged(event, null);
                     }
                 }
                 if (recursive && processChildren(childZNode, newNodes, prevNodes)) {
