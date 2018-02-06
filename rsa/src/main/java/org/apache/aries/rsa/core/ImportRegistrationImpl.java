@@ -107,7 +107,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
         ensureParent();
         synchronized (this) {
             children.remove(iri);
-            if (!children.isEmpty() || detached || !closed.get()) {
+            if (!children.isEmpty() || detached || !closing.get()) {
                 return;
             }
             detached = true;
