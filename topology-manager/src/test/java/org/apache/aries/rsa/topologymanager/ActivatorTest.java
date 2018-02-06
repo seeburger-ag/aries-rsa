@@ -22,20 +22,14 @@ import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.newCapture;
 
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 public class ActivatorTest {
@@ -47,13 +41,6 @@ public class ActivatorTest {
         expect(context.getProperty(Constants.FRAMEWORK_UUID)).andReturn("myid");
         context.addServiceListener(isA(TopologyManagerExport.class));
         expectLastCall();
-        final Capture<String> filter = newCapture();
-        expect(context.createFilter(EasyMock.capture(filter)))
-            .andAnswer(new IAnswer<Filter>() {
-                public Filter answer() throws Throwable {
-                    return FrameworkUtil.createFilter(filter.getValue());
-                }
-            }).times(2);
         ServiceReference<?> sref = c.createMock(ServiceReference.class);
         Bundle bundle = c.createMock(Bundle.class);
         expect(sref.getBundle()).andReturn(bundle).anyTimes();

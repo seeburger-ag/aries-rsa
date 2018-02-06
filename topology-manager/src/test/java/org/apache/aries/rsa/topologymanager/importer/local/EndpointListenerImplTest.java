@@ -30,6 +30,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 
 @SuppressWarnings("deprecation")
@@ -47,8 +48,9 @@ public class EndpointListenerImplTest extends Assert {
         TopologyManagerImport tm = c.createMock(TopologyManagerImport.class);
         ServiceRegistration sr = c.createMock(ServiceRegistration.class);
 
+        String[] ifAr = new String[] {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
         // expect Listener registration
-        EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
+        EasyMock.expect(bc.registerService(EasyMock.aryEq(ifAr),
                                            EasyMock.anyObject(),
                                            (Dictionary)EasyMock.anyObject())).andReturn(sr).atLeastOnce();
 

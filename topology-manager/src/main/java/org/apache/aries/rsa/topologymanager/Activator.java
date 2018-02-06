@@ -57,7 +57,6 @@ public class Activator implements BundleActivator {
     
     private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
     private EndpointListenerManager endpointListenerManager;
-    private EndpointListenerTracker epListenerTracker;
     private EndpointEventListenerTracker epeListenerTracker;
 
     public void start(final BundleContext bc) throws Exception {
@@ -101,7 +100,6 @@ public class Activator implements BundleActivator {
         notifier = new EndpointListenerNotifier();
         exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         exportManager = new TopologyManagerExport(notifier, exportExecutor, policy);
-        epListenerTracker = new EndpointListenerTracker(bc, exportManager);
         epeListenerTracker = new EndpointEventListenerTracker(bc, exportManager);
         importManager = new TopologyManagerImport(bc);
         endpointListenerManager = new EndpointListenerManager(bc, importManager);
@@ -109,7 +107,6 @@ public class Activator implements BundleActivator {
         rsaTracker = new RSATracker(bc, RemoteServiceAdmin.class, null);
         bc.addServiceListener(exportManager);
         rsaTracker.open();
-        epListenerTracker.open();
         epeListenerTracker.open();
         exportExistingServices(bc);
         importManager.start();
@@ -121,7 +118,6 @@ public class Activator implements BundleActivator {
 
     public void doStop(BundleContext bc) {
         LOG.debug("TopologyManager: stop()");
-        epListenerTracker.close();
         bc.removeServiceListener(exportManager);
         exportExecutor.shutdown();
         importManager.stop();

@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("deprecation")
 public class EndpointListenerManager implements ServiceInterestListener{
 
-    private final class EndpointListenerAdapter implements EndpointListener {
+    private final class EndpointListenerAdapter implements EndpointListener, EndpointEventListener {
         @Override
         public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
             EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
@@ -57,13 +57,17 @@ public class EndpointListenerManager implements ServiceInterestListener{
             EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
             endpointListener.endpointChanged(event, matchedFilter);
         }
+
+        @Override
+        public void endpointChanged(EndpointEvent event, String filter) {
+            endpointListener.endpointChanged(event, filter);
+        }
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerManager.class);
 
     private final BundleContext bctx;
-    private volatile ServiceRegistration<EndpointListener> serviceRegistration;
-    private volatile ServiceRegistration<EndpointEventListener> serviceRegistration2;
+    private volatile ServiceRegistration<?> serviceRegistration;
     
     private final List<String> filters = new ArrayList<String>();
     private final EndpointEventListener endpointListener;
@@ -84,10 +88,9 @@ public class EndpointListenerManager implements ServiceInterestListener{
 
     public void start() {
         EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
-        serviceRegistration = bctx.registerService(EndpointListener.class, endpointListenerAdapter,
-                                                   getELProperties());
-        serviceRegistration2 = bctx.registerService(EndpointEventListener.class, endpointListener,
-                getEELProperties());
+        String[] ifAr = new String[] {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
+        serviceRegistration = bctx.registerService(ifAr, endpointListenerAdapter,
+                                                   getEELProperties());
 
         bctx.registerService(ListenerHook.class, listenerHook, null);
         bctx.registerService(FindHook.class, findHook, null);
@@ -96,9 +99,6 @@ public class EndpointListenerManager implements ServiceInterestListener{
     public void stop() {
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
-        }
-        if (serviceRegistration2 != null) {
-            serviceRegistration2.unregister();
         }
     }
 
@@ -124,12 +124,6 @@ public class EndpointListenerManager implements ServiceInterestListener{
         updateRegistration();
     }
 
-    private Dictionary<String, Object> getELProperties() {
-        Dictionary<String, Object> p = new Hashtable<String, Object>();
-        p.put(EndpointListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
-        return p;
-    }
-    
     private Dictionary<String, Object> getEELProperties() {
         Dictionary<String, Object> p = new Hashtable<String, Object>();
         p.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
@@ -144,12 +138,8 @@ public class EndpointListenerManager implements ServiceInterestListener{
 
     private void updateRegistration() {
         if (serviceRegistration != null) {
-            serviceRegistration.setProperties(getELProperties());
+            serviceRegistration.setProperties(getEELProperties());
         }
-        if (serviceRegistration2 != null) {
-            serviceRegistration2.setProperties(getEELProperties());
-        }
-
     }
 
     @Override
