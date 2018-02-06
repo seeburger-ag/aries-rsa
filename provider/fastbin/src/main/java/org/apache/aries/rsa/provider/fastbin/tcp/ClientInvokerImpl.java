@@ -295,7 +295,18 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             try {
                 if(method.getDeclaringClass()==Object.class) {
-                    //shortcut for equals, hashcode,...
+
+                    if (args != null && args.length == 1 && "equals".equals(method.getName())) {
+                        //special treatment for equals to make sure proxy.equals(proxy) -> true
+                        Object arg = args[0];
+                        if (arg == null) {
+                            return false;
+                        }
+                        if (proxy == arg) {
+                            return true;
+                        }
+                    }
+                    //shortcut for hashcode, toString...
                     return method.invoke(this, args);
                 }
                 return request(this, address, service, classLoader, method, args);
