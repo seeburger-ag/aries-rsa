@@ -19,6 +19,7 @@
 package org.apache.aries.rsa.discovery.zookeeper;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         this.bctx = bctx;
     }
 
-    public synchronized void updated(Dictionary<String, ?> configuration) throws ConfigurationException {
+    public synchronized void updated(final Dictionary<String, ?> configuration) throws ConfigurationException {
         LOG.debug("Received configuration update for Zookeeper Discovery: {}", configuration);
         // make changes only if config actually changed, to prevent unnecessary ZooKeeper reconnections
         if (!toMap(configuration).equals(toMap(curConfiguration))) {
@@ -66,13 +67,18 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
             curConfiguration = configuration;
             // config is null if it doesn't exist, is being deleted or has not yet been loaded
             // in which case we just stop running
-            if (!closed && configuration != null) {
-                try {
-                    createZookeeper(configuration);
-                } catch (IOException e) {
-                    throw new ConfigurationException(null, "Error starting zookeeper client", e);
-                }
+            if (closed || configuration == null) {
+                return;
             }
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        createZookeeper(configuration);
+                    } catch (IOException e) {
+                        LOG.error("Error starting zookeeper client", e);
+                    }
+                }
+            }).start();
         }
     }
 
@@ -155,7 +161,26 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         String host = (String)getWithDefault(config, "zookeeper.host", "localhost");
         String port = (String)getWithDefault(config, "zookeeper.port", "2181");
         int timeout = Integer.parseInt((String)getWithDefault(config, "zookeeper.timeout", "3000"));
+        waitPort(host, Integer.parseInt(port));
         zkClient = createZooKeeper(host, port, timeout);
+    }
+
+    private void waitPort(String host, int port) {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 2000) {
+            try (Socket socket = new Socket(host, port)) {
+                return;
+            } catch (IOException e) {
+                safeSleep();
+            }
+        }
+    }
+
+    private void safeSleep() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e1) {
+        }
     }
     
     public Object getWithDefault(Dictionary<String, ?> config, String key, Object defaultValue) {
