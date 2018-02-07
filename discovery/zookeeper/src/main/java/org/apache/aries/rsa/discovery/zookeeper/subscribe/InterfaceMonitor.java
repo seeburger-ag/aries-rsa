@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
-import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
@@ -67,7 +67,7 @@ public class InterfaceMonitor implements Watcher, StatCallback {
 
     public InterfaceMonitor(ZooKeeper zk, String objClass, EndpointEventListener endpointListener, String scope) {
         this.zk = zk;
-        this.znode = Utils.getZooKeeperPath(objClass);
+        this.znode = ZookeeperEndpointRepository.getZooKeeperPath(objClass);
         this.recursive = objClass == null || objClass.isEmpty();
         this.endpointListener = endpointListener;
         this.parser = new EndpointDescriptionParser();

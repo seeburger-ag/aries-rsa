@@ -18,29 +18,11 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.publish;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
-import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -49,28 +31,23 @@ import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens for local Endpoints and publishes them to ZooKeeper.
+ * Listens for local EndpointEvents using old and new style listeners and publishes changes to 
+ * the ZooKeeperEndpointRepository
  */
 @SuppressWarnings("deprecation")
 public class PublishingEndpointListener implements EndpointEventListener, EndpointListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListener.class);
 
-    private final ZooKeeper zk;
-    private final List<EndpointDescription> endpoints = new ArrayList<EndpointDescription>();
-    private boolean closed;
-    private final EndpointDescriptionParser endpointDescriptionParser;
-
     private ServiceRegistration<?> listenerReg;
+    private ZookeeperEndpointRepository repository;
 
-    public PublishingEndpointListener(ZooKeeper zk, BundleContext bctx) {
-        this.zk = zk;
-        endpointDescriptionParser = new EndpointDescriptionParser();
+    public PublishingEndpointListener(ZookeeperEndpointRepository repository) {
+        this.repository = repository;
     }
     
     public void start(BundleContext bctx) {
@@ -109,155 +86,28 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     
     private void endpointModified(EndpointDescription endpoint, String filter) {
         try {
-            modifyEndpoint(endpoint);
+            repository.modify(endpoint);
         } catch (Exception e) {
             LOG.error("Error modifying endpoint data in zookeeper for endpoint {}", endpoint.getId(), e);
         }
     }
 
-    private void modifyEndpoint(EndpointDescription endpoint) throws URISyntaxException, KeeperException, InterruptedException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-        Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
-
-        LOG.info("Changing endpoint in zookeeper: {}", endpoint);
-        for (String name : interfaces) {
-            String path = Utils.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.info("Changing ZooKeeper node for service with path {}", fullPath);
-            createPath(path, zk);
-            zk.setData(fullPath, getData(endpoint), -1);
-        }
-    }
-
     @Override
     public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        synchronized (endpoints) {
-            if (closed) {
-                return;
-            }
-            if (endpoints.contains(endpoint)) {
-                // TODO -> Should the published endpoint be updated here?
-                return;
-            }
-
-            try {
-                addEndpoint(endpoint);
-                endpoints.add(endpoint);
-            } catch (Exception ex) {
-                LOG.error("Exception while processing the addition of an endpoint.", ex);
-            }
-        }
-    }
-    
-    private byte[] getData(EndpointDescription epd) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        endpointDescriptionParser.writeEndpoint(epd, bos);
-        return bos.toByteArray();
-    }
-
-    private void addEndpoint(EndpointDescription endpoint) throws URISyntaxException, KeeperException,
-                                                                  InterruptedException, IOException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-        LOG.info("Exporting endpoint to zookeeper: {}", endpoint);
-        for (String name : interfaces) {
-            String path = Utils.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.info("Creating ZooKeeper node for service with path {}", fullPath);
-            createPath(path, zk);
-            createEphemeralNode(fullPath, getData(endpoint));
-        }
-    }
-
-    private void createEphemeralNode(String fullPath, byte[] data) throws KeeperException, InterruptedException {
         try {
-            zk.create(fullPath, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        } catch (NodeExistsException nee) {
-            // this sometimes happens after a ZooKeeper node dies and the ephemeral node
-            // that belonged to the old session was not yet deleted. We need to make our
-            // session the owner of the node so it won't get deleted automatically -
-            // we do this by deleting and recreating it ourselves.
-            LOG.info("node for endpoint already exists, recreating: {}", fullPath);
-            try {
-                zk.delete(fullPath, -1);
-            } catch (NoNodeException nne) {
-                // it's a race condition, but as long as it got deleted - it's ok
-            }
-            zk.create(fullPath, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+            repository.add(endpoint);
+        } catch (Exception ex) {
+            LOG.error("Exception while processing the addition of an endpoint.", ex);
         }
     }
 
     @Override
     public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-        LOG.info("Local EndpointDescription removed: {}", endpoint);
-
-        synchronized (endpoints) {
-            if (closed) {
-                return;
-            }
-            if (!endpoints.contains(endpoint)) {
-                return;
-            }
-
-            try {
-                removeEndpoint(endpoint);
-                endpoints.remove(endpoint);
-            } catch (Exception ex) {
-                LOG.error("Exception while processing the removal of an endpoint", ex);
-            }
+        try {
+            repository.remove(endpoint);
+        } catch (Exception ex) {
+            LOG.error("Exception while processing the removal of an endpoint", ex);
         }
     }
 
-    private void removeEndpoint(EndpointDescription endpoint) throws UnknownHostException, URISyntaxException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-        for (String name : interfaces) {
-            String path = Utils.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.debug("Removing ZooKeeper node: {}", fullPath);
-            try {
-                zk.delete(fullPath, -1);
-            } catch (Exception ex) {
-                LOG.debug("Error while removing endpoint: {}", ex); // e.g. session expired
-            }
-        }
-    }
-
-    private static void createPath(String path, ZooKeeper zk) throws KeeperException, InterruptedException {
-        StringBuilder current = new StringBuilder();
-        List<String> parts = Utils.removeEmpty(Arrays.asList(path.split("/")));
-        for (String part : parts) {
-            current.append('/');
-            current.append(part);
-            try {
-                if (zk.exists(current.toString(), false) == null) {
-                    zk.create(current.toString(), new byte[0], Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                }
-            } catch (NodeExistsException nee) {
-                // it's not the first node with this path to ever exist - that's normal
-            }
-        }
-    }
-
-    private static String getKey(EndpointDescription endpoint) throws URISyntaxException {
-        URI uri = new URI(endpoint.getId());
-        return new StringBuilder().append(uri.getHost()).append("#").append(uri.getPort())
-            .append("#").append(uri.getPath().replace('/', '#')).toString();
-    }
-
-    public void close() {
-        LOG.debug("closing - removing all endpoints");
-        synchronized (endpoints) {
-            closed = true;
-            for (EndpointDescription endpoint : endpoints) {
-                try {
-                    removeEndpoint(endpoint);
-                } catch (Exception ex) {
-                    LOG.error("Exception while removing endpoint during close", ex);
-                }
-            }
-            endpoints.clear();
-        }
-    }
 }

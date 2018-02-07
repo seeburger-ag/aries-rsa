@@ -23,13 +23,13 @@ import static org.easymock.EasyMock.expect;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
@@ -44,7 +44,6 @@ public class PublishingEndpointListenerTest extends TestCase {
     public void testEndpointRemovalAdding() throws KeeperException, InterruptedException {
         IMocksControl c = EasyMock.createNiceControl();
 
-        BundleContext ctx = c.createMock(BundleContext.class);
         ZooKeeper zk = c.createMock(ZooKeeper.class);
 
         String path = ENDPOINT_PATH;
@@ -53,29 +52,13 @@ public class PublishingEndpointListenerTest extends TestCase {
 
         c.replay();
 
-        PublishingEndpointListener eli = new PublishingEndpointListener(zk, ctx);
+        ZookeeperEndpointRepository repository = new ZookeeperEndpointRepository(zk);
+        PublishingEndpointListener eli = new PublishingEndpointListener(repository);
         EndpointDescription endpoint = createEndpoint();
         eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null);
         eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null); // should do nothing
         eli.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), null);
         eli.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), null); // should do nothing
-
-        c.verify();
-    }
-
-    public void testClose() throws KeeperException, InterruptedException {
-        IMocksControl c = EasyMock.createNiceControl();
-        BundleContext ctx = c.createMock(BundleContext.class);
-        ZooKeeper zk = c.createMock(ZooKeeper.class);
-        expectCreated(zk, ENDPOINT_PATH);
-        expectDeleted(zk, ENDPOINT_PATH);
-
-        c.replay();
-
-        PublishingEndpointListener eli = new PublishingEndpointListener(zk, ctx);
-        EndpointDescription endpoint = createEndpoint();
-        eli.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), null);
-        eli.close(); // should result in zk.delete(...)
 
         c.verify();
     }

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.discovery.zookeeper.subscribe.EndpointListenerTracker;
 import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterfaceMonitorManager;
 import org.apache.zookeeper.WatchedEvent;
@@ -54,6 +55,8 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     private boolean started;
 
     private Dictionary<String, ?> curConfiguration;
+
+    private ZookeeperEndpointRepository repository;
 
     public ZooKeeperDiscovery(BundleContext bctx) {
         this.bctx = bctx;
@@ -92,7 +95,8 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
             return;
         }
         LOG.debug("starting ZookeeperDiscovery");
-        endpointListener = new PublishingEndpointListener(zkClient, bctx);
+        repository = new ZookeeperEndpointRepository(zkClient);
+        endpointListener = new PublishingEndpointListener(repository);
         endpointListener.start(bctx);
         imManager = new InterfaceMonitorManager(bctx, zkClient);
         endpointListenerTracker = new EndpointListenerTracker(bctx, imManager);
@@ -108,7 +112,6 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         closed |= close;
         if (endpointListener != null) {
             endpointListener.stop();
-            endpointListener.close();
         }
         if (endpointListenerTracker != null) {
             endpointListenerTracker.close();

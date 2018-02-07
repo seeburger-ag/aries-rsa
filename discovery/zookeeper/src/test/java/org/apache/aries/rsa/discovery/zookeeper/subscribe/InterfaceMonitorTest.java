@@ -24,7 +24,7 @@ import static org.easymock.EasyMock.expectLastCall;
 
 import java.util.Collections;
 
-import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher.Event.EventType;
@@ -48,7 +48,7 @@ public class InterfaceMonitorTest extends TestCase {
 
         String scope = "(myProp=test)";
         String interf = "es.schaaf.test";
-        String node = Utils.getZooKeeperPath(interf);
+        String node = ZookeeperEndpointRepository.getZooKeeperPath(interf);
 
         EndpointEventListener endpointListener = c.createMock(EndpointEventListener.class);
         InterfaceMonitor im = new InterfaceMonitor(zk, interf, endpointListener, scope);
