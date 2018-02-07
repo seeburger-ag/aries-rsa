@@ -66,7 +66,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     private boolean closed;
     private final EndpointDescriptionParser endpointDescriptionParser;
 
-    private ServiceTracker<DiscoveryPlugin, DiscoveryPlugin> discoveryPluginTracker;
     private ServiceRegistration<?> listenerReg;
 
     public PublishingEndpointListener(ZooKeeper zk, BundleContext bctx) {
@@ -75,9 +74,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     }
     
     public void start(BundleContext bctx) {
-        discoveryPluginTracker = new ServiceTracker<DiscoveryPlugin, DiscoveryPlugin>(bctx, 
-                DiscoveryPlugin.class, null);
-            discoveryPluginTracker.open();
         Dictionary<String, String> props = new Hashtable<String, String>();
         String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, 
@@ -124,15 +120,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
         String endpointKey = getKey(endpoint);
         Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
 
-        // process plugins
-        Object[] plugins = discoveryPluginTracker.getServices();
-        if (plugins != null) {
-            for (Object plugin : plugins) {
-                if (plugin instanceof DiscoveryPlugin) {
-                    endpointKey = ((DiscoveryPlugin)plugin).process(props, endpointKey);
-                }
-            }
-        }
         LOG.info("Changing endpoint in zookeeper: {}", endpoint);
         for (String name : interfaces) {
             String path = Utils.getZooKeeperPath(name);
@@ -173,17 +160,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
                                                                   InterruptedException, IOException {
         Collection<String> interfaces = endpoint.getInterfaces();
         String endpointKey = getKey(endpoint);
-        Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
-
-        // process plugins
-        Object[] plugins = discoveryPluginTracker != null ? discoveryPluginTracker.getServices() : null;
-        if (plugins != null) {
-            for (Object plugin : plugins) {
-                if (plugin instanceof DiscoveryPlugin) {
-                    endpointKey = ((DiscoveryPlugin)plugin).process(props, endpointKey);
-                }
-            }
-        }
         LOG.info("Exporting endpoint to zookeeper: {}", endpoint);
         for (String name : interfaces) {
             String path = Utils.getZooKeeperPath(name);
@@ -282,9 +258,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
                 }
             }
             endpoints.clear();
-        }
-        if (discoveryPluginTracker != null) {
-            discoveryPluginTracker.close();
         }
     }
 }
