@@ -26,11 +26,14 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.aries.rsa.discovery.zookeeper.util.Utils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -38,12 +41,14 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,18 +62,37 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListener.class);
 
     private final ZooKeeper zk;
-    private final ServiceTracker<DiscoveryPlugin, DiscoveryPlugin> discoveryPluginTracker;
     private final List<EndpointDescription> endpoints = new ArrayList<EndpointDescription>();
     private boolean closed;
-
     private final EndpointDescriptionParser endpointDescriptionParser;
+
+    private ServiceTracker<DiscoveryPlugin, DiscoveryPlugin> discoveryPluginTracker;
+    private ServiceRegistration<?> listenerReg;
 
     public PublishingEndpointListener(ZooKeeper zk, BundleContext bctx) {
         this.zk = zk;
-        discoveryPluginTracker = new ServiceTracker<DiscoveryPlugin, DiscoveryPlugin>(bctx, 
-            DiscoveryPlugin.class, null);
-        discoveryPluginTracker.open();
         endpointDescriptionParser = new EndpointDescriptionParser();
+    }
+    
+    public void start(BundleContext bctx) {
+        discoveryPluginTracker = new ServiceTracker<DiscoveryPlugin, DiscoveryPlugin>(bctx, 
+                DiscoveryPlugin.class, null);
+            discoveryPluginTracker.open();
+        Dictionary<String, String> props = new Hashtable<String, String>();
+        String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
+        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, 
+                  String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
+                                RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
+        props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
+        String[] ifAr = {EndpointEventListener.class.getName(), EndpointListener.class.getName()};
+        listenerReg = bctx.registerService(ifAr, this, props);
+    }
+    
+    public void stop() {
+        if (listenerReg != null) {
+            listenerReg.unregister();
+            listenerReg = null;
+        }
     }
 
     @Override
@@ -152,7 +176,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
         Map<String, Object> props = new HashMap<String, Object>(endpoint.getProperties());
 
         // process plugins
-        Object[] plugins = discoveryPluginTracker.getServices();
+        Object[] plugins = discoveryPluginTracker != null ? discoveryPluginTracker.getServices() : null;
         if (plugins != null) {
             for (Object plugin : plugins) {
                 if (plugin instanceof DiscoveryPlugin) {
@@ -259,6 +283,8 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
             }
             endpoints.clear();
         }
-        discoveryPluginTracker.close();
+        if (discoveryPluginTracker != null) {
+            discoveryPluginTracker.close();
+        }
     }
 }

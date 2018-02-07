@@ -25,7 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListenerFactory;
+import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
 import org.apache.aries.rsa.discovery.zookeeper.subscribe.EndpointListenerTracker;
 import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterfaceMonitorManager;
 import org.apache.zookeeper.WatchedEvent;
@@ -46,7 +46,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
 
     private final BundleContext bctx;
 
-    private PublishingEndpointListenerFactory endpointListenerFactory;
+    private PublishingEndpointListener endpointListener;
     private ServiceTracker<?, ?> endpointListenerTracker;
     private InterfaceMonitorManager imManager;
     private ZooKeeper zkClient;
@@ -92,8 +92,8 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
             return;
         }
         LOG.debug("starting ZookeeperDiscovery");
-        endpointListenerFactory = new PublishingEndpointListenerFactory(zkClient, bctx);
-        endpointListenerFactory.start();
+        endpointListener = new PublishingEndpointListener(zkClient, bctx);
+        endpointListener.start(bctx);
         imManager = new InterfaceMonitorManager(bctx, zkClient);
         endpointListenerTracker = new EndpointListenerTracker(bctx, imManager);
         endpointListenerTracker.open();
@@ -106,8 +106,9 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         }
         started = false;
         closed |= close;
-        if (endpointListenerFactory != null) {
-            endpointListenerFactory.stop();
+        if (endpointListener != null) {
+            endpointListener.stop();
+            endpointListener.close();
         }
         if (endpointListenerTracker != null) {
             endpointListenerTracker.close();
