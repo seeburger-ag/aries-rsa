@@ -18,8 +18,10 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -47,6 +49,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceException;
 import org.osgi.util.promise.Promise;
 
 public class TcpProviderTest {
@@ -81,8 +84,9 @@ public class TcpProviderTest {
         try {
             myServiceProxy.callSlow(TIMEOUT + 100);
             Assert.fail("Expecting timeout");
-        } catch (RuntimeException e) {
-            Assert.assertEquals(SocketTimeoutException.class, e.getCause().getClass());
+        } catch (ServiceException e) {
+            assertThat(e.getCause().getClass().getName(), equalTo(SocketTimeoutException.class.getName()));
+            assertThat(e.getType(), equalTo(ServiceException.REMOTE));
         }
     }
 

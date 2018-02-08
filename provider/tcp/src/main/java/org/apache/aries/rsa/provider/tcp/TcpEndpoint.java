@@ -45,7 +45,7 @@ public class TcpEndpoint implements Endpoint {
         String endpointId = String.format("tcp://%s:%s",hostName, tcpServer.getPort());
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
-        effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic, osgi.async"));
+        effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic", "osgi.async"));
         
         // tck tests for one such property ... so we provide it
         effectiveProperties.put(TCPProvider.TCP_CONFIG_TYPE + ".id", endpointId);

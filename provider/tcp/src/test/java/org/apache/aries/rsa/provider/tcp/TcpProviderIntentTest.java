@@ -18,8 +18,10 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +48,16 @@ public class TcpProviderIntentTest {
         bc = EasyMock.mock(BundleContext.class);
         provider = new TCPProvider();
         myService = new MyServiceImpl();
+    }
+    
+    @Test
+    public void basicAndAsnycIntents() {
+        Map<String, Object> props = new HashMap<String, Object>();
+        EndpointHelper.addObjectClass(props, exportedInterfaces);
+        String[] standardIntents = new String[] {"osgi.basic", "osgi.async"};
+        props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, standardIntents);
+        Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
+        Assert.assertThat("Service should be exported as the intents: " + Arrays.toString(standardIntents) + " must be supported", ep, notNullValue());
     }
     
     @Test

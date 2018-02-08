@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("rawtypes")
 public class TCPProvider implements DistributionProvider {
     static final String TCP_CONFIG_TYPE = "aries.tcp";
-    private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.sync"};
+    private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.async"};
     
     private Logger logger = LoggerFactory.getLogger(TCPProvider.class);
 
