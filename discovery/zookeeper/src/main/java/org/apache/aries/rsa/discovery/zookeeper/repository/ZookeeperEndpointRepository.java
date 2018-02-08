@@ -247,13 +247,17 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     private void handleRemoved(String path) {
         EndpointDescription endpoint = nodes.remove(path);
         EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
-        listener.endpointChanged(event, null);
+        if (listener != null) {
+            listener.endpointChanged(event, null);
+        }
     }
 
     private void handleChanged(String path, EndpointDescription endpoint) {
         EndpointDescription old = nodes.put(path, endpoint);
         EndpointEvent event = new EndpointEvent(old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED, endpoint);
-        listener.endpointChanged(event, null);
+        if (listener != null) {
+            listener.endpointChanged(event, null);
+        }
     }
 
 }
