@@ -173,6 +173,9 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         handleZNodeChanged(path);
         try {
             List<String> children = zk.getChildren(path, this);
+            if (children == null) {
+                return;
+            }
             for (String child : children) {
                 String childPath = (path.endsWith("/") ? path : path + "/") + child;
                 watchRecursive(childPath);
