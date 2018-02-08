@@ -18,95 +18,68 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 
-import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
+import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
 public class InterfaceMonitorManagerTest {
 
     @Test
     public void testEndpointListenerTrackerCustomizer() {
-        IMocksControl c = EasyMock.createNiceControl();
-        BundleContext ctx = c.createMock(BundleContext.class);
-        ServiceReference<EndpointEventListener> sref = createService(c, "(objectClass=mine)", "mine");
-        ServiceReference<EndpointEventListener> sref2 = createService(c, "(objectClass=mine)", "mine");
-        ZooKeeper zk = c.createMock(ZooKeeper.class);
-        InterfaceMonitorManager eltc = new InterfaceMonitorManager(ctx, zk);
+        IMocksControl c = EasyMock.createControl();
+        ServiceReference<EndpointEventListener> sref = createService(c, "(objectClass=mine)");
+        ServiceReference<EndpointEventListener> sref2 = createService(c, "(objectClass=mine)");
+        ZookeeperEndpointRepository repository = c.createMock(ZookeeperEndpointRepository.class);
+        List<EndpointDescription> endpoints = new ArrayList<>();
+        expect(repository.getAll()).andReturn(endpoints).atLeastOnce();
+        EndpointEventListener epListener1 = c.createMock(EndpointEventListener.class); 
+        EndpointEventListener epListener2 = c.createMock(EndpointEventListener.class); 
 
         c.replay();
 
+        InterfaceMonitorManager eltc = new InterfaceMonitorManager(repository);
         // sref has no scope -> nothing should happen
-        assertEquals(0, eltc.getEndpointListenerScopes().size());
         assertEquals(0, eltc.getInterests().size());
 
-        eltc.addInterest(sref);
-        assertScopeIncludes(sref, eltc);
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
+
+        eltc.addInterest(sref, epListener1);
         assertEquals(1, eltc.getInterests().size());
 
-        eltc.addInterest(sref);
-        assertScopeIncludes(sref, eltc);
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
+        eltc.addInterest(sref, epListener1);
         assertEquals(1, eltc.getInterests().size());
 
-        eltc.addInterest(sref2);
-        assertScopeIncludes(sref, eltc);
-        assertScopeIncludes(sref2, eltc);
-        assertEquals(2, eltc.getEndpointListenerScopes().size());
+        eltc.addInterest(sref2, epListener2);
+        assertEquals(2, eltc.getInterests().size());
+
+        eltc.removeInterest(sref);
         assertEquals(1, eltc.getInterests().size());
 
         eltc.removeInterest(sref);
-        assertScopeIncludes(sref2, eltc);
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.removeInterest(sref);
-        assertScopeIncludes(sref2, eltc);
-        assertEquals(1, eltc.getEndpointListenerScopes().size());
         assertEquals(1, eltc.getInterests().size());
 
         eltc.removeInterest(sref2);
-        assertEquals(0, eltc.getEndpointListenerScopes().size());
         assertEquals(0, eltc.getInterests().size());
 
         c.verify();
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceReference<EndpointEventListener> createService(IMocksControl c, String scope, String objectClass) {
+    private ServiceReference<EndpointEventListener> createService(IMocksControl c, String scope) {
         ServiceReference<EndpointEventListener> sref = c.createMock(ServiceReference.class);
-        final Dictionary<String, String> props = new Hashtable<>();
-        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, scope);
-        props.put(Constants.OBJECTCLASS, objectClass);
-        String[] keys = Collections.list(props.keys()).toArray(new String[]{});
-        EasyMock.expect(sref.getPropertyKeys()).andReturn(keys).anyTimes();
-        EasyMock.expect(sref.getProperty((String)EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return props.get(getCurrentArguments()[0]);
-            }
-        }).anyTimes();
+        expect(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE)).andReturn(scope).atLeastOnce();
+        expect(sref.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)).andReturn(null).atLeastOnce();
         return sref;
-    }
-
-    private void assertScopeIncludes(ServiceReference<EndpointEventListener> sref, InterfaceMonitorManager imm) {
-        List<String> srefScope = imm.getEndpointListenerScopes().get(sref);
-        assertEquals(1, srefScope.size());
-        assertEquals("(objectClass=mine)", srefScope.get(0));
-        
     }
 
 }

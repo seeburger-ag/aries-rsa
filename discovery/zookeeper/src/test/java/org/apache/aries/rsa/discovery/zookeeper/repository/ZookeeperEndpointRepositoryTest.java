@@ -1,15 +1,22 @@
 package org.apache.aries.rsa.discovery.zookeeper.repository;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -32,6 +39,7 @@ public class ZookeeperEndpointRepositoryTest {
     private ZooKeeperServer server;
     private ZooKeeper zk;
     private ServerCnxnFactory factory;
+    private List<EndpointEvent> events = new ArrayList<>();
 
     @Before
     public void before() throws IOException, InterruptedException, KeeperException {
@@ -62,25 +70,38 @@ public class ZookeeperEndpointRepositoryTest {
 
     @After
     public void after() throws InterruptedException {
-        zk.close();
+        //zk.close(); // Seems to cause SessionTimeout error 
         factory.shutdown();
     }
 
     @Test
     public void test() throws IOException, URISyntaxException, KeeperException, InterruptedException {
+        final Semaphore sem = new Semaphore(0);
         EndpointEventListener listener = new EndpointEventListener() {
             
             @Override
             public void endpointChanged(EndpointEvent event, String filter) {
-                System.out.println(event);
+                events.add(event);
+                sem.release();
             }
         };
         ZookeeperEndpointRepository repository = new ZookeeperEndpointRepository(zk, listener);
+        
         EndpointDescription endpoint = createEndpoint();
         repository.add(endpoint);
         
+        assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
+
         String path = "/osgi/service_registry/java/lang/Runnable/test.de#-1##service1";
         EndpointDescription ep2 = repository.read(path);
+        assertNotNull(ep2);
+
+        repository.remove(endpoint);
+
+        assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
+        assertThat(events.get(0), samePropertyValuesAs(new EndpointEvent(EndpointEvent.ADDED, endpoint)));
+        assertThat(events.get(1), samePropertyValuesAs(new EndpointEvent(EndpointEvent.REMOVED, endpoint)));
+        
         repository.close();
     }
     

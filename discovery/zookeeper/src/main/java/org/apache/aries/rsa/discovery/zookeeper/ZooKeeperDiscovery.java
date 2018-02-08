@@ -98,7 +98,8 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         repository = new ZookeeperEndpointRepository(zkClient);
         endpointListener = new PublishingEndpointListener(repository);
         endpointListener.start(bctx);
-        imManager = new InterfaceMonitorManager(bctx, zkClient);
+        imManager = new InterfaceMonitorManager(repository);
+        repository.addListener(imManager);
         endpointListenerTracker = new EndpointListenerTracker(bctx, imManager);
         endpointListenerTracker.open();
         started = true;

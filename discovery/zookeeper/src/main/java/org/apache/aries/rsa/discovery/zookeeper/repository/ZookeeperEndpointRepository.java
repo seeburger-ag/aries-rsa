@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterfaceMonitorManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -53,33 +54,11 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to create base path");
         }
-        // Not yet needed
-        //this.registerWatcher();
+        this.registerWatcher();
     }
 
-    private void registerWatcher() {
-        try {
-            List<String> children = zk.getChildren(ZookeeperEndpointRepository.PATH_PREFIX, this);
-            System.out.println(children);
-        } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    protected void notifyListener(WatchedEvent wevent) {
-        EndpointDescription ep = read(wevent.getPath());
-        if (ep != null) {
-            int type = getEndpointEventType(wevent);
-            EndpointEvent event = new EndpointEvent(type, ep);
-            listener.endpointChanged(event, null);
-        }
-    }
-    
-    private int getEndpointEventType(WatchedEvent wevent) {
-        EventType type = wevent.getType();
-        return EndpointEvent.ADDED;
+    public void addListener(EndpointEventListener listener) {
+        this.listener = listener;
     }
 
     /**
@@ -89,23 +68,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
      * @return endpoint found in the node or null if no endpoint was found
      */
     public EndpointDescription read(String path) {
-        try {
-            Stat stat = zk.exists(path, false);
-            if (stat == null || stat.getDataLength() <= 0) {
-                return null;
-            }
-            byte[] data = zk.getData(path, false, null);
-            LOG.debug("Got data for node: {}", path);
-
-            EndpointDescription endpoint = parser.readEndpoint(new ByteArrayInputStream(data));
-            if (endpoint != null) {
-                return endpoint;
-            }
-            LOG.warn("No Discovery information found for node: {}", path);
-        } catch (Exception e) {
-            LOG.error("Problem getting EndpointDescription from node " + path, e);
-        }
-        return null;
+        return nodes.get(path);
     }
 
     public void add(EndpointDescription endpoint) throws URISyntaxException, KeeperException,
@@ -113,6 +76,8 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         Collection<String> interfaces = endpoint.getInterfaces();
         String endpointKey = getKey(endpoint);
     
+        createEphemeralNode(ZookeeperEndpointRepository.getZooKeeperPath("") + endpointKey, getData(endpoint));
+        
         LOG.info("Exporting endpoint to zookeeper: {}", endpoint);
         for (String name : interfaces) {
             String path = ZookeeperEndpointRepository.getZooKeeperPath(name);
@@ -152,13 +117,69 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         }
     }
     
-    public List<EndpointDescription> getAll() throws KeeperException, InterruptedException {
-        return null;
+    public Collection<EndpointDescription> getAll() {
+        return nodes.values();
+    }
+
+    /**
+     * Removes nulls and empty strings from the given string array.
+     *
+     * @param strings an array of strings
+     * @return a new array containing the non-null and non-empty
+     *         elements of the original array in the same order
+     */
+    public static List<String> removeEmpty(List<String> strings) {
+        List<String> result = new ArrayList<String>();
+        if (strings == null) {
+            return result;
+        }
+        for (String s : strings) {
+            if (s != null && !s.isEmpty()) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+
+    public static String getZooKeeperPath(String name) {
+        return name == null || name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + name.replace('.', '/');
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+        LOG.info("Received event {}", event);
+        if (event.getType() == EventType.NodeDeleted) {
+            handleRemoved(event.getPath());
+            return;
+        }
+        watchRecursive(event.getPath());
     }
 
     @Override
     public void close() throws IOException {
 
+    }
+
+    private void registerWatcher() {
+        try {
+            watchRecursive(ZookeeperEndpointRepository.PATH_PREFIX);
+        } catch (Exception e) {
+            LOG.info(e.getMessage(), e);
+        }
+    }
+
+    private void watchRecursive(String path) {
+        LOG.info("Watching {}", path);
+        handleZNodeChanged(path);
+        try {
+            List<String> children = zk.getChildren(path, this);
+            for (String child : children) {
+                String childPath = (path.endsWith("/") ? path : path + "/") + child;
+                watchRecursive(childPath);
+            }
+        } catch (Exception e) {
+            LOG.info(e.getMessage(), e);
+        }
     }
 
     private byte[] getData(EndpointDescription epd) {
@@ -201,39 +222,38 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         }
     }
 
-    /**
-     * Removes nulls and empty strings from the given string array.
-     *
-     * @param strings an array of strings
-     * @return a new array containing the non-null and non-empty
-     *         elements of the original array in the same order
-     */
-    public static List<String> removeEmpty(List<String> strings) {
-        List<String> result = new ArrayList<String>();
-        if (strings == null) {
-            return result;
-        }
-        for (String s : strings) {
-            if (s != null && !s.isEmpty()) {
-                result.add(s);
-            }
-        }
-        return result;
-    }
-
-    public static String getZooKeeperPath(String name) {
-        return name == null || name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + name.replace('.', '/');
-    }
-
     private static String getKey(EndpointDescription endpoint) throws URISyntaxException {
         URI uri = new URI(endpoint.getId());
         return new StringBuilder().append(uri.getHost()).append("#").append(uri.getPort())
             .append("#").append(uri.getPath().replace('/', '#')).toString();
     }
 
-    @Override
-    public void process(WatchedEvent event) {
-        
+    private void handleZNodeChanged(String path) {
+        try {
+            Stat stat = new Stat();
+            byte[] data = zk.getData(path, false, stat);
+            if (data == null || data.length == 0) {
+                return;
+            }
+            EndpointDescription endpoint = parser.readEndpoint(new ByteArrayInputStream(data));
+            if (endpoint != null) {
+               handleChanged(path, endpoint);
+            }
+        } catch (Exception e) {
+            LOG.info(e.getMessage(), e);
+        }
+    }
+
+    private void handleRemoved(String path) {
+        EndpointDescription endpoint = nodes.remove(path);
+        EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+        listener.endpointChanged(event, null);
+    }
+
+    private void handleChanged(String path, EndpointDescription endpoint) {
+        EndpointDescription old = nodes.put(path, endpoint);
+        EndpointEvent event = new EndpointEvent(old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED, endpoint);
+        listener.endpointChanged(event, null);
     }
 
 }

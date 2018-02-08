@@ -18,23 +18,13 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.util.StringPlus;
-import org.apache.zookeeper.ZooKeeper;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
@@ -50,40 +40,45 @@ import org.slf4j.LoggerFactory;
  * These events are then forwarded to all interested EndpointEventListeners.
  */
 @SuppressWarnings({"deprecation", "rawtypes"})
-public class InterfaceMonitorManager {
+public class InterfaceMonitorManager implements EndpointEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(InterfaceMonitorManager.class);
-    private static final Pattern OBJECTCLASS_PATTERN = Pattern.compile(".*\\(objectClass=([^)]+)\\).*");
 
-    private final BundleContext bctx;
-    private final ZooKeeper zk;
-    // map of EndpointEventListeners and the scopes they are interested in
-    private final Map<ServiceReference, List<String>> epListenerScopes =
-            new HashMap<ServiceReference, List<String>>();
-    // map of scopes and their interest data
-    private final Map<String, Interest> interests = new HashMap<String, Interest>();
+    private final ZookeeperEndpointRepository repository;
+    private final Map<ServiceReference, Interest> interests = new HashMap<ServiceReference, Interest>();
 
     protected static class Interest {
-        List<ServiceReference> epListeners = 
-            new CopyOnWriteArrayList<ServiceReference>();
-        InterfaceMonitor monitor;
+        List<String> scopes;
+        Object epListener;
     }
 
-    public InterfaceMonitorManager(BundleContext bctx, ZooKeeper zk) {
-        this.bctx = bctx;
-        this.zk = zk;
+    public InterfaceMonitorManager(ZookeeperEndpointRepository repository) {
+        this.repository = repository;
     }
 
-    public void addInterest(ServiceReference<?> eplistener) {
-        if (isOurOwnEndpointEventListener(eplistener)) {
+    public void addInterest(ServiceReference<?> sref, Object epListener) {
+        if (isOurOwnEndpointEventListener(sref)) {
             LOG.debug("Skipping our own EndpointEventListener");
             return;
         }
-        List<String> scopes = getScopes(eplistener);
+        List<String> scopes = getScopes(sref);
         LOG.debug("adding Interests: {}", scopes);
         
-        for (String scope : scopes) {
-            String objClass = getObjectClass(scope);
-            addInterest(eplistener, scope, objClass);
+        // get or create interest for given scope and add listener to it
+        Interest interest = interests.get(epListener);
+        if (interest == null) {
+            // create interest, add listener and start monitor
+            interest = new Interest();
+            interest.epListener = epListener;
+            interest.scopes = scopes;
+            interests.put(sref, interest);
+            sendExistingEndpoints(scopes, epListener);
+        }
+    }
+
+    private void sendExistingEndpoints(List<String> scopes, Object epListener) {
+        for (EndpointDescription endpoint : repository.getAll()) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            notifyListener(event, scopes, epListener);
         }
     }
 
@@ -92,123 +87,48 @@ public class InterfaceMonitorManager {
                 EndpointEventListener.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)));
     }
 
-    public synchronized void addInterest(ServiceReference epListener, 
-                                         String scope, String objClass) {
-        // get or create interest for given scope and add listener to it
-        Interest interest = interests.get(scope);
-        if (interest == null) {
-            // create interest, add listener and start monitor
-            interest = new Interest();
-            interests.put(scope, interest);
-            interest.epListeners.add(epListener); // add it before monitor starts so we don't miss events
-            interest.monitor = createInterfaceMonitor(scope, objClass, interest);
-            interest.monitor.start();
-        } else {
-            // interest already exists, so just add listener to it
-            if (!interest.epListeners.contains(epListener)) {
-                interest.epListeners.add(epListener);
-            }
-            // notify listener of all known endpoints for given scope
-            // (as EndpointEventListener contract requires of all added/modified listeners)
-            for (EndpointDescription endpoint : interest.monitor.getEndpoints()) {
-                EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
-                notifyListeners(event, scope, Arrays.asList(epListener));
-            }
-        }
+    public synchronized void removeInterest(ServiceReference<EndpointEventListener> epListenerRef) {
+        LOG.info("removing EndpointEventListener interests: {}", epListenerRef);
+        interests.remove(epListenerRef);
+    }
 
-        // add scope to listener's scopes list
-        List<String> scopes = epListenerScopes.get(epListener);
-        if (scopes == null) {
-            scopes = new ArrayList<String>(1);
-            epListenerScopes.put(epListener, scopes);
-        }
-        if (!scopes.contains(scope)) {
-            scopes.add(scope);
+    @Override
+    public void endpointChanged(EndpointEvent event, String filter) {
+        for (Interest interest : interests.values()) {
+            notifyListener(event, interest.scopes, interest.epListener);
         }
     }
 
-    public synchronized void removeInterest(ServiceReference<EndpointEventListener> EndpointEventListener) {
-        LOG.info("removing EndpointEventListener interests: {}", EndpointEventListener);
-        List<String> scopes = epListenerScopes.get(EndpointEventListener);
-        if (scopes == null) {
+    private void notifyListener(EndpointEvent event, List<String> scopes, Object service) {
+        EndpointDescription endpoint = event.getEndpoint();
+        String currentScope = getFirstMatch(scopes, endpoint);
+        if (currentScope == null) {
             return;
         }
-
+        LOG.debug("Matched {} against {}", endpoint, currentScope);
+        if (service instanceof EndpointEventListener) {
+            notifyEEListener(event, currentScope, (EndpointEventListener)service);
+        } else if (service instanceof EndpointListener) {
+            notifyEListener(event, currentScope, (EndpointListener)service);
+        }
+    }
+    
+    private String getFirstMatch(List<String> scopes, EndpointDescription endpoint) {
         for (String scope : scopes) {
-            Interest interest = interests.get(scope);
-            if (interest != null) {
-                interest.epListeners.remove(EndpointEventListener);
-                if (interest.epListeners.isEmpty()) {
-                    interest.monitor.close();
-                    interests.remove(scope);
-                }
+            if (endpoint.matches(scope)) {
+                return scope;
             }
         }
-        epListenerScopes.remove(EndpointEventListener);
+        return null;
     }
 
-    protected InterfaceMonitor createInterfaceMonitor(final String scope, String objClass, final Interest interest) {
-        // holding this object's lock in the callbacks can lead to a deadlock with InterfaceMonitor
-        EndpointEventListener listener = new EndpointEventListener() {
-
-            @Override
-            public void endpointChanged(EndpointEvent event, String filter) {
-                notifyListeners(event, scope, interest.epListeners);
-            }
-        };
-        return new InterfaceMonitor(zk, objClass, listener, scope);
-    }
-
-    private void notifyListeners(EndpointEvent event, String currentScope,
-            List<ServiceReference> epListeners) {
-        EndpointDescription endpoint = event.getEndpoint();
-        for (ServiceReference<?> epListenerRef : epListeners) {
-            if (epListenerRef.getBundle() == null) {
-                LOG.info("listening service was unregistered, ignoring");
-            }
-            Object service = bctx.getService(epListenerRef);
-            LOG.trace("matching {} against {}", endpoint, currentScope);
-            if (matchFilter(bctx, currentScope, endpoint)) {
-                LOG.debug("Matched {} against {}", endpoint, currentScope);
-            try {
-                if (service instanceof EndpointEventListener) {
-                    EndpointEventListener epeListener = (EndpointEventListener)service;
-                    notifyListener(event, currentScope, epeListener);
-                } else if (service instanceof EndpointListener) {
-                    EndpointListener epListener = (EndpointListener)service;
-                    notifyListener(event, currentScope, epListener);
-                }
-            } finally {
-                if (service != null) {
-                    bctx.ungetService(epListenerRef);
-                }
-            }
-            }
-        }
-    }
-    
-    private static boolean matchFilter(BundleContext bctx, String filter, EndpointDescription endpoint) {
-        if (filter == null) {
-            return false;
-        }
-    
-        try {
-            Filter f = bctx.createFilter(filter);
-            Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
-            return f.match(dict);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-
-    private void notifyListener(EndpointEvent event, String currentScope, EndpointEventListener listener) {
+    private void notifyEEListener(EndpointEvent event, String currentScope, EndpointEventListener listener) {
         EndpointDescription endpoint = event.getEndpoint();
         LOG.info("Calling endpointchanged on class {} for filter {}, type {}, endpoint {} ", listener, currentScope, endpoint);
         listener.endpointChanged(event, currentScope);
     }
     
-    private void notifyListener(EndpointEvent event, String currentScope, EndpointListener listener) {
+    private void notifyEListener(EndpointEvent event, String currentScope, EndpointListener listener) {
         EndpointDescription endpoint = event.getEndpoint();
         LOG.info("Calling old listener on class {} for filter {}, type {}, endpoint {} ", listener, currentScope, endpoint);
         switch (event.getType()) {
@@ -228,49 +148,18 @@ public class InterfaceMonitorManager {
     }
 
     public synchronized void close() {
-        for (Interest interest : interests.values()) {
-            interest.monitor.close();
-        }
         interests.clear();
-        epListenerScopes.clear();
     }
 
     /**
      * Only for test case!
      */
-    protected synchronized Map<String, Interest> getInterests() {
+    protected synchronized Map<ServiceReference, Interest> getInterests() {
         return interests;
-    }
-
-    /**
-     * Only for test case!
-     */
-    protected synchronized Map<ServiceReference, List<String>> getEndpointListenerScopes() {
-        return epListenerScopes;
     }
 
     protected List<String> getScopes(ServiceReference<?> sref) {
         return StringPlus.normalize(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
     }
-    
-    public static String getObjectClass(String scope) {
-        Matcher m = OBJECTCLASS_PATTERN.matcher(scope);
-        return m.matches() ? m.group(1) : null;
-    }
 
-    /**
-     * Returns a service's properties as a map.
-     *
-     * @param serviceReference a service reference
-     * @return the service's properties as a map
-     */
-    public static Map<String, Object> getProperties(ServiceReference<?> serviceReference) {
-        String[] keys = serviceReference.getPropertyKeys();
-        Map<String, Object> props = new HashMap<String, Object>(keys.length);
-        for (String key : keys) {
-            Object val = serviceReference.getProperty(key);
-            props.put(key, val);
-        }
-        return props;
-    }
 }
