@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import org.osgi.framework.Version;
+
 public interface PrimitiveService {
     
     byte callByte(byte num);
@@ -35,4 +37,8 @@ public interface PrimitiveService {
     boolean callBoolean(boolean bool);
     
     byte[] callByteAr(byte[] byteAr);
+
+    Version callVersion(Version version);
+
+    Version[] callVersionAr(Version[] version);
 }

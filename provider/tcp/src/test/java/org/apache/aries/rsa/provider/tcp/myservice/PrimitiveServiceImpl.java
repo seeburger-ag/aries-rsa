@@ -1,5 +1,7 @@
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import org.osgi.framework.Version;
+
 public class PrimitiveServiceImpl implements PrimitiveService {
 
     @Override
@@ -41,6 +43,16 @@ public class PrimitiveServiceImpl implements PrimitiveService {
     @Override
     public byte[] callByteAr(byte[] byteAr) {
         return byteAr;
+    }
+
+    @Override
+    public Version callVersion(Version version) {
+        return version;
+    }
+    
+    @Override
+    public Version[] callVersionAr(Version[] version) {
+        return version;
     }
 
 }

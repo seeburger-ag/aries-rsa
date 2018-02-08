@@ -18,7 +18,10 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.StringStartsWith.startsWith;
+import static org.junit.Assert.assertThat;
+import static org.osgi.framework.Version.parseVersion;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,6 +37,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 
 public class TcpProviderPrimitiveTest {
 
@@ -97,6 +101,16 @@ public class TcpProviderPrimitiveTest {
     @Test
     public void testByteAr() {
         Assert.assertArrayEquals(new byte[]{1}, myServiceProxy.callByteAr(new byte[]{1}));
+    }
+    
+    @Test
+    public void testVersion() {
+        assertThat(myServiceProxy.callVersion(parseVersion("1.0.0")), equalTo(parseVersion("1.0.0")));
+    }
+    
+    @Test
+    public void testVersionAr() {
+        assertThat(myServiceProxy.callVersionAr(new Version[] {parseVersion("1.0.0")}), equalTo(new Version[] {parseVersion("1.0.0")}));
     }
 
     @AfterClass

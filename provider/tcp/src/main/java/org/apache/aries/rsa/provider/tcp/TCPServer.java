@@ -86,6 +86,7 @@ public class TCPServer implements Closeable, Runnable {
         Object[] args = (Object[])ois.readObject();
         Object result = invoker.invoke(methodName, args);
         result = resolveAsnyc(result);
+        result = VersionSerializer.replace(result);
         if (result instanceof InvocationTargetException) {
             result = ((InvocationTargetException) result).getCause();
         }

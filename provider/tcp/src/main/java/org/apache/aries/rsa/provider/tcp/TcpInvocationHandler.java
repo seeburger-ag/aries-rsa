@@ -24,12 +24,17 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.osgi.framework.ServiceException;
+import org.osgi.framework.Version;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
@@ -90,18 +95,23 @@ public class TcpInvocationHandler implements InvocationHandler {
     }
 
     private Object handleSyncCall(Method method, Object[] args) throws Throwable {
+        args = (Object[])VersionSerializer.replace(args);
         Object result;
         try (
-                Socket socket = new Socket(this.host, this.port);
+                Socket socket = openSocket();
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())
             ) {
             socket.setSoTimeout(timeoutMillis);
             out.writeObject(method.getName());
+            
             out.writeObject(args);
             out.flush();
             result = parseResult(socket);
+            result = VersionDeserializer.replace(result);
+        } catch (SocketTimeoutException e) {
+            throw new ServiceException("Timeout calling " + host + ":" + port + " method: " + method.getName(), ServiceException.REMOTE, e);
         } catch (Throwable e) {
-            throw new RuntimeException("Error calling " + host + ":" + port + " method: " + method.getName(), e);
+            throw new ServiceException("Error calling " + host + ":" + port + " method: " + method.getName(), ServiceException.REMOTE, e);
         }
         if (result instanceof Throwable) {
             throw (Throwable)result;
@@ -109,9 +119,31 @@ public class TcpInvocationHandler implements InvocationHandler {
         return result;
     }
 
+    private Socket openSocket() throws UnknownHostException, IOException {
+        return AccessController.doPrivileged(new PrivilegedAction<Socket>() {
+
+            @Override
+            public Socket run() {
+                try {
+                    return new Socket(host, port);
+                } catch (Exception e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+            }
+        });
+    }
+
     private Object parseResult(Socket socket) throws Throwable {
         try (ObjectInputStream in = new LoaderObjectInputStream(socket.getInputStream(), cl)) {
-            return in.readObject();
+            return readReplaceVersion(in.readObject());
+        }
+    }
+
+    private Object readReplaceVersion(Object readObject) {
+        if (readObject instanceof SerVersion) {
+            return new Version(((SerVersion)readObject).getVersion());
+        } else {
+            return readObject;
         }
     }
 
