@@ -1,5 +1,7 @@
 package org.apache.aries.rsa.core.event;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,11 +32,16 @@ public class EventAdminSender {
     }
 
     public void send(RemoteServiceAdminEvent rsaEvent) {
-       Event event = toEvent(rsaEvent);
+       final Event event = toEvent(rsaEvent);
        ServiceReference<EventAdmin> sref = this.context.getServiceReference(EventAdmin.class);
        if (sref != null) {
-           EventAdmin eventAdmin = this.context.getService(sref);
-           eventAdmin.postEvent(event);
+           final EventAdmin eventAdmin = this.context.getService(sref);
+           AccessController.doPrivileged(new PrivilegedAction<Void>() {
+               public Void run() {
+                   eventAdmin.postEvent(event);
+                   return null;
+               }
+           });
            this.context.ungetService(sref);           
        }
     }

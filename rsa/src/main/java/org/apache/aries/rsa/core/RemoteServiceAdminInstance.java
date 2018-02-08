@@ -52,12 +52,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
     @Override
     @SuppressWarnings("rawtypes")
     public List<ExportRegistration> exportService(final ServiceReference ref, final Map properties) {
-        checkPermission(new EndpointPermission("*", EndpointPermission.EXPORT));
-        return AccessController.doPrivileged(new PrivilegedAction<List<ExportRegistration>>() {
-            public List<ExportRegistration> run() {
-                return closed ? Collections.<ExportRegistration>emptyList() : rsaCore.exportService(ref, properties);
-            }
-        });
+        return closed ? Collections.<ExportRegistration>emptyList() : rsaCore.exportService(ref, properties);
     }
 
     @Override

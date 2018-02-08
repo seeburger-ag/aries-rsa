@@ -212,6 +212,7 @@ public class RemoteServiceAdminCoreTest {
         ServiceReference sref = mockServiceReference(sProps);
 
         provider.endpoint = createEndpoint(sProps);
+        ServiceReference sref2 = mockServiceReference(sProps);
         c.replay();
 
         // Export the service for the first time
@@ -230,7 +231,6 @@ public class RemoteServiceAdminCoreTest {
 
         // Ask to export the same service again, this should not go through the whole process again but simply return
         // a copy of the first instance.
-        ServiceReference sref2 = mockServiceReference(sProps);
         List<ExportRegistration> eregs2 = rsaCore.exportService(sref2, null);
         assertEquals(1, eregs2.size());
         ExportRegistration ereg2 = eregs2.iterator().next();
@@ -296,6 +296,7 @@ public class RemoteServiceAdminCoreTest {
         sProps.put("service.exported.interfaces", "*");
         ServiceReference sref = mockServiceReference(sProps);
 
+        c.replay();
         provider.ex = new TestException();
 
         List<ExportRegistration> ereg = rsaCore.exportService(sref, sProps);
@@ -304,6 +305,7 @@ public class RemoteServiceAdminCoreTest {
 
         Collection<ExportReference> exportedServices = rsaCore.getExportedServices();
         assertEquals("No service was exported", 0, exportedServices.size());
+        c.verify();
     }
 
     @Test
@@ -345,34 +347,23 @@ public class RemoteServiceAdminCoreTest {
     }
 
     private ServiceReference mockServiceReference(final Map<String, Object> sProps) {
-        BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
-    
-        Bundle sb = EasyMock.createNiceMock(Bundle.class);
+        BundleContext bc = c.createMock(BundleContext.class);
+        Bundle sb = c.createMock(Bundle.class);
         expect(sb.getBundleContext()).andReturn(bc).anyTimes();
-        try {
-            expect((Class)sb.loadClass(Runnable.class.getName())).andReturn(Runnable.class);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-        EasyMock.replay(sb);
-    
         expect(bc.getBundle()).andReturn(sb).anyTimes();
-        EasyMock.replay(bc);
     
-        ServiceReference sref = EasyMock.createNiceMock(ServiceReference.class);
+        String[] propKeys = sProps.keySet().toArray(new String[] {});
+        ServiceReference sref = c.createMock(ServiceReference.class);
         expect(sref.getBundle()).andReturn(sb).anyTimes();
-        expect(sref.getPropertyKeys()).andReturn(sProps.keySet().toArray(new String[] {})).anyTimes();
+        expect(sref.getPropertyKeys()).andReturn(propKeys).anyTimes();
         expect(sref.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
                 return sProps.get(EasyMock.getCurrentArguments()[0]);
             }
         }).anyTimes();
-        EasyMock.replay(sref);
-        
-        Runnable svcObject = EasyMock.createNiceMock(Runnable.class);
-        EasyMock.replay(svcObject);
-
+        Runnable svcObject = c.createMock(Runnable.class);
+        expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
         return sref;
     }
     

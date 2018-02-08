@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.core;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +46,7 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointPermission;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
@@ -210,22 +213,29 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         return null;
     }
 
-    private ExportRegistration exportService(List<String> interfaceNames,
-            ServiceReference<?> serviceReference, Map<String, Object> serviceProperties) {
+    private ExportRegistration exportService(
+            final List<String> interfaceNames,
+            final ServiceReference<?> serviceReference, 
+            final Map<String, Object> serviceProperties) {
         LOG.info("interfaces selected for export: " + interfaceNames);
 
         try {
-            Class<?>[] interfaces = getInterfaces(interfaceNames, serviceReference.getBundle());
-            Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
-            Bundle bundle = serviceReference.getBundle();
-            if (bundle == null) {
+            checkPermission(new EndpointPermission("*", EndpointPermission.EXPORT));
+            Bundle serviceBundle = serviceReference.getBundle();
+            if (serviceBundle == null) {
                 throw new IllegalStateException("Service is already unregistered");
             }
-            BundleContext serviceContext = bundle.getBundleContext();
+            final BundleContext serviceContext = serviceBundle.getBundleContext();
+            final Object serviceO = serviceContext.getService(serviceReference);
+            final Class<?>[] interfaces = getInterfaces(serviceO, interfaceNames);
+            final Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
             
             // TODO unget service when export is destroyed
-            Object serviceO = serviceContext.getService(serviceReference);
-            Endpoint endpoint = provider.exportService(serviceO, serviceContext, eprops, interfaces);
+            Endpoint endpoint = AccessController.doPrivileged(new PrivilegedAction<Endpoint>() {
+                public Endpoint run() {
+                    return provider.exportService(serviceO, serviceContext, eprops, interfaces);
+                }
+            });
             if (endpoint == null) {
                 return null;
             }
@@ -238,11 +248,16 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         }
     }
     
-    private Class<?>[] getInterfaces(List<String> interfaceNames, 
-                                         Bundle serviceBundle) throws ClassNotFoundException {
+    private Class<?>[] getInterfaces(
+            Object serviceO, 
+            List<String> interfaceNames
+            ) throws ClassNotFoundException {
         List<Class<?>> interfaces = new ArrayList<>();
-        for (String interfaceName : interfaceNames) {
-            interfaces.add(serviceBundle.loadClass(interfaceName));
+        Class<?>[] allInterfaces = serviceO.getClass().getInterfaces();
+        for (Class<?> iface : allInterfaces) {
+            if (interfaceNames.contains(iface.getName())) {
+                interfaces.add(iface);
+            }
         }
         return interfaces.toArray(new Class[]{});
     }
@@ -647,6 +662,13 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             if (!skey.startsWith(".")) {
                 endpointProps.put(skey, entry.getValue());
             }
+        }
+    }
+    
+    private void checkPermission(EndpointPermission permission) {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(permission);
         }
     }
 }
