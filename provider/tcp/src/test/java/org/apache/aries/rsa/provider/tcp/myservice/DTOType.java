@@ -18,41 +18,6 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.osgi.framework.Version;
-
-public interface PrimitiveService {
-    
-    byte callByte(byte num);
-    
-    short callShort(short num);
-
-    int callInt(int num);
-
-    long callLong(long num);
-    
-    float callFloat(float num);
-    
-    double callDouble(double num);
-
-    boolean callBoolean(boolean bool);
-    
-    byte[] callByteAr(byte[] byteAr);
-
-    Version callVersion(Version version);
-
-    Version[] callVersionAr(Version[] version);
-
-    List<Version> callVersionList(List<Version> version);
-
-    Map<Version, Version> callVersionMap(Map<Version, Version> map);
-
-    Set<Version> callVersionSet(Set<Version> set);
-
-    DTOType callDTO(DTOType dto);
-
-    DTOType[] callDTOAr(DTOType[] dtoAr);
+public class DTOType {
+    public String value;
 }

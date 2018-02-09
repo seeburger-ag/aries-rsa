@@ -74,4 +74,14 @@ public class PrimitiveServiceImpl implements PrimitiveService {
         return set;
     }
     
+    
+    @Override
+    public DTOType callDTO(DTOType dto) {
+        return dto;
+    }
+
+    @Override
+    public DTOType[] callDTOAr(DTOType[] dtoAr) {
+        return dtoAr;
+    }
 }

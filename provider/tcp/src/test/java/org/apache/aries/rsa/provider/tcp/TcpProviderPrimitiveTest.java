@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.osgi.framework.Version.parseVersion;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.aries.rsa.provider.tcp.myservice.DTOType;
 import org.apache.aries.rsa.provider.tcp.myservice.PrimitiveService;
 import org.apache.aries.rsa.provider.tcp.myservice.PrimitiveServiceImpl;
 import org.apache.aries.rsa.spi.Endpoint;
@@ -137,6 +139,22 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callVersionMap(map).entrySet(), everyItem(isIn(map.entrySet())));
     }
 
+    @Test
+    public void testDTO() {
+        DTOType dto = new DTOType();
+        dto.value = "Test";
+        assertThat(myServiceProxy.callDTO(dto), samePropertyValuesAs(dto));
+    }
+    
+    @Test
+    public void testDTOAr() {
+        DTOType dto = new DTOType();
+        dto.value = "Test";
+        DTOType[] dtoAr = new DTOType[] {dto};
+        DTOType[] result = myServiceProxy.callDTOAr(dtoAr);
+        assertThat(result[0], samePropertyValuesAs(dtoAr[0]));
+    }
+    
     @AfterClass
     public static void close() throws IOException {
         ep.close();

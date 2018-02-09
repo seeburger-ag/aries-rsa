@@ -21,7 +21,9 @@ package org.apache.aries.rsa.provider.tcp;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -36,6 +38,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.provider.tcp.myservice.ExpectedTestException;
@@ -50,7 +53,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceException;
+import org.osgi.util.function.Predicate;
 import org.osgi.util.promise.Promise;
+import org.osgi.util.promise.Success;
 
 public class TcpProviderTest {
 
@@ -160,9 +165,23 @@ public class TcpProviderTest {
     
     @Test
     public void testAsyncPromise() throws Exception {
-        Promise<String> result = myServiceProxy.callAsyncPromise(100);
-        String answer = result.getValue();
-        assertEquals("Finished", answer);
+        final Semaphore s = new Semaphore(0);
+        Promise<String> p = myServiceProxy.callAsyncPromise(100);
+        p.filter(new Predicate<String>() {
+            @Override
+            public boolean test(String x) {
+                return "Finished".equals(x);
+            }
+        }).then(new Success<String,Object>() {
+            @Override
+            public Promise<Object> call(Promise<String> x)
+                    throws Exception {
+                s.release();
+                return null;
+            }
+        });
+        assertFalse(s.tryAcquire());
+        assertTrue(s.tryAcquire(1, TimeUnit.SECONDS));
     }
     
     @Test(expected = ExpectedTestException.class)

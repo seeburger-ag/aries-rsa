@@ -24,8 +24,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
 import org.osgi.framework.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BasicObjectInputStream extends ObjectInputStream {
+    Logger log = LoggerFactory.getLogger(this.getClass());
 
     private ClassLoader loader;
 
@@ -38,8 +41,11 @@ public class BasicObjectInputStream extends ObjectInputStream {
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
         try {
-            return loader.loadClass(desc.getName());
+            String className = desc.getName();
+            // Must use Class.forName instead of loader.loadClass to handle cases like array of user classes
+            return Class.forName(className, false, loader);
         } catch (ClassNotFoundException e) {
+            log.warn("Error loading class using classloader of user bundle", e);
             return super.resolveClass(desc);
         }
     }
@@ -49,6 +55,9 @@ public class BasicObjectInputStream extends ObjectInputStream {
         if (obj instanceof VersionMarker) {
             VersionMarker verionMarker = (VersionMarker)obj;
             return Version.parseVersion(verionMarker.getVersion());
+        } else if (obj instanceof DTOMarker) {
+            DTOMarker dtoMarker = (DTOMarker)obj;
+            return dtoMarker.getDTO(loader);
         } else {
             return super.resolveObject(obj);
         }
