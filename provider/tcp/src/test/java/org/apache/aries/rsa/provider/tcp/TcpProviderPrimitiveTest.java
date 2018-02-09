@@ -18,14 +18,20 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.osgi.framework.Version.parseVersion;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.aries.rsa.provider.tcp.myservice.PrimitiveService;
 import org.apache.aries.rsa.provider.tcp.myservice.PrimitiveServiceImpl;
@@ -111,6 +117,24 @@ public class TcpProviderPrimitiveTest {
     @Test
     public void testVersionAr() {
         assertThat(myServiceProxy.callVersionAr(new Version[] {parseVersion("1.0.0")}), equalTo(new Version[] {parseVersion("1.0.0")}));
+    }
+    
+    @Test
+    public void testVersionList() {
+        assertThat(myServiceProxy.callVersionList(Arrays.asList(parseVersion("1.0.0"))), equalTo(Arrays.asList(parseVersion("1.0.0"))));
+    }
+    
+    @Test
+    public void testVersionSet() {
+        Set<Version> set = new HashSet<>(asList(parseVersion("1.0.0")));
+        assertThat(myServiceProxy.callVersionSet(set), everyItem(isIn(set)));
+    }
+    
+    @Test
+    public void testVersionMap() {
+        HashMap<Version, Version> map = new HashMap<>();
+        map.put(parseVersion("1.2.3"), parseVersion("2.3.4"));
+        assertThat(myServiceProxy.callVersionMap(map).entrySet(), everyItem(isIn(map.entrySet())));
     }
 
     @AfterClass

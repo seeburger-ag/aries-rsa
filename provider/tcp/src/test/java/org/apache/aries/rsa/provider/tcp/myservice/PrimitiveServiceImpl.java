@@ -1,5 +1,9 @@
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.osgi.framework.Version;
 
 public class PrimitiveServiceImpl implements PrimitiveService {
@@ -55,4 +59,19 @@ public class PrimitiveServiceImpl implements PrimitiveService {
         return version;
     }
 
+    @Override
+    public List<Version> callVersionList(List<Version> version) {
+        return version;
+    }
+
+    @Override
+    public Map<Version, Version> callVersionMap(Map<Version, Version> map) {
+        return map;
+    }
+    
+    @Override
+    public Set<Version> callVersionSet(Set<Version> set) {
+        return set;
+    }
+    
 }

@@ -16,19 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.provider.tcp;
+package org.apache.aries.rsa.provider.tcp.ser;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
-public class LoaderObjectInputStream extends ObjectInputStream {
+import org.osgi.framework.Version;
+
+public class BasicObjectInputStream extends ObjectInputStream {
 
     private ClassLoader loader;
 
-    public LoaderObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
+    public BasicObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
         super(in);
+        enableResolveObject(true);
         this.loader = loader;
     }
 
@@ -38,6 +41,16 @@ public class LoaderObjectInputStream extends ObjectInputStream {
             return loader.loadClass(desc.getName());
         } catch (ClassNotFoundException e) {
             return super.resolveClass(desc);
+        }
+    }
+    
+    @Override
+    protected Object resolveObject(Object obj) throws IOException {
+        if (obj instanceof VersionMarker) {
+            VersionMarker verionMarker = (VersionMarker)obj;
+            return Version.parseVersion(verionMarker.getVersion());
+        } else {
+            return super.resolveObject(obj);
         }
     }
 }

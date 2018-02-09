@@ -33,6 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectOutputStream;
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectInputStream;
 import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,8 +71,8 @@ public class TCPServer implements Closeable, Runnable {
         while (running) {
             try (
                     Socket socket = this.serverSocket.accept();
-                    ObjectInputStream ois = new LoaderObjectInputStream(socket.getInputStream(), serviceCL);
-                    ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream())
+                    ObjectInputStream ois = new BasicObjectInputStream(socket.getInputStream(), serviceCL);
+                    ObjectOutputStream objectOutput = new BasicObjectOutputStream(socket.getOutputStream())
                 ) {
                 handleCall(ois, objectOutput);
             } catch (SocketException e) {
@@ -86,7 +88,6 @@ public class TCPServer implements Closeable, Runnable {
         Object[] args = (Object[])ois.readObject();
         Object result = invoker.invoke(methodName, args);
         result = resolveAsnyc(result);
-        result = VersionSerializer.replace(result);
         if (result instanceof InvocationTargetException) {
             result = ((InvocationTargetException) result).getCause();
         }

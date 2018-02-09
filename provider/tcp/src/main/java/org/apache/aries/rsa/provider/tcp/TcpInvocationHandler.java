@@ -33,6 +33,9 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectInputStream;
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectOutputStream;
+import org.apache.aries.rsa.provider.tcp.ser.VersionMarker;
 import org.osgi.framework.ServiceException;
 import org.osgi.framework.Version;
 import org.osgi.util.promise.Deferred;
@@ -95,11 +98,10 @@ public class TcpInvocationHandler implements InvocationHandler {
     }
 
     private Object handleSyncCall(Method method, Object[] args) throws Throwable {
-        args = (Object[])VersionSerializer.replace(args);
         Object result;
         try (
                 Socket socket = openSocket();
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())
+                ObjectOutputStream out = new BasicObjectOutputStream(socket.getOutputStream())
             ) {
             socket.setSoTimeout(timeoutMillis);
             out.writeObject(method.getName());
@@ -107,7 +109,6 @@ public class TcpInvocationHandler implements InvocationHandler {
             out.writeObject(args);
             out.flush();
             result = parseResult(socket);
-            result = VersionDeserializer.replace(result);
         } catch (SocketTimeoutException e) {
             throw new ServiceException("Timeout calling " + host + ":" + port + " method: " + method.getName(), ServiceException.REMOTE, e);
         } catch (Throwable e) {
@@ -134,14 +135,14 @@ public class TcpInvocationHandler implements InvocationHandler {
     }
 
     private Object parseResult(Socket socket) throws Throwable {
-        try (ObjectInputStream in = new LoaderObjectInputStream(socket.getInputStream(), cl)) {
+        try (ObjectInputStream in = new BasicObjectInputStream(socket.getInputStream(), cl)) {
             return readReplaceVersion(in.readObject());
         }
     }
 
     private Object readReplaceVersion(Object readObject) {
-        if (readObject instanceof SerVersion) {
-            return new Version(((SerVersion)readObject).getVersion());
+        if (readObject instanceof VersionMarker) {
+            return new Version(((VersionMarker)readObject).getVersion());
         } else {
             return readObject;
         }

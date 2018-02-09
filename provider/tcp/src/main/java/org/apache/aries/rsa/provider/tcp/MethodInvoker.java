@@ -24,8 +24,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.osgi.framework.Version;
-
 public class MethodInvoker {
 
     private HashMap<Object, Object> primTypes;
@@ -45,7 +43,6 @@ public class MethodInvoker {
     }
     
     public Object invoke(String methodName, Object[] args) {
-        args = VersionDeserializer.replaceAr(args);
         Class<?>[] parameterTypesAr = getTypes(args);
         Method method = null;
         try {
@@ -53,18 +50,6 @@ public class MethodInvoker {
             return method.invoke(service, args);
         } catch (Throwable e) {
             return e;
-        }
-    }
-    
-    private void readReplaceVersion(Object[] args) {
-        if (args != null) {
-            for (int c=0; c<args.length; c++) {
-                Object current = args[c];
-                if (current instanceof SerVersion) {
-                    SerVersion serVersion = (SerVersion)current;
-                    args[c] = new Version(serVersion.getVersion());
-                }
-            }
         }
     }
     

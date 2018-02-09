@@ -18,6 +18,10 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.osgi.framework.Version;
 
 public interface PrimitiveService {
@@ -41,4 +45,10 @@ public interface PrimitiveService {
     Version callVersion(Version version);
 
     Version[] callVersionAr(Version[] version);
+
+    List<Version> callVersionList(List<Version> version);
+
+    Map<Version, Version> callVersionMap(Map<Version, Version> map);
+
+    Set<Version> callVersionSet(Set<Version> set);
 }
