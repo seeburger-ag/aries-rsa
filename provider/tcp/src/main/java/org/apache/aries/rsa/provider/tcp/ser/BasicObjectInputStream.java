@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.osgi.framework.Version;
 import org.slf4j.Logger;
@@ -34,7 +36,12 @@ public class BasicObjectInputStream extends ObjectInputStream {
 
     public BasicObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
         super(in);
-        enableResolveObject(true);
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                enableResolveObject(true);
+                return null;
+            }
+        });
         this.loader = loader;
     }
 
@@ -45,7 +52,7 @@ public class BasicObjectInputStream extends ObjectInputStream {
             // Must use Class.forName instead of loader.loadClass to handle cases like array of user classes
             return Class.forName(className, false, loader);
         } catch (ClassNotFoundException e) {
-            log.warn("Error loading class using classloader of user bundle", e);
+            log.debug("Error loading class using classloader of user bundle. Trying our own ClassLoader now", e);
             return super.resolveClass(desc);
         }
     }

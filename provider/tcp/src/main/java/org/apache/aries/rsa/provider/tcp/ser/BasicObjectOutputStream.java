@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.osgi.framework.Version;
 
@@ -11,7 +13,12 @@ public class BasicObjectOutputStream extends ObjectOutputStream {
 
     public BasicObjectOutputStream(OutputStream out) throws IOException {
         super(out);
-        enableReplaceObject(true);
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                enableReplaceObject(true);
+                return null;
+            }
+        });
     }
 
     @Override
