@@ -4,9 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,59 +59,33 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     }
 
     /**
-     * Retrieves data from the given node and parses it into an EndpointDescription.
-     *
-     * @param path a node path
-     * @return endpoint found in the node or null if no endpoint was found
+     * Read current endpoint stored at a znode
+     * 
+     * @param path
+     * @return
      */
     public EndpointDescription read(String path) {
         return nodes.get(path);
     }
 
-    public void add(EndpointDescription endpoint) throws URISyntaxException, KeeperException,
-    InterruptedException, IOException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-    
-        createEphemeralNode(ZookeeperEndpointRepository.getZooKeeperPath("") + endpointKey, getData(endpoint));
-        
-        LOG.info("Exporting endpoint to zookeeper: {}", endpoint);
-        for (String name : interfaces) {
-            String path = ZookeeperEndpointRepository.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.info("Creating ZooKeeper node for service with path {}", fullPath);
-            createPath(path);
-            createEphemeralNode(fullPath, getData(endpoint));
-        }
+    public void add(EndpointDescription endpoint) throws KeeperException, InterruptedException  {
+        String path = getZooKeeperPath(endpoint.getId());
+        LOG.info("Exporting endpoint to zookeeper. Endpoint: {}, Path: {}", endpoint, path);
+        createBasePath();
+        createEphemeralNode(path, getData(endpoint));
     }
 
-    public void modify(EndpointDescription endpoint) throws URISyntaxException, KeeperException, InterruptedException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-
-        LOG.info("Changing endpoint in zookeeper: {}", endpoint);
-        for (String name : interfaces) {
-            String path = ZookeeperEndpointRepository.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.info("Changing ZooKeeper node for service with path {}", fullPath);
-            createPath(path);
-            zk.setData(fullPath, getData(endpoint), -1);
-        }
+    public void modify(EndpointDescription endpoint) throws KeeperException, InterruptedException {
+        String path = getZooKeeperPath(endpoint.getId());
+        LOG.info("Changing endpoint in zookeeper. Endpoint: {}, Path: {}", endpoint, path);
+        createBasePath();
+        zk.setData(path, getData(endpoint), -1);
     }
     
-    public void remove(EndpointDescription endpoint) throws UnknownHostException, URISyntaxException {
-        Collection<String> interfaces = endpoint.getInterfaces();
-        String endpointKey = getKey(endpoint);
-        for (String name : interfaces) {
-            String path = ZookeeperEndpointRepository.getZooKeeperPath(name);
-            String fullPath = path + '/' + endpointKey;
-            LOG.debug("Removing ZooKeeper node: {}", fullPath);
-            try {
-                zk.delete(fullPath, -1);
-            } catch (Exception ex) {
-                LOG.debug("Error while removing endpoint: {}", ex); // e.g. session expired
-            }
-        }
+    public void remove(EndpointDescription endpoint) throws InterruptedException, KeeperException {
+        String path = getZooKeeperPath(endpoint.getId());
+        LOG.info("Removing endpoint in zookeeper. Endpoint: {}, Path: {}", endpoint, path);
+        zk.delete(path, -1);
     }
     
     public Collection<EndpointDescription> getAll() {
@@ -142,7 +113,8 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     }
 
     public static String getZooKeeperPath(String name) {
-        return name == null || name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + name.replace('.', '/');
+        String escaped = name.replace('/', '#');
+        return name == null || name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + escaped;
     }
 
     @Override
@@ -158,6 +130,11 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     @Override
     public void close() throws IOException {
 
+    }
+
+    private void createBasePath() throws KeeperException, InterruptedException {
+        String path = ZookeeperEndpointRepository.getZooKeeperPath(PATH_PREFIX);
+        createPath(path);
     }
 
     private void registerWatcher() {
@@ -228,12 +205,6 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         }
     }
 
-    private static String getKey(EndpointDescription endpoint) throws URISyntaxException {
-        URI uri = new URI(endpoint.getId());
-        return new StringBuilder().append(uri.getHost()).append("#").append(uri.getPort())
-            .append("#").append(uri.getPath().replace('/', '#')).toString();
-    }
-
     private void handleZNodeChanged(String path) {
         try {
             Stat stat = new Stat();
@@ -263,7 +234,8 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
 
     private void handleChanged(String path, EndpointDescription endpoint) {
         EndpointDescription old = nodes.put(path, endpoint);
-        EndpointEvent event = new EndpointEvent(old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED, endpoint);
+        int type = old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED;
+        EndpointEvent event = new EndpointEvent(type, endpoint);
         if (listener != null) {
             listener.endpointChanged(event, null);
         }

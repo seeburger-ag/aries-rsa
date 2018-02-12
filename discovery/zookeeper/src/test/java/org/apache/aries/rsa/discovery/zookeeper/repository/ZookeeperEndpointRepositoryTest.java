@@ -92,7 +92,7 @@ public class ZookeeperEndpointRepositoryTest {
         
         assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
 
-        String path = "/osgi/service_registry/java/lang/Runnable/test.de#-1##service1";
+        String path = "/osgi/service_registry/http:##test.de#service1";
         EndpointDescription ep2 = repository.read(path);
         assertNotNull(ep2);
 
@@ -107,11 +107,9 @@ public class ZookeeperEndpointRepositoryTest {
     
     @Test
     public void testGetZooKeeperPath() {
-        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX + '/' + "org/example/Test",
-            ZookeeperEndpointRepository.getZooKeeperPath("org.example.Test"));
+        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX + '/' + "http:##org.example.Test",
+            ZookeeperEndpointRepository.getZooKeeperPath("http://org.example.Test"));
 
-        // used for the recursive discovery
-        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX, ZookeeperEndpointRepository.getZooKeeperPath(null));
         assertEquals(ZookeeperEndpointRepository.PATH_PREFIX, ZookeeperEndpointRepository.getZooKeeperPath(""));
     }
 

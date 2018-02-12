@@ -39,7 +39,7 @@ import junit.framework.TestCase;
 
 public class PublishingEndpointListenerTest extends TestCase {
 
-    private static final String ENDPOINT_PATH = "/osgi/service_registry/myClass/google.de#80##test#sub";
+    private static final String ENDPOINT_PATH = "/osgi/service_registry/http:##google.de:80#test#sub";
 
     public void testEndpointRemovalAdding() throws KeeperException, InterruptedException {
         IMocksControl c = EasyMock.createNiceControl();

@@ -42,7 +42,7 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 @RunWith(PaxExam.class)
 public class TestDiscoveryExport extends RsaTestBase {
-    private static final String GREETER_ZOOKEEPER_NODE = "/osgi/service_registry/org/apache/aries/rsa/examples/echotcp/api/EchoService";
+    private static final String GREETER_ZOOKEEPER_NODE = "/osgi/service_registry";
 
     @Inject
     DistributionProvider tcpProvider;
