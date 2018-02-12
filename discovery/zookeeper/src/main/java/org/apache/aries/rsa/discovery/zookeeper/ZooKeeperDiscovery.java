@@ -28,7 +28,7 @@ import java.util.Map;
 import org.apache.aries.rsa.discovery.zookeeper.publish.PublishingEndpointListener;
 import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.discovery.zookeeper.subscribe.EndpointListenerTracker;
-import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterfaceMonitorManager;
+import org.apache.aries.rsa.discovery.zookeeper.subscribe.InterestManager;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -49,7 +49,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
 
     private PublishingEndpointListener endpointListener;
     private ServiceTracker<?, ?> endpointListenerTracker;
-    private InterfaceMonitorManager imManager;
+    private InterestManager imManager;
     private ZooKeeper zkClient;
     private boolean closed;
     private boolean started;
@@ -98,7 +98,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
         repository = new ZookeeperEndpointRepository(zkClient);
         endpointListener = new PublishingEndpointListener(repository);
         endpointListener.start(bctx);
-        imManager = new InterfaceMonitorManager(repository);
+        imManager = new InterestManager(repository);
         repository.addListener(imManager);
         endpointListenerTracker = new EndpointListenerTracker(bctx, imManager);
         endpointListenerTracker.open();

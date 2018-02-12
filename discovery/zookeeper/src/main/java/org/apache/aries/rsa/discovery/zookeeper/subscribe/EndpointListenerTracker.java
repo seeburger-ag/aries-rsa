@@ -28,14 +28,13 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
- * Tracks interest in EndpointListeners. Delegates to InterfaceMonitorManager to manage
- * interest in the scopes of each EndpointListener.
+ * Tracks EndpointListeners and EndpointEventListeners. Delegates to InterestManager to handle them
  */
 @SuppressWarnings({ "rawtypes", "deprecation", "unchecked" })
 public class EndpointListenerTracker extends ServiceTracker {
-    private final InterfaceMonitorManager imManager;
+    private final InterestManager imManager;
 
-    public EndpointListenerTracker(BundleContext bctx, InterfaceMonitorManager imManager) {
+    public EndpointListenerTracker(BundleContext bctx, InterestManager imManager) {
         super(bctx, getfilter(), null);
         this.imManager = imManager;
     }

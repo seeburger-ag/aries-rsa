@@ -35,13 +35,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages the EndpointEventListeners and the scopes they are interested in.
- * For each scope with interested EndpointEventListeners an InterfaceMonitor is created.
- * The InterfaceMonitor calls back when it detects added or removed external Endpoints.
- * These events are then forwarded to all interested EndpointEventListeners.
+ * Establishes a listener with the repository to be called back on all changes in the repo.
+ * Events from repository are then forwarded to all interested EndpointEventListeners.
  */
 @SuppressWarnings({"deprecation", "rawtypes"})
-public class InterfaceMonitorManager implements EndpointEventListener {
-    private static final Logger LOG = LoggerFactory.getLogger(InterfaceMonitorManager.class);
+public class InterestManager implements EndpointEventListener {
+    private static final Logger LOG = LoggerFactory.getLogger(InterestManager.class);
 
     private final ZookeeperEndpointRepository repository;
     private final Map<ServiceReference, Interest> interests = new HashMap<ServiceReference, Interest>();
@@ -51,7 +50,7 @@ public class InterfaceMonitorManager implements EndpointEventListener {
         Object epListener;
     }
 
-    public InterfaceMonitorManager(ZookeeperEndpointRepository repository) {
+    public InterestManager(ZookeeperEndpointRepository repository) {
         this.repository = repository;
     }
 

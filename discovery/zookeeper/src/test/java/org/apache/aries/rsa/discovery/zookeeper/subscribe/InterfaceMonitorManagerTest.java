@@ -48,7 +48,7 @@ public class InterfaceMonitorManagerTest {
 
         c.replay();
 
-        InterfaceMonitorManager eltc = new InterfaceMonitorManager(repository);
+        InterestManager eltc = new InterestManager(repository);
         // sref has no scope -> nothing should happen
         assertEquals(0, eltc.getInterests().size());
 
