@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.ConnectionLossException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
@@ -129,7 +130,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
 
     @Override
     public void close() throws IOException {
-
+        nodes.clear();
     }
 
     private void createBasePath() throws KeeperException, InterruptedException {
@@ -145,10 +146,14 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         }
     }
 
+    /**
+     * TODO Check if we handle connection losses correctly
+     * @param path
+     */
     private void watchRecursive(String path) {
         LOG.debug("Watching {}", path);
-        handleZNodeChanged(path);
         try {
+            handleZNodeChanged(path);
             List<String> children = zk.getChildren(path, this);
             if (children == null) {
                 return;
@@ -157,8 +162,12 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
                 String childPath = (path.endsWith("/") ? path : path + "/") + child;
                 watchRecursive(childPath);
             }
+        } catch (NoNodeException e) {
+            // Happens when a node was removed
+            LOG.debug(e.getMessage(), e);
+        } catch (ConnectionLossException e) {
+            LOG.debug(e.getMessage(), e);
         } catch (SessionExpiredException e) {
-            // TODO Can we safely ignore these?
             LOG.debug(e.getMessage(), e);
         } catch (Exception e) {
             LOG.info(e.getMessage(), e);
@@ -205,22 +214,15 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         }
     }
 
-    private void handleZNodeChanged(String path) {
-        try {
-            Stat stat = new Stat();
-            byte[] data = zk.getData(path, false, stat);
-            if (data == null || data.length == 0) {
-                return;
-            }
-            EndpointDescription endpoint = parser.readEndpoint(new ByteArrayInputStream(data));
-            if (endpoint != null) {
-               handleChanged(path, endpoint);
-            }
-        } catch (SessionExpiredException e) {
-            // TODO Can we safely ignore these?
-            LOG.debug(e.getMessage(), e);
-        } catch (Exception e) {
-            LOG.info(e.getMessage(), e);
+    private void handleZNodeChanged(String path) throws KeeperException, InterruptedException {
+        Stat stat = new Stat();
+        byte[] data = zk.getData(path, false, stat);
+        if (data == null || data.length == 0) {
+            return;
+        }
+        EndpointDescription endpoint = parser.readEndpoint(new ByteArrayInputStream(data));
+        if (endpoint != null) {
+            handleChanged(path, endpoint);
         }
     }
 
