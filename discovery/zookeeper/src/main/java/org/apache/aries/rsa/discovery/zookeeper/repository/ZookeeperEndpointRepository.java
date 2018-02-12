@@ -19,6 +19,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
@@ -168,7 +169,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     }
 
     private void watchRecursive(String path) {
-        LOG.info("Watching {}", path);
+        LOG.debug("Watching {}", path);
         handleZNodeChanged(path);
         try {
             List<String> children = zk.getChildren(path, this);
@@ -179,6 +180,9 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
                 String childPath = (path.endsWith("/") ? path : path + "/") + child;
                 watchRecursive(childPath);
             }
+        } catch (SessionExpiredException e) {
+            // TODO Can we safely ignore these?
+            LOG.debug(e.getMessage(), e);
         } catch (Exception e) {
             LOG.info(e.getMessage(), e);
         }
@@ -241,6 +245,9 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
             if (endpoint != null) {
                handleChanged(path, endpoint);
             }
+        } catch (SessionExpiredException e) {
+            // TODO Can we safely ignore these?
+            LOG.debug(e.getMessage(), e);
         } catch (Exception e) {
             LOG.info(e.getMessage(), e);
         }
