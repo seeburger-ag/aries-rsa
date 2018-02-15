@@ -60,11 +60,11 @@ public class RSFindHook implements FindHook {
             LOG.debug("Skipping import request for excluded class [{}]", className);
             return;
         }
-        String exFilter = extendFilter(fullFilter);
+        String exFilter = excludeLocalServices(fullFilter);
         serviceInterestListener.addServiceInterest(exFilter);
     }
 
-    String extendFilter(String filter) {
+    String excludeLocalServices(String filter) {
         return "(&" + filter + "(!(" + RemoteConstants.ENDPOINT_FRAMEWORK_UUID + "=" + frameworkUUID + ")))";
     }
 }
