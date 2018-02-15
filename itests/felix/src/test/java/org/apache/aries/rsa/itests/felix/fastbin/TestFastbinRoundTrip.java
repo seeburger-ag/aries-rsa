@@ -35,11 +35,17 @@ import org.ops4j.pax.exam.Option;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
-    private static final String FASTBIN_PORT_SERVER = "2544";
-    private static final String FASTBIN_PORT_CLIENT = "2545";
+    private static String FASTBIN_PORT_SERVER = "2544";
+    private static String FASTBIN_PORT_CLIENT = "2545";
+    
     @Inject
     EchoService echoService;
-
+    
+    public TestFastbinRoundTrip() throws IOException {
+        FASTBIN_PORT_CLIENT = "" + getFreePort();
+        FASTBIN_PORT_SERVER = "" + getFreePort();
+    }
+    
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
         return new Option[] //

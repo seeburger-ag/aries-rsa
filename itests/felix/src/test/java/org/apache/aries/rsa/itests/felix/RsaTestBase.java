@@ -140,7 +140,6 @@ public class RsaTestBase {
     
     protected static Option rsaDiscoveryZookeeper() {
         return composite(
-                         systemProperty("zkPort").value("15201"),
                          mvn("org.apache.zookeeper", "zookeeper"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper")
                          );

@@ -31,6 +31,7 @@ import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
 import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -99,7 +100,6 @@ public class TestFindHook extends RsaTestBase {
 
     @Test
     public void testFind() throws Exception {
-        Thread.sleep(1000); // FIXME Why does it only work if we wait? 
         ServiceReference<EchoService> ref = tryTo("get EchoService", new Callable<ServiceReference<EchoService>>() {
 
             @Override
