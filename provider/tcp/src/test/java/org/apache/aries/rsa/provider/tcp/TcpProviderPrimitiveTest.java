@@ -117,26 +117,22 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callVersion(parseVersion("1.0.0")), equalTo(parseVersion("1.0.0")));
     }
     
-    @Ignore
     @Test
     public void testVersionAr() {
         assertThat(myServiceProxy.callVersionAr(new Version[] {parseVersion("1.0.0")}), equalTo(new Version[] {parseVersion("1.0.0")}));
     }
     
-    @Ignore
     @Test
     public void testVersionList() {
         assertThat(myServiceProxy.callVersionList(Arrays.asList(parseVersion("1.0.0"))), equalTo(Arrays.asList(parseVersion("1.0.0"))));
     }
     
-    @Ignore
     @Test
     public void testVersionSet() {
         Set<Version> set = new HashSet<>(asList(parseVersion("1.0.0")));
         assertThat(myServiceProxy.callVersionSet(set), everyItem(isIn(set)));
     }
     
-    @Ignore
     @Test
     public void testVersionMap() {
         HashMap<Version, Version> map = new HashMap<>();
@@ -144,6 +140,7 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callVersionMap(map).entrySet(), everyItem(isIn(map.entrySet())));
     }
 
+    @Ignore
     @Test
     public void testDTO() {
         DTOType dto = new DTOType();
