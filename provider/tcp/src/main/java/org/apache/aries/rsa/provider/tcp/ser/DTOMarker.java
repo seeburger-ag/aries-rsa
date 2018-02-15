@@ -28,4 +28,13 @@ public class DTOMarker implements Serializable {
             throw new RuntimeException("Exception deserializing DTO " + className, e);
         } 
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DTOMarker)) {
+            return false;
+        }
+        DTOMarker other = (DTOMarker) obj;
+        return className.equals(other.className) && content.equals(other.content);
+    }
 }

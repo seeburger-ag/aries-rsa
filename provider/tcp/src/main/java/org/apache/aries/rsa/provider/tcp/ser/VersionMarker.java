@@ -22,4 +22,13 @@ public class VersionMarker implements Serializable {
     public void setVersion(String version) {
         this.version = version;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof VersionMarker)) {
+            return false;
+        }
+        VersionMarker other = (VersionMarker) obj;
+        return version.equals(other.version);
+    }
 }
