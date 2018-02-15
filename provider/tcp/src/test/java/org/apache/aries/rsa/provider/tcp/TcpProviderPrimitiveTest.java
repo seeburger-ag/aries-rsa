@@ -112,7 +112,6 @@ public class TcpProviderPrimitiveTest {
         Assert.assertArrayEquals(new byte[]{1}, myServiceProxy.callByteAr(new byte[]{1}));
     }
     
-    @Ignore
     @Test
     public void testVersion() {
         assertThat(myServiceProxy.callVersion(parseVersion("1.0.0")), equalTo(parseVersion("1.0.0")));
