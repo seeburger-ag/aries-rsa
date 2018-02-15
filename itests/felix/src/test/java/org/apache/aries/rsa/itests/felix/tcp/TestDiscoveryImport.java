@@ -33,12 +33,12 @@ import javax.inject.Inject;
 
 import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.util.Filter;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -66,6 +66,7 @@ public class TestDiscoveryImport extends RsaTestBase {
         };
     }
 
+    @Ignore
     @Test
     public void testDiscoveryImport() throws Exception {
         final Semaphore sem = new Semaphore(0);
