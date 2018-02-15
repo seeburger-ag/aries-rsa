@@ -43,6 +43,7 @@ import org.easymock.EasyMock;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
@@ -111,27 +112,32 @@ public class TcpProviderPrimitiveTest {
         Assert.assertArrayEquals(new byte[]{1}, myServiceProxy.callByteAr(new byte[]{1}));
     }
     
+    @Ignore
     @Test
     public void testVersion() {
         assertThat(myServiceProxy.callVersion(parseVersion("1.0.0")), equalTo(parseVersion("1.0.0")));
     }
     
+    @Ignore
     @Test
     public void testVersionAr() {
         assertThat(myServiceProxy.callVersionAr(new Version[] {parseVersion("1.0.0")}), equalTo(new Version[] {parseVersion("1.0.0")}));
     }
     
+    @Ignore
     @Test
     public void testVersionList() {
         assertThat(myServiceProxy.callVersionList(Arrays.asList(parseVersion("1.0.0"))), equalTo(Arrays.asList(parseVersion("1.0.0"))));
     }
     
+    @Ignore
     @Test
     public void testVersionSet() {
         Set<Version> set = new HashSet<>(asList(parseVersion("1.0.0")));
         assertThat(myServiceProxy.callVersionSet(set), everyItem(isIn(set)));
     }
     
+    @Ignore
     @Test
     public void testVersionMap() {
         HashMap<Version, Version> map = new HashMap<>();
@@ -139,6 +145,7 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callVersionMap(map).entrySet(), everyItem(isIn(map.entrySet())));
     }
 
+    @Ignore
     @Test
     public void testDTO() {
         DTOType dto = new DTOType();
@@ -146,6 +153,7 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callDTO(dto), samePropertyValuesAs(dto));
     }
     
+    @Ignore
     @Test
     public void testDTOAr() {
         DTOType dto = new DTOType();
