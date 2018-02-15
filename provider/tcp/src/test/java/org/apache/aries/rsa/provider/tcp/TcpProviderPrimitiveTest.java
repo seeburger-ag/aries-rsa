@@ -144,7 +144,6 @@ public class TcpProviderPrimitiveTest {
         assertThat(myServiceProxy.callVersionMap(map).entrySet(), everyItem(isIn(map.entrySet())));
     }
 
-    @Ignore
     @Test
     public void testDTO() {
         DTOType dto = new DTOType();
