@@ -27,8 +27,10 @@ public class BasicObjectOutputStream extends ObjectOutputStream {
             return obj;
         } else if (obj instanceof Version) {
             return new VersionMarker((Version) obj);
-        } else {
+        } else if (DTOUtil.isDTOType(obj.getClass())){
             return new DTOMarker(obj);
+        } else {
+            return obj;
         }
     }
 }
