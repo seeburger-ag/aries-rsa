@@ -38,6 +38,28 @@ public class InputStreamProxyTest {
         streamProvider = new StreamProviderImpl();
     }
 
+
+
+    @Test
+    public void testUnsignedBytes() throws IOException {
+        int length = 1024;
+        ByteArrayOutputStream out = new ByteArrayOutputStream(length);
+        for(int i=0;i<length;i++)
+        {
+            out.write((byte)i);
+        }
+        byte[] data = out.toByteArray();
+        byte[] result = new byte[data.length];
+        int id = streamProvider.registerStream(new ByteArrayInputStream(data));
+
+        @SuppressWarnings("resource")
+        InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
+        fixture.setStreamProvider(streamProvider);
+        assertEquals(length, fixture.read(result));
+        assertArrayEquals(data, result);
+        assertEquals(-1, fixture.read());
+    }
+
     @Test
     public void testReadFully() throws IOException {
         int charSize = 10;
