@@ -83,7 +83,7 @@ public class InputStreamProxy extends InputStream implements Serializable {
             //try again
             return read();
         }
-        return buffer[position++];
+        return (buffer[position++] & 0xFF);
     }
 
     private void fillBuffer() throws IOException {
