@@ -53,7 +53,7 @@ public class InputStreamProxyTest {
         int id = streamProvider.registerStream(new ByteArrayInputStream(data));
 
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
+        InputStreamProxy fixture = new InputStreamProxy(id, "");
         fixture.setStreamProvider(streamProvider);
         assertEquals(length, fixture.read(result));
         assertArrayEquals(data, result);
