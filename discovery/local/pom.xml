@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.parent</artifactId>
-        <version>1.12.0-SNAPSHOT</version>
+        <version>1.12.0</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     
