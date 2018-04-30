@@ -69,57 +69,7 @@
             <id>rat</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.rat</groupId>
-                        <artifactId>apache-rat-plugin</artifactId>
-                        <version>0.6</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <reportFile>${project.build.directory}/${project.build.finalName}.rat</reportFile>
-                            <excludeSubProjects>true</excludeSubProjects>
-                            <excludes>
-                                <exclude>**/target/**/*</exclude>
-                                <exclude>**/appended-resources/**/*</exclude>
-                                <exclude>**/dependency-reduced-pom.xml</exclude>
-                                <exclude>**/velocity.log</exclude>
-                                <exclude>**/DEPENDENCIES</exclude>
-                                <!-- exclude IntelliJ IDEA generated files -->
-                                <exclude>**/*.iml</exclude>
-                                <exclude>**/*.ipr</exclude>
-                                <exclude>**/*.iws</exclude>
-                                <exclude>**/.idea/**/*</exclude>
-                                <!-- exclude Eclipse IDE generated files -->
-                                <exclude>**/.project</exclude>
-                                <exclude>**/.classpath</exclude>
-                                <exclude>**/.settings/**</exclude>
-                                <exclude>**/eclipse-classes/**/*</exclude>
-                                <!-- manifest files don't support comments 
-                                    so don't contain the ASL2.0 header -->
-                                <exclude>**/APPLICATION.MF</exclude>
-                                <exclude>**/MANIFEST.MF</exclude>
-                                <exclude>**/*.MF</exclude>
-                                <!--RAT doesn't seem to recognize MIT style 
-                                    licenses -->
-                                <exclude>manual/src/styles/print.css</exclude>
-                                <!-- RAT doesn't recognize BSD license in 
-                                    transaction-manager logger -->
-                                <exclude>**/objectweb/howl/log/Logger.java</exclude>
-                                <exclude>.gitignore</exclude>
-                                <exclude>osgi.bnd</exclude>
-                                <exclude>README.md</exclude>
-                                <exclude>*.cfg</exclude>
-                                <exclude>derby.log</exclude>
-                                <exclude>**/*.sql</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
+                    
                 </plugins>
             </build>
         </profile>
@@ -139,6 +89,55 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/target/**/*</exclude>
+                        <exclude>**/appended-resources/**/*</exclude>
+                        <exclude>**/dependency-reduced-pom.xml</exclude>
+                        <exclude>**/velocity.log</exclude>
+                        <exclude>**/DEPENDENCIES</exclude>
+                        <!-- exclude IntelliJ IDEA generated files -->
+                        <exclude>**/*.iml</exclude>
+                        <exclude>**/*.ipr</exclude>
+                        <exclude>**/*.iws</exclude>
+                        <exclude>**/.idea/**/*</exclude>
+                        <!-- exclude Eclipse IDE generated files -->
+                        <exclude>**/.project</exclude>
+                        <exclude>**/.classpath</exclude>
+                        <exclude>**/.settings/**</exclude>
+                        <exclude>**/eclipse-classes/**/*</exclude>
+                        <!-- manifest files don't support comments so don't contain 
+                            the ASL2.0 header -->
+                        <exclude>**/APPLICATION.MF</exclude>
+                        <exclude>**/MANIFEST.MF</exclude>
+                        <exclude>**/*.MF</exclude>
+                        <!--RAT doesn't seem to recognize MIT style licenses -->
+                        <exclude>manual/src/styles/print.css</exclude>
+                        <!-- RAT doesn't recognize BSD license in transaction-manager 
+                            logger -->
+                        <exclude>**/objectweb/howl/log/Logger.java</exclude>
+                        <exclude>.gitignore</exclude>
+                        <exclude>osgi.bnd</exclude>
+                        <exclude>README.md</exclude>
+                        <exclude>*.cfg</exclude>
+                        <exclude>derby.log</exclude>
+                        <exclude>**/*.sql</exclude>
+                        <exclude>**/README.md</exclude>
+                        <exclude>**/Readme.md</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>
