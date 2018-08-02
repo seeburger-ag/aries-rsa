@@ -83,7 +83,6 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
      * @param method
      * @param args
      * @param requestStream
-     * @param protocolVersion
      * @throws Exception
      */
     protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception {

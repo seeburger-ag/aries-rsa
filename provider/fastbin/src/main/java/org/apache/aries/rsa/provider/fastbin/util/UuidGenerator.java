@@ -29,8 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A unique ID generator which is a fast implementation based on
- * how <a href="http://activemq.apache.org/>Apache ActiveMQ</a> generates its UUID.
- * <p/>
+ * how Apache ActiveMQ generates its UUID.
  */
 public class UuidGenerator {
 

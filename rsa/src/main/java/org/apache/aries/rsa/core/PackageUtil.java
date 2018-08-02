@@ -40,7 +40,6 @@ public class PackageUtil {
      * Tries to retrieve the version of iClass via the PackageAdmin.
      *
      * @param iClass tThe interface for which the version should be found
-     * @param bc any valid BundleContext
      * @return the version of the interface or "0.0.0" if no version information could be found or an error
      *         occurred during the retrieval
      */
