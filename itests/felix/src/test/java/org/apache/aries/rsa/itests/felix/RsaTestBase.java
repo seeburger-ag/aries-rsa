@@ -19,8 +19,8 @@
 
 package org.apache.aries.rsa.itests.felix;
 
+import static org.ops4j.pax.exam.CoreOptions.bundle;
 import static org.ops4j.pax.exam.CoreOptions.composite;
-import static org.ops4j.pax.exam.CoreOptions.junitBundles;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.ops4j.pax.exam.CoreOptions.vmOption;
@@ -112,12 +112,26 @@ public class RsaTestBase {
         );
     }
     
+    /**
+     * We create our own junit option to also provide hamcrest and Awaitility support 
+     */
+    protected static Option junit() {
+        return composite(systemProperty("pax.exam.invoker").value("junit"),
+                bundle("link:classpath:META-INF/links/org.ops4j.pax.tipi.junit.link"),
+                bundle("link:classpath:META-INF/links/org.ops4j.pax.exam.invoker.junit.link"),
+                mavenBundle().groupId("org.apache.servicemix.bundles")
+                        .artifactId("org.apache.servicemix.bundles.hamcrest").version("1.3_1"),
+                mavenBundle().groupId("org.awaitility").artifactId("awaitility").version("3.1.0"));
+    }
+    
     protected static Option rsaCore() {
-        return composite(junitBundles(), 
+        return composite(junit(), 
                          localRepo(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
+                         mvn("org.apache.servicemix.bundles", "org.apache.servicemix.bundles.hamcrest"),
+                         mvn("org.awaitility", "awaitility"),
                          mvn("org.apache.felix", "org.apache.felix.eventadmin"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
                          mvn("org.apache.felix", "org.apache.felix.scr"),

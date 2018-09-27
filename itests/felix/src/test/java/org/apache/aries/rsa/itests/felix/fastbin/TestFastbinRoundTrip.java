@@ -18,9 +18,11 @@ package org.apache.aries.rsa.itests.felix.fastbin;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
@@ -75,7 +77,11 @@ public class TestFastbinRoundTrip extends RsaTestBase {
 
     @Test
     public void testCall() throws Exception {
-        assertEquals("test", echoService.echo("test"));
+        await().ignoreExceptions().until(new Callable<String>() {
+            public String call() throws Exception {
+                return echoService.echo("test");
+            }
+        }, equalTo("test"));
     }
 
 }
