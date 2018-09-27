@@ -47,8 +47,12 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
 
     @Override
     public ServiceRegistration addingService(ServiceReference<DistributionProvider> reference) {
-        LOG.debug("RemoteServiceAdmin Implementation is starting up");
         DistributionProvider provider = context.getService(reference);
+        if (provider == null) {
+            // Can happen if the service is created by a service factory and an exception occurs
+            return null;
+        }
+        LOG.debug("RemoteServiceAdmin Implementation is starting up");
         BundleContext apiContext = getAPIContext();
         PackageUtil packageUtil = new PackageUtil(context);
         EventProducer eventProducer = new EventProducer(context);
