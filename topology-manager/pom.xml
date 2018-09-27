@@ -42,6 +42,12 @@
             <artifactId>org.apache.aries.rsa.spi</artifactId>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+             <groupId>com.shazam</groupId>
+             <artifactId>shazamcrest</artifactId>
+             <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
