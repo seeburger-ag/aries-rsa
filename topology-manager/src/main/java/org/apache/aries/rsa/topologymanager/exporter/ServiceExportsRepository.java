@@ -37,21 +37,54 @@ import org.slf4j.LoggerFactory;
 /**
  * Holds all Exports of a given RemoteServiceAdmin
  */
-public class ServiceExportsRepository  implements Closeable {
+public class ServiceExportsRepository implements Closeable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceExportsRepository.class);
 
     private RemoteServiceAdmin rsa;
     private EndpointListenerNotifier notifier;
 
-    private final Map<ServiceReference<?>, Collection<ExportRegistration>> exportsMap = new LinkedHashMap<>();
+    private final Map<ServiceReference<?>, Collection<ExportRegistrationHolder>> exportsMap = new LinkedHashMap<>();
 
+    /**
+     * The holder allows us to work around that registration.getReference() is null when the registration is closed
+     */
+    private class ExportRegistrationHolder {
+        private final ExportRegistration registration;
+        private final ExportReference reference;
+        private final EndpointDescription endpoint;
+
+        ExportRegistrationHolder(ExportRegistration registration) {
+            this.registration = registration;
+            this.reference = registration.getExportReference();
+            this.endpoint = this.reference.getExportedEndpoint();
+        }
+
+        ExportRegistration getRegistration() {
+            return registration;
+        }
+
+        void close() {
+            if (reference != null) {
+                notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint));
+                registration.close();
+            }
+        }
+
+        public void update() {
+            registration.update(null);
+            if (reference != null) {
+                EndpointEvent event = new EndpointEvent(EndpointEvent.MODIFIED, endpoint);
+                notifier.sendEvent(event);
+            }
+        }
+    }
 
     public ServiceExportsRepository(RemoteServiceAdmin rsa, EndpointListenerNotifier notifier) {
         this.rsa = rsa;
         this.notifier = notifier;
     }
-    
+
     public void close() {
         LOG.debug("Closing registry for RemoteServiceAdmin {}", rsa.getClass().getName());
         for (ServiceReference<?> sref : exportsMap.keySet()) {
@@ -59,59 +92,46 @@ public class ServiceExportsRepository  implements Closeable {
         }
     }
 
-    private void closeReg(ExportRegistration reg) {
-        ExportReference exportReference = reg.getExportReference();
-        if (exportReference != null) {
-            EndpointDescription endpoint = exportReference.getExportedEndpoint();
-            notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint));
-            reg.close();
-        }
-    }
-    
     public synchronized void addService(ServiceReference<?> sref, Collection<ExportRegistration> exports) {
-        exportsMap.put(sref, new ArrayList<ExportRegistration>(exports));
+        List<ExportRegistrationHolder> holderList = new ArrayList<ExportRegistrationHolder>(exports.size());
+        exportsMap.put(sref, holderList);
         for (ExportRegistration reg : exports) {
+            ExportRegistrationHolder holder = new ExportRegistrationHolder(reg);
+            holderList.add(holder);
             ExportReference exportReference = reg.getExportReference();
-            if  (exportReference != null) {
+            if (exportReference != null) {
                 EndpointDescription endpoint = exportReference.getExportedEndpoint();
                 EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
                 notifier.sendEvent(event);
             }
         }
     }
-    
 
     public synchronized void modifyService(ServiceReference<?> sref) {
-        Collection<ExportRegistration> exports = exportsMap.get(sref);
+        Collection<ExportRegistrationHolder> exports = exportsMap.get(sref);
         if (exports != null) {
-            for (ExportRegistration reg : exports) {
-                reg.update(null);
-                ExportReference exportReference = reg.getExportReference();
-                if  (exportReference != null) {
-                    EndpointDescription endpoint = exportReference.getExportedEndpoint();
-                    EndpointEvent event = new EndpointEvent(EndpointEvent.MODIFIED, endpoint);
-                    notifier.sendEvent(event);
-                }
+            for (ExportRegistrationHolder reg : exports) {
+                reg.update();
             }
         }
     }
 
     public synchronized void removeService(ServiceReference<?> sref) {
-        Collection<ExportRegistration> exports = exportsMap.get(sref);
+        Collection<ExportRegistrationHolder> exports = exportsMap.get(sref);
         if (exports != null) {
-            for (ExportRegistration reg : exports) {
-                closeReg(reg);
+            for (ExportRegistrationHolder reg : exports) {
+                reg.close();
             }
             exports.clear();
         }
     }
-    
+
     public List<EndpointDescription> getAllEndpoints() {
         List<EndpointDescription> endpoints = new ArrayList<>();
         for (ServiceReference<?> sref : exportsMap.keySet()) {
-            Collection<ExportRegistration> exports = exportsMap.get(sref);
-            for (ExportRegistration reg : exports) {
-                ExportReference exportRef = reg.getExportReference();
+            Collection<ExportRegistrationHolder> exports = exportsMap.get(sref);
+            for (ExportRegistrationHolder reg : exports) {
+                ExportReference exportRef = reg.getRegistration().getExportReference();
                 if (exportRef != null) {
                     endpoints.add(exportRef.getExportedEndpoint());
                 }
