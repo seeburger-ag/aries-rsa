@@ -1,6 +1,6 @@
 # Aries Remote Service Admin (RSA)
 
-[![Build Status](https://builds.apache.org/buildStatus/icon?job=Aries-rsa master)](https://builds.apache.org/job/Aries-rsa master)
+[![Build Status](https://builds.apache.org/buildStatus/icon?job=Aries-rsa%20master)](https://builds.apache.org/job/Aries-rsa%20master)
 [![Maven Central](https://img.shields.io/maven-central/v/org.apache.aries.rsa/org.apache.aries.rsa.main.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.apache.aries.rsa%22%20AND%20a:%22org.apache.aries.rsa.main%22)
 
 The [Aries Remote Service Admin (RSA)](http://aries.apache.org/modules/rsa.html) project is the reference implementation of [Remote Services](https://osgi.org/specification/osgi.cmpn/7.0.0/service.remoteservices.html
