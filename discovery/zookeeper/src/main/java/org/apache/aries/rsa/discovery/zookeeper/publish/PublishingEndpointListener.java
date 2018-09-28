@@ -87,8 +87,8 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     private void endpointModified(EndpointDescription endpoint, String filter) {
         try {
             repository.modify(endpoint);
-        } catch (Exception e) {
-            LOG.error("Error modifying endpoint data in zookeeper for endpoint {}", endpoint.getId(), e);
+        } catch (Exception ex) {
+            logException("modification", endpoint, ex);
         }
     }
 
@@ -97,7 +97,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
         try {
             repository.add(endpoint);
         } catch (Exception ex) {
-            LOG.error("Exception while processing the addition of an endpoint.", ex);
+            logException("adding", endpoint, ex);
         }
     }
 
@@ -106,8 +106,13 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
         try {
             repository.remove(endpoint);
         } catch (Exception ex) {
-            LOG.error("Exception while processing the removal of an endpoint", ex);
+            logException("removal", endpoint, ex);
         }
+    }
+    
+    private void logException(String operation, EndpointDescription endpoint, Exception ex) {
+        String msg = String.format("Exception during %s of endpoint %s", operation, endpoint.getId());
+        LOG.error(msg, ex);
     }
 
 }
