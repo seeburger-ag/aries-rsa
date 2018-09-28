@@ -152,7 +152,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     }
 
     private void createBasePath() throws KeeperException, InterruptedException {
-        String path = ZookeeperEndpointRepository.getZooKeeperPath(PATH_PREFIX);
+        String path = ZookeeperEndpointRepository.getZooKeeperPath("");
         createPath(path);
     }
 
