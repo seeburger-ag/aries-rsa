@@ -19,10 +19,10 @@
 package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Minimal implementation of a synchronized map
@@ -32,7 +32,7 @@ public class MultiMap<T> {
     private Map<String, Set<T>> map;
     
     public MultiMap() {
-        map = new HashMap<>();
+        map = new ConcurrentHashMap<>();
     }
     
     public synchronized void put(String key, T value) {
