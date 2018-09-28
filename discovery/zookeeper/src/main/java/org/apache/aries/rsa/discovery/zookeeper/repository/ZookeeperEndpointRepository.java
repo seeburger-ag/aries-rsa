@@ -234,7 +234,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
 
     private void handleZNodeChanged(String path) throws KeeperException, InterruptedException {
         Stat stat = new Stat();
-        byte[] data = zk.getData(path, false, stat);
+        byte[] data = zk.getData(path, this, stat);
         if (data == null || data.length == 0) {
             return;
         }
