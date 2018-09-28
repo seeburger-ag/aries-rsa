@@ -21,6 +21,7 @@ package org.apache.aries.rsa.discovery.zookeeper.subscribe;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
@@ -43,7 +44,7 @@ public class InterestManager implements EndpointEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(InterestManager.class);
 
     private final ZookeeperEndpointRepository repository;
-    private final Map<ServiceReference, Interest> interests = new HashMap<ServiceReference, Interest>();
+    private final Map<ServiceReference, Interest> interests = new ConcurrentHashMap<ServiceReference, Interest>();
 
     protected static class Interest {
         List<String> scopes;
@@ -86,7 +87,7 @@ public class InterestManager implements EndpointEventListener {
                 EndpointEventListener.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)));
     }
 
-    public synchronized void removeInterest(ServiceReference<EndpointEventListener> epListenerRef) {
+    public void removeInterest(ServiceReference<EndpointEventListener> epListenerRef) {
         LOG.info("removing EndpointEventListener interests: {}", epListenerRef);
         interests.remove(epListenerRef);
     }
