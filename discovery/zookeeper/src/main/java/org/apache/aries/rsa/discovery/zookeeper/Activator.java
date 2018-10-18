@@ -22,6 +22,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter;
+import org.apache.zookeeper.server.ZooTrace;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -43,6 +44,9 @@ public class Activator implements BundleActivator {
     }
 
     public synchronized void stop(BundleContext bc) throws Exception {
+    	// Load ZooTrace class early to avoid ClassNotFoundException on shutdown
+    	ZooTrace.getTextTraceLevel();
+    	
         zkd.stop(true);
         
         if (zkStarter != null) {
