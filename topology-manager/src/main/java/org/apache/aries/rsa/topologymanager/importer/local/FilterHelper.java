@@ -58,6 +58,10 @@ public final class FilterHelper {
         if (className == null) {
             return true;
         }
+        
+        if (className.startsWith("org.osgi.service.clusterinfo")) {
+        	return false;
+        }
 
         for (String p : SYSTEM_PACKAGES) {
             if (className.startsWith(p)) {

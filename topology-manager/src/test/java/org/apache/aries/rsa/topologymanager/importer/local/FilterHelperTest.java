@@ -18,11 +18,21 @@
  */
 package org.apache.aries.rsa.topologymanager.importer.local;
 
-import org.apache.aries.rsa.topologymanager.importer.local.FilterHelper;
+import static org.apache.aries.rsa.topologymanager.importer.local.FilterHelper.isClassExcluded;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 public class FilterHelperTest {
+	
+	@Test
+	public void testIgnore() { 
+		assertThat(isClassExcluded(ConfigurationAdmin.class.getName()), equalTo(true));
+		assertThat(isClassExcluded("org.osgi.service.clusterinfo.NodeStatus"), equalTo(false));
+	}
 
     @Test
     public void testClass()  {
