@@ -156,7 +156,7 @@ public class TopologyManagerExportTest {
         expect(exportReference.getExportedEndpoint()).andReturn(endpoint).anyTimes();
         exportRegistration.close();
         expectLastCall().anyTimes();
-        expect(exportRegistration.update(EasyMock.isNull(Map.class))).andReturn(endpoint).anyTimes();
+        expect(exportRegistration.update(EasyMock.anyObject(Map.class))).andReturn(endpoint).anyTimes();
         return exportRegistration;
     }
 
@@ -176,6 +176,7 @@ public class TopologyManagerExportTest {
         expect(sref.getBundle()).andReturn(srefBundle).anyTimes();
         expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").anyTimes();
         expect(sref.getProperty("objectClass")).andReturn("org.My").anyTimes();
+        expect(sref.getPropertyKeys()).andReturn(new String[] {"objectClass"}).anyTimes();
         return sref;
     }
 }

@@ -21,6 +21,7 @@ package org.apache.aries.rsa.topologymanager.exporter;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +53,14 @@ public class ServiceExportsRepository implements Closeable {
     private class ExportRegistrationHolder {
         private final ExportRegistration registration;
         private final ExportReference reference;
-        private final EndpointDescription endpoint;
+        private EndpointDescription endpoint;
 
-        ExportRegistrationHolder(ExportRegistration registration) {
+        ExportRegistrationHolder(ExportRegistration registration, EndpointDescription endpoint) {
             this.registration = registration;
             this.reference = registration.getExportReference();
-            this.endpoint = this.reference.getExportedEndpoint();
+            this.endpoint = endpoint;
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            notifier.sendEvent(event);
         }
 
         ExportRegistration getRegistration() {
@@ -71,13 +74,22 @@ public class ServiceExportsRepository implements Closeable {
             }
         }
 
-        public void update() {
-            registration.update(null);
+        public void update(ServiceReference<?> sref) {
+            EndpointDescription updatedEndpoint = registration.update(getServiceProps(sref));
             if (reference != null) {
+            	this.endpoint = updatedEndpoint;
                 EndpointEvent event = new EndpointEvent(EndpointEvent.MODIFIED, endpoint);
                 notifier.sendEvent(event);
             }
         }
+
+		private Map<String, ?> getServiceProps(ServiceReference<?> sref) {
+			HashMap<String, Object> props = new HashMap<>();
+			for (String key : sref.getPropertyKeys()) {
+				props.put(key, sref.getProperty(key));
+			} 
+			return props;
+		}
     }
 
     public ServiceExportsRepository(RemoteServiceAdmin rsa, EndpointListenerNotifier notifier) {
@@ -96,13 +108,11 @@ public class ServiceExportsRepository implements Closeable {
         List<ExportRegistrationHolder> holderList = new ArrayList<ExportRegistrationHolder>(exports.size());
         exportsMap.put(sref, holderList);
         for (ExportRegistration reg : exports) {
-            ExportRegistrationHolder holder = new ExportRegistrationHolder(reg);
-            holderList.add(holder);
-            ExportReference exportReference = reg.getExportReference();
+        	ExportReference exportReference = reg.getExportReference();
             if (exportReference != null) {
                 EndpointDescription endpoint = exportReference.getExportedEndpoint();
-                EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
-                notifier.sendEvent(event);
+    			ExportRegistrationHolder holder = new ExportRegistrationHolder(reg, endpoint);
+                holderList.add(holder);
             }
         }
     }
@@ -111,7 +121,7 @@ public class ServiceExportsRepository implements Closeable {
         Collection<ExportRegistrationHolder> exports = exportsMap.get(sref);
         if (exports != null) {
             for (ExportRegistrationHolder reg : exports) {
-                reg.update();
+                reg.update(sref);
             }
         }
     }
