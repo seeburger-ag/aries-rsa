@@ -38,7 +38,6 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -139,11 +138,18 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     @Override
     public void process(WatchedEvent event) {
         LOG.info("Received event {}", event);
-        if (event.getType() == EventType.NodeDeleted) {
-            handleRemoved(event.getPath());
-            return;
-        }
-        watchRecursive(event.getPath());
+        switch (event.getType()) {
+        case NodeCreated:
+        case NodeDataChanged:
+        case NodeChildrenChanged:
+        	watchRecursive(event.getPath());
+        	break;
+		case NodeDeleted:
+			handleRemoved(event.getPath());
+			break;
+		default:
+			break;
+		}
     }
 
     @Override
@@ -169,7 +175,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
      * @param path
      */
     private void watchRecursive(String path) {
-        LOG.debug("Watching {}", path);
+        LOG.info("Watching {}", path);
         try {
             handleZNodeChanged(path);
             List<String> children = zk.getChildren(path, this);
