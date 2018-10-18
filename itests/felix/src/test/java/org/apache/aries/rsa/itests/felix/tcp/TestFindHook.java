@@ -31,7 +31,6 @@ import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
 import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
