@@ -45,7 +45,7 @@ public final class EndpointDescriptionBundleParser {
 
     public List<EndpointDescription> getAllEndpointDescriptions(Bundle b) {
         Enumeration<URL> urls = getEndpointDescriptionURLs(b);
-        List<EndpointDescription> elements = new ArrayList<EndpointDescription>();
+        List<EndpointDescription> elements = new ArrayList<>();
         while (urls.hasMoreElements()) {
             URL resourceURL = urls.nextElement();
             try {

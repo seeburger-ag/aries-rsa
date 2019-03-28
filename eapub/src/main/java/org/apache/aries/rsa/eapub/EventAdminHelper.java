@@ -60,7 +60,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
     public void remoteAdminEvent(RemoteServiceAdminEvent rsae) {
         String topic = remoteServiceAdminEventTypeToString(rsae.getType());
 
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         setIfNotNull(props, "cause", rsae.getException());
 
         EndpointDescription endpoint = null;

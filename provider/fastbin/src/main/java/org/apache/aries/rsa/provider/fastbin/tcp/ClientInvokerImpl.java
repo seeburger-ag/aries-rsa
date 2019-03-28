@@ -54,7 +54,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
     @SuppressWarnings("rawtypes")
-    private final static Map<Class,String> CLASS_TO_PRIMITIVE = new HashMap<Class, String>(8, 1.0F);
+    private final static Map<Class,String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
 
     static {
         CLASS_TO_PRIMITIVE.put(boolean.class,"Z");
@@ -69,9 +69,9 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
     protected final AtomicLong correlationGenerator = new AtomicLong();
     protected final DispatchQueue queue;
-    protected final Map<String, TransportPool> transports = new HashMap<String, TransportPool>();
+    protected final Map<String, TransportPool> transports = new HashMap<>();
     protected final AtomicBoolean running = new AtomicBoolean(false);
-    protected final Map<Long, ResponseFuture> requests = new HashMap<Long, ResponseFuture>();
+    protected final Map<Long, ResponseFuture> requests = new HashMap<>();
     protected final long timeout;
     protected final Map<String, SerializationStrategy> serializationStrategies;
 
@@ -156,7 +156,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         }
     }
 
-    static final WeakHashMap<Method, MethodData> method_cache = new WeakHashMap<Method, MethodData>();
+    static final WeakHashMap<Method, MethodData> method_cache = new WeakHashMap<>();
 
     static class MethodData {
         private final SerializationStrategy serializationStrategy;

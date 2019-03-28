@@ -77,7 +77,7 @@ public class PublishingEndpointListenerTest extends TestCase {
     }
 
     private EndpointDescription createEndpoint() {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[] {"myClass"});
         props.put(RemoteConstants.ENDPOINT_ID, "http://google.de:80/test/sub");
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "myConfig");

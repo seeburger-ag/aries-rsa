@@ -201,7 +201,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
      * @return the converted map, or an empty map if the given dictionary is null
      */
     public static <K, V> Map<K, V> toMap(Dictionary<K, V> dict) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         if (dict != null) {
             Enumeration<K> keys = dict.keys();
             while (keys.hasMoreElements()) {

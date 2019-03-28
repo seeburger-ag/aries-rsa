@@ -98,7 +98,7 @@ public class EndpointListenerNotifierTest {
     }
 
     private EndpointDescription createEndpoint(String iface) {
-        Map<String, Object> props = new Hashtable<String, Object>(); 
+        Map<String, Object> props = new Hashtable<>();
         props.put("objectClass", new String[]{iface});
         props.put(RemoteConstants.ENDPOINT_ID, iface);
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "any");

@@ -104,7 +104,7 @@ public class URISupport {
 
     public static Map<String, String> parseQuery(String uri) throws URISyntaxException {
         try {
-            Map<String, String> rc = new HashMap<String, String>();
+            Map<String, String> rc = new HashMap<>();
             if (uri != null) {
                 String[] parameters = uri.split("&");
                 for (String parameter : parameters) {
@@ -216,7 +216,7 @@ public class URISupport {
      * @return
      */
     private static String[] splitComponents(String str) {
-        List<String> l = new ArrayList<String>();
+        List<String> l = new ArrayList<>();
 
         int last = 0;
         int depth = 0;

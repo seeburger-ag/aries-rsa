@@ -82,7 +82,7 @@ public class TcpInvocationHandler implements InvocationHandler {
     }
 
     private Object createPromiseResult(final Method method, final Object[] args) {
-        final Deferred<Object> deferred = new Deferred<Object>();
+        final Deferred<Object> deferred = new Deferred<>();
         new Thread(new Runnable() {
             
             @Override

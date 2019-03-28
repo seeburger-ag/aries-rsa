@@ -54,7 +54,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     private EndpointEventListener listener;
     public static final String PATH_PREFIX = "/osgi/service_registry";
     
-    private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<String, EndpointDescription>();
+    private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<>();
     
     public ZookeeperEndpointRepository(ZooKeeper zk) {
         this(zk, null);
@@ -118,7 +118,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
      *         elements of the original array in the same order
      */
     public static List<String> removeEmpty(List<String> strings) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (strings == null) {
             return result;
         }

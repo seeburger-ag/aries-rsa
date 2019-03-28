@@ -40,7 +40,7 @@ public class LengthPrefixedCodec implements ProtocolCodec {
     final int write_buffer_size = 1024 * 64;
     long write_counter = 0L;
     WritableByteChannel write_channel;
-    final Queue<ByteBuffer> next_write_buffers = new LinkedList<ByteBuffer>();
+    final Queue<ByteBuffer> next_write_buffers = new LinkedList<>();
     int next_write_size = 0;
 
     public boolean full() {

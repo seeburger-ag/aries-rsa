@@ -662,7 +662,7 @@ public class TcpTransport implements Transport {
     //
 
     public static abstract class State {
-        LinkedList<Runnable> callbacks = new LinkedList<Runnable>();
+        LinkedList<Runnable> callbacks = new LinkedList<>();
 
         void add(Runnable r) {
             if (r != null) {
@@ -784,7 +784,7 @@ public class TcpTransport implements Transport {
     }
 
     class CANCELING extends SocketState {
-        private LinkedList<Runnable> runnables =  new LinkedList<Runnable>();
+        private LinkedList<Runnable> runnables = new LinkedList<>();
         private int remaining;
         private boolean dispose;
 

@@ -118,7 +118,7 @@ public final class IntrospectionSupport {
             throw new IllegalArgumentException("props was null.");
         }
 
-        HashMap<String, Object> rc = new HashMap<String, Object>(props.size());
+        HashMap<String, Object> rc = new HashMap<>(props.size());
 
         for (Iterator<Entry> iter = props.entrySet().iterator(); iter.hasNext();) {
             Entry entry = iter.next();
@@ -254,7 +254,7 @@ public final class IntrospectionSupport {
 
     public static String toString(Object target, Class<?> stopClass, Map<String, Object> overrideFields, String ... fields) {
         try {
-            LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+            LinkedHashMap<String, Object> map = new LinkedHashMap<>();
             addFields(target, target.getClass(), stopClass, map);
             if (overrideFields != null) {
             	for(String key : overrideFields.keySet()) {
@@ -268,7 +268,7 @@ public final class IntrospectionSupport {
             }
            
             boolean useMultiLine=false;
-            LinkedHashMap<String, String> props = new LinkedHashMap<String, String>();
+            LinkedHashMap<String, String> props = new LinkedHashMap<>();
             for (Entry<String, Object> entry : map.entrySet()) {
                 String key = entry.getKey();
                 String value = null;

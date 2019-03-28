@@ -38,7 +38,7 @@ public class PropertiesMapperTest {
     @Test
     @Ignore
     public void testCreateXML() throws Exception {
-        Map<String, Object> m = new LinkedHashMap<String, Object>();
+        Map<String, Object> m = new LinkedHashMap<>();
         m.put("service.imported.configs", "org.apache.cxf.ws");
         m.put("endpoint.id", "foo:bar");
         m.put("objectClass", new String[] {"com.acme.HelloService", "some.other.Service"});
@@ -61,9 +61,9 @@ public class PropertiesMapperTest {
         m.put("Character2", 'X');
 
         m.put("bool-list", Arrays.asList(true, false));
-        m.put("empty-set", new HashSet<Object>());
+        m.put("empty-set", new HashSet<>());
 
-        Set<String> stringSet = new LinkedHashSet<String>();
+        Set<String> stringSet = new LinkedHashSet<>();
         stringSet.add("Hello there");
         stringSet.add("How are you?");
         m.put("string-set", stringSet);

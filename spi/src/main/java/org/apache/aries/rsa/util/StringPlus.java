@@ -39,7 +39,7 @@ public final class StringPlus {
         if (object instanceof String) {
             String s = (String)object;
             String[] values = s.split(",");
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (String val : values) {
                 String actualValue = val.trim();
                 if (!actualValue.isEmpty()) {
@@ -55,7 +55,7 @@ public final class StringPlus {
         
         if (object instanceof Collection) {
             Collection col = (Collection)object;
-            List<String> ar = new ArrayList<String>(col.size());
+            List<String> ar = new ArrayList<>(col.size());
             for (Object o : col) {
                 if (o instanceof String) {
                     String s = (String)o;

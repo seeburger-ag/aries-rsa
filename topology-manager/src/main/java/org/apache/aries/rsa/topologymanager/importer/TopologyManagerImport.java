@@ -56,17 +56,15 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
      */
-    private final MultiMap<EndpointDescription> importPossibilities
-        = new MultiMap<EndpointDescription>();
+    private final MultiMap<EndpointDescription> importPossibilities = new MultiMap<>();
 
     /**
      * List of already imported Endpoints by their matched filter
      */
-    private final MultiMap<ImportRegistration> importedServices
-        = new MultiMap<ImportRegistration>();
+    private final MultiMap<ImportRegistration> importedServices = new MultiMap<>();
     
     public TopologyManagerImport(BundleContext bc) {
-        this.rsaSet = new HashSet<RemoteServiceAdmin>();
+        this.rsaSet = new HashSet<>();
         bctx = bc;
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
@@ -189,7 +187,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     }
 
     private void unImport(ImportReference ref) {
-        List<ImportRegistration> removed = new ArrayList<ImportRegistration>();
+        List<ImportRegistration> removed = new ArrayList<>();
         HashSet<String> imported = new HashSet<>(importedServices.keySet());
         for (String key : imported) {
             for (ImportRegistration ir : importedServices.get(key)) {

@@ -60,7 +60,7 @@ public class FutureInvocationTest
     public void setup() throws Exception
     {
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
         server.start();
 

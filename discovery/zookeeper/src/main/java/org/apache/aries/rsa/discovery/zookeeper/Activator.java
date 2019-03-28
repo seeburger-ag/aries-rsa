@@ -55,7 +55,7 @@ public class Activator implements BundleActivator {
     }
     
     private Dictionary<String, String> configProperties(String pid) {
-        Dictionary<String, String> props = new Hashtable<String, String>();
+        Dictionary<String, String> props = new Hashtable<>();
         props.put(Constants.SERVICE_PID, pid);
         return props;
     }

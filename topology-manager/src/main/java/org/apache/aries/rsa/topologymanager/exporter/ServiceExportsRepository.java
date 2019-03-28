@@ -105,7 +105,7 @@ public class ServiceExportsRepository implements Closeable {
     }
 
     public synchronized void addService(ServiceReference<?> sref, Collection<ExportRegistration> exports) {
-        List<ExportRegistrationHolder> holderList = new ArrayList<ExportRegistrationHolder>(exports.size());
+        List<ExportRegistrationHolder> holderList = new ArrayList<>(exports.size());
         exportsMap.put(sref, holderList);
         for (ExportRegistration reg : exports) {
         	ExportReference exportReference = reg.getExportReference();

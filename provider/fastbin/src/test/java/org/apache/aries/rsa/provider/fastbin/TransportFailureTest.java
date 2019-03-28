@@ -50,7 +50,7 @@ public class TransportFailureTest {
     public void testInvoke() throws Exception {
 
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -72,7 +72,7 @@ public class TransportFailureTest {
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
             Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{Hello.class}, handler);
 
-            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<String>();
+            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<>();
             hello.hello("Guillaume", future1);
 
             long t0 = System.currentTimeMillis();

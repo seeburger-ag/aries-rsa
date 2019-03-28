@@ -28,7 +28,7 @@ public class ReferenceCounterTest {
 
     @Test
     public void testCounter() {
-        ReferenceCounter<String> counter = new ReferenceCounter<String>();
+        ReferenceCounter<String> counter = new ReferenceCounter<>();
         assertEquals(-1, counter.remove("a"));
         assertEquals(-1, counter.remove("a"));
         assertEquals(1, counter.add("a"));

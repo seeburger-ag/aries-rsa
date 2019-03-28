@@ -29,7 +29,7 @@ import java.util.HashMap;
 public class ClassLoaderObjectInputStream extends ObjectInputStream {
 
     /** <p>Maps primitive type names to corresponding class objects.</p> */
-    private static final HashMap<String, Class> primClasses = new HashMap<String, Class>(8, 1.0F);
+    private static final HashMap<String, Class> primClasses = new HashMap<>(8, 1.0F);
 
     private ClassLoader classLoader;
 

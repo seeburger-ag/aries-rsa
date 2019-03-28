@@ -48,7 +48,7 @@ public class EndpointListenerNotifier {
     private Map<EndpointEventListener, Set<Filter>> listeners;
 
     public EndpointListenerNotifier() {
-        this.listeners = new ConcurrentHashMap<EndpointEventListener, Set<Filter>>();
+        this.listeners = new ConcurrentHashMap<>();
     }
    
     public static Set<Filter> filtersFromEL(ServiceReference<EndpointListener> sref) {
@@ -62,7 +62,7 @@ public class EndpointListenerNotifier {
     }
 
     private static Set<Filter> getFilterSet(List<String> scopes) {
-        Set<Filter> filters = new HashSet<Filter>();
+        Set<Filter> filters = new HashSet<>();
         for (String scope : scopes) {
             try {
                 filters.add(FrameworkUtil.createFilter(scope));
@@ -109,11 +109,11 @@ public class EndpointListenerNotifier {
     }
     
     private static Set<Filter> getMatchingFilters(Set<Filter> filters, EndpointDescription endpoint) {
-        Set<Filter> matchingFilters = new HashSet<Filter>();
+        Set<Filter> matchingFilters = new HashSet<>();
         if (endpoint == null) {
             return matchingFilters;
         }
-        Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
+        Dictionary<String, Object> dict = new Hashtable<>(endpoint.getProperties());
         for (Filter filter : filters) {
             if (filter.match(dict)) {
                 LOG.debug("Filter {} matches endpoint {}", filter, dict);

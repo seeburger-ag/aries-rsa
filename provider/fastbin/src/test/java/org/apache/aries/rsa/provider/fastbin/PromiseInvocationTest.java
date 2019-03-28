@@ -60,7 +60,7 @@ public class PromiseInvocationTest
     public void setup() throws Exception
     {
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
         server.start();
 
@@ -142,14 +142,14 @@ public class PromiseInvocationTest
 
         @Override
         public Promise<String> helloPromise() {
-            final Deferred<String> deferred = new Deferred<String>();
+            final Deferred<String> deferred = new Deferred<>();
             new Thread(() -> deferred.resolve("Hello")).start();
             return deferred.getPromise();
         }
 
         @Override
         public Promise<String> exceptionPromise() throws IOException {
-            final Deferred<String> deferred = new Deferred<String>();
+            final Deferred<String> deferred = new Deferred<>();
             new Thread(() -> {
                 sleep(500);
                 deferred.fail(new IOException("test"));

@@ -64,7 +64,7 @@ public class EndpointDescriptionParser {
     
     public List<EndpointDescription> readEndpoints(InputStream is) {
         List<EndpointDescriptionType> epdts = readEpdts(is);
-        List<EndpointDescription> epds = new ArrayList<EndpointDescription>();
+        List<EndpointDescription> epds = new ArrayList<>();
         for (EndpointDescriptionType epdt : epdts) {
             epds.add(convert(epdt));
         }

@@ -44,7 +44,7 @@ public final class FilterHelper {
     
     private static final Set<String> SYSTEM_PACKAGES;
     static {
-        SYSTEM_PACKAGES = new HashSet<String>();
+        SYSTEM_PACKAGES = new HashSet<>();
         SYSTEM_PACKAGES.add("org.osgi.service");
         SYSTEM_PACKAGES.add("org.apache.felix");
         SYSTEM_PACKAGES.add("org.ops4j.pax.logging");

@@ -60,7 +60,7 @@ public class Activator implements BundleActivator {
     private EndpointEventListenerTracker epeListenerTracker;
 
     public void start(final BundleContext bc) throws Exception {
-        Dictionary<String, String> props = new Hashtable<String, String>();
+        Dictionary<String, String> props = new Hashtable<>();
         props.put("name", "default");
         bc.registerService(ExportPolicy.class, new DefaultExportPolicy(), props);
 

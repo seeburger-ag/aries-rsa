@@ -44,12 +44,9 @@ public class LocalDiscovery implements BundleListener {
 
     // this is effectively a set which allows for multiple service descriptions with the
     // same interface name but different properties and takes care of itself with respect to concurrency
-    final Map<EndpointDescription, Bundle> endpointDescriptions =
-        new ConcurrentHashMap<EndpointDescription, Bundle>();
-    final Map<EndpointEventListener, Collection<String>> listenerToFilters =
-        new HashMap<EndpointEventListener, Collection<String>>();
-    final Map<String, Collection<EndpointEventListener>> filterToListeners =
-        new HashMap<String, Collection<EndpointEventListener>>();
+    final Map<EndpointDescription, Bundle> endpointDescriptions = new ConcurrentHashMap<>();
+    final Map<EndpointEventListener, Collection<String>> listenerToFilters = new HashMap<>();
+    final Map<String, Collection<EndpointEventListener>> filterToListeners = new HashMap<>();
 
     EndpointDescriptionBundleParser bundleParser;
 
@@ -80,7 +77,7 @@ public class LocalDiscovery implements BundleListener {
             for (String filter : filters) {
                 Collection<EndpointEventListener> listeners = filterToListeners.get(filter);
                 if (listeners == null) {
-                    listeners = new ArrayList<EndpointEventListener>();
+                    listeners = new ArrayList<>();
                     filterToListeners.put(filter, listeners);
                 }
                 listeners.add(endpointListener);
@@ -117,12 +114,12 @@ public class LocalDiscovery implements BundleListener {
 
     private Map<String, Collection<EndpointEventListener>> getMatchingListeners(EndpointDescription endpoint) {
         // return a copy of matched filters/listeners so that caller doesn't need to hold locks while triggering events
-        Map<String, Collection<EndpointEventListener>> matched = new HashMap<String, Collection<EndpointEventListener>>();
+        Map<String, Collection<EndpointEventListener>> matched = new HashMap<>();
         synchronized (listenerToFilters) {
             for (Entry<String, Collection<EndpointEventListener>> entry : filterToListeners.entrySet()) {
                 String filter = entry.getKey();
                 if (LocalDiscovery.matchFilter(filter, endpoint)) {
-                    matched.put(filter, new ArrayList<EndpointEventListener>(entry.getValue()));
+                    matched.put(filter, new ArrayList<>(entry.getValue()));
                 }
             }
         }
@@ -196,7 +193,7 @@ public class LocalDiscovery implements BundleListener {
     
         try {
             Filter f = FrameworkUtil.createFilter(filter);
-            Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
+            Dictionary<String, Object> dict = new Hashtable<>(endpoint.getProperties());
             return f.match(dict);
         } catch (Exception e) {
             return false;

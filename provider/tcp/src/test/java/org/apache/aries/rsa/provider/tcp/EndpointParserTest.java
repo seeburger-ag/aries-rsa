@@ -35,7 +35,7 @@ public class EndpointParserTest {
 
     @Before
     public void defaultProps() {
-        props = new Hashtable<String, Object>(); 
+        props = new Hashtable<>();
         props.put("objectClass", new String[]{Runnable.class.getName()});
         props.put(RemoteConstants.ENDPOINT_ID, "myid");
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "any");
