@@ -247,19 +247,35 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             return new ExportRegistrationImpl(e, closeHandler, eventProducer);
         }
     }
-    
-    private Class<?>[] getInterfaces(
-            Object serviceO, 
-            List<String> interfaceNames
-            ) throws ClassNotFoundException {
-        List<Class<?>> interfaces = new ArrayList<>();
-        Class<?>[] allInterfaces = serviceO.getClass().getInterfaces();
-        for (Class<?> iface : allInterfaces) {
-            if (interfaceNames.contains(iface.getName())) {
-                interfaces.add(iface);
+
+    /**
+     * Returns the interface classes corresponding to the given service's interface names.
+     * The classes are returned in the same order as the given names.
+     *
+     * @param service the service implementing the interfaces
+     * @param interfaceNames the interface names
+     * @return the interface classes corresponding to the interface names
+     * @throws ClassNotFoundException if the service does not implement any of the named interfaces
+     */
+    private Class<?>[] getInterfaces(Object service, List<String> interfaceNames) throws ClassNotFoundException {
+        // prepare a map of all of the service's implemented interface names and classes
+        Map<String, Class<?>> interfaces = new HashMap<>();
+        for (Class<?> cls = service.getClass(); cls != null; cls = cls.getSuperclass()) {
+            for (Class<?> interfaceClass : cls.getInterfaces()) {
+                interfaces.put(interfaceClass.getName(), interfaceClass);
             }
         }
-        return interfaces.toArray(new Class[]{});
+        // lookup the given names in order, ensuring all are found
+        List<Class<?>> interfaceClasses = new ArrayList<>();
+        for (String interfaceName : interfaceNames) {
+            Class<?> interfaceClass = interfaces.get(interfaceName);
+            if (interfaceClass == null) {
+                throw new ClassNotFoundException("Service class " + service.getClass()
+                    + " does not implement interface " + interfaceName);
+            }
+            interfaceClasses.add(interfaceClass);
+        }
+        return interfaceClasses.toArray(new Class[0]);
     }
 
     /**
