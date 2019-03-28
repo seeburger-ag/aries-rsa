@@ -49,7 +49,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         props.put("bundle.id", bctx.getBundle().getBundleId());
         props.put("bundle.symbolicname", bctx.getBundle().getSymbolicName());
 
-        String version = (String)bctx.getBundle().getHeaders().get("Bundle-Version");
+        String version = bctx.getBundle().getHeaders().get("Bundle-Version");
         Version v = version != null ? new Version(version) : Version.emptyVersion;
         setIfNotNull(props, "bundle.version", v);
 

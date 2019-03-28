@@ -112,7 +112,7 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
             Throwable error;
             try {
                 // try to build the exception...
-                Constructor<?> ctr = loader.loadClass(className).getConstructor(new Class[]{String.class});
+                Constructor<?> ctr = loader.loadClass(className).getConstructor(String.class);
                 error = (Throwable) ctr.newInstance(message);
             } catch (Throwable e) {
                 // fallback to something simple..

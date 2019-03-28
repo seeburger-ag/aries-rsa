@@ -218,7 +218,7 @@ class PropertiesMapper {
 
         try {
             if ("Character".equals(boxedType)) {
-                return new Character(value.charAt(0));
+                return value.charAt(0);
             } else {
                 Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(javaType);
                 Constructor<?> ctor = cls.getConstructor(String.class);

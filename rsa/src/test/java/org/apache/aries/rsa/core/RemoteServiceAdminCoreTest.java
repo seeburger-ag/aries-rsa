@@ -340,7 +340,7 @@ public class RemoteServiceAdminCoreTest {
         Bundle b = c.createMock(Bundle.class);
         expect(b.getBundleContext()).andReturn(bc).anyTimes();
         expect(b.getSymbolicName()).andReturn("rsabundle").anyTimes();
-        expect(b.getBundleId()).andReturn(10l).anyTimes();
+        expect(b.getBundleId()).andReturn(10L).anyTimes();
         expect(b.getVersion()).andReturn(new Version("1.0.0")).anyTimes();
         expect(b.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
         return b;

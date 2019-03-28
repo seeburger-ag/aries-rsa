@@ -54,7 +54,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             final Object[] args = new Object[types.length];
             serializationStrategy.decodeRequest(loader, types, requestStream, args);
             Future<Object> future = (Future<Object>)method.invoke(target, args);
-            CompletableFuture<Object> completable = null;
+            CompletableFuture<Object> completable;
             if(future instanceof CompletableFuture) {
                 completable = (CompletableFuture<Object>)future;
             }

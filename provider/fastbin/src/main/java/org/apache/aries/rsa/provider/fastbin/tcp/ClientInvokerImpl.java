@@ -171,7 +171,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     }
 
     private MethodData getMethodData(Method method) throws IOException {
-        MethodData rc = null;
+        MethodData rc;
         synchronized (method_cache) {
             rc = method_cache.get(method);
         }

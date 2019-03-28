@@ -91,8 +91,8 @@ public class InvocationTest {
             // of primitives / objects and array dimensions.
             assertEquals('a', hello.mix(0));
             assertEquals('b', hello.mix(new int[]{0}));
-            assertEquals('c', hello.mix(new Integer(0)));
-            assertEquals('d', hello.mix(new Integer[]{new Integer(0)}));
+            assertEquals('c', hello.mix(Integer.valueOf(0)));
+            assertEquals('d', hello.mix(new Integer[]{0}));
             assertEquals('e', hello.mix(new int[0][0]));
             assertEquals('f', hello.mix(new Integer[0][0]));
 
@@ -427,9 +427,9 @@ public class InvocationTest {
             final long end = System.nanoTime();
 
             long latency_sum = 0;
-            for (int t = 0; t < latencies.length; t++) {
-                if( latencies[t] != -1 ) {
-                    latency_sum += latencies[t];
+            for (long latency : latencies) {
+                if (latency != -1) {
+                    latency_sum += latency;
                 }
             }
             double latency_avg = ((latency_sum * 1.0d)/requests.get()) / MILLIS_IN_A_NANO;
@@ -556,9 +556,9 @@ public class InvocationTest {
             final long end = System.nanoTime();
 
             long latency_sum = 0;
-            for (int t = 0; t < latencies.length; t++) {
-                if( latencies[t] != -1 ) {
-                    latency_sum += latencies[t];
+            for (long latency : latencies) {
+                if (latency != -1) {
+                    latency_sum += latency;
                 }
             }
             double latency_avg = ((latency_sum * 1.0d)/requests.get()) / MILLIS_IN_A_NANO;

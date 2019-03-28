@@ -106,7 +106,7 @@ public class TcpTransportFactory {
         if (path != null && path.length() > 0) {
             int localPortIndex = path.indexOf(':');
             try {
-                Integer.parseInt(path.substring(localPortIndex + 1, path.length()));
+                Integer.parseInt(path.substring(localPortIndex + 1));
                 String localString = location.getScheme() + ":/" + path;
                 localLocation = new URI(localString);
             } catch (Exception e) {

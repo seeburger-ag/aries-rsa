@@ -186,12 +186,8 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
                 String childPath = (path.endsWith("/") ? path : path + "/") + child;
                 watchRecursive(childPath);
             }
-        } catch (NoNodeException e) {
-            // Happens when a node was removed
-            LOG.debug(e.getMessage(), e);
-        } catch (ConnectionLossException e) {
-            LOG.debug(e.getMessage(), e);
-        } catch (SessionExpiredException e) {
+        } catch (NoNodeException | SessionExpiredException | ConnectionLossException e) {
+            // NoNodeException happens when a node was removed
             LOG.debug(e.getMessage(), e);
         } catch (Exception e) {
             LOG.info(e.getMessage(), e);

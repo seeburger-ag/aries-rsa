@@ -47,7 +47,7 @@ public final class EndpointDescriptionBundleParser {
         Enumeration<URL> urls = getEndpointDescriptionURLs(b);
         List<EndpointDescription> elements = new ArrayList<EndpointDescription>();
         while (urls.hasMoreElements()) {
-            URL resourceURL = (URL) urls.nextElement();
+            URL resourceURL = urls.nextElement();
             try {
                 elements.addAll(parser.readEndpoints(resourceURL.openStream()));
             } catch (Exception ex) {

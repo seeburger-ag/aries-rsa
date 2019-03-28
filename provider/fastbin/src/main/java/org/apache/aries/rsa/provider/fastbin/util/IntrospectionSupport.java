@@ -54,16 +54,15 @@ public final class IntrospectionSupport {
 
         Class<?> clazz = target.getClass();
         Method[] methods = clazz.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
+        for (Method method : methods) {
             String name = method.getName();
             Class<?> type = method.getReturnType();
-            Class<?> params[] = method.getParameterTypes();
+            Class<?>[] params = method.getParameterTypes();
             if ((name.startsWith("is") || name.startsWith("get")) && params.length == 0 && type != null && isSettableType(type)) {
 
                 try {
 
-                    Object value = method.invoke(target, new Object[] {});
+                    Object value = method.invoke(target);
                     if (value == null) {
                         continue;
                     }
@@ -74,10 +73,10 @@ public final class IntrospectionSupport {
                     }
                     if (name.startsWith("get")) {
                         name = name.substring(3, 4).toLowerCase()
-                                + name.substring(4);
+                            + name.substring(4);
                     } else {
                         name = name.substring(2, 3).toLowerCase()
-                                + name.substring(3);
+                            + name.substring(3);
                     }
                     props.put(optionPrefix + name, strValue);
                     rc = true;
@@ -175,10 +174,10 @@ public final class IntrospectionSupport {
             // If the type is null or it matches the needed type, just use the
             // value directly
             if (value == null || value.getClass() == setter.getParameterTypes()[0]) {
-                setter.invoke(target, new Object[] {value});
+                setter.invoke(target, value);
             } else {
                 // We need to convert it
-                setter.invoke(target, new Object[] {convert(value, setter.getParameterTypes()[0])});
+                setter.invoke(target, convert(value, setter.getParameterTypes()[0]));
             }
             return true;
         } catch (Throwable ignore) {
@@ -220,10 +219,9 @@ public final class IntrospectionSupport {
         // Build the method name.
         name = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
         Method[] methods = clazz.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            Class<?> params[] = method.getParameterTypes();
-            if (method.getName().equals(name) && params.length == 1 ) {
+        for (Method method : methods) {
+            Class<?>[] params = method.getParameterTypes();
+            if (method.getName().equals(name) && params.length == 1) {
                 return method;
             }
         }
@@ -283,7 +281,7 @@ public final class IntrospectionSupport {
                 props.put(key, value);
             }
             
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             if( useMultiLine) {
                 buffer.append("{\n");
                 boolean first = true;
@@ -339,8 +337,7 @@ public final class IntrospectionSupport {
         }
 
         Field[] fields = startClass.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }

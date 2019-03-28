@@ -130,8 +130,7 @@ public class ZooKeeperDiscovery implements Watcher, ManagedService {
     }
 
     protected ZooKeeper createZooKeeper(String host, String port, int timeout) throws IOException {
-        LOG.info("ZooKeeper discovery connecting to {}:{} with timeout {}",
-                new Object[]{host, port, timeout});
+        LOG.info("ZooKeeper discovery connecting to {}:{} with timeout {}", host, port, timeout);
         return new ZooKeeper(host + ":" + port, timeout, this);
     }
 

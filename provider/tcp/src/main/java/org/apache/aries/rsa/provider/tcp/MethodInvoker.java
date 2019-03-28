@@ -44,9 +44,8 @@ public class MethodInvoker {
     
     public Object invoke(String methodName, Object[] args) {
         Class<?>[] parameterTypesAr = getTypes(args);
-        Method method = null;
         try {
-            method = getMethod(methodName, parameterTypesAr);
+            Method method = getMethod(methodName, parameterTypesAr);
             return method.invoke(service, args);
         } catch (Throwable e) {
             return e;

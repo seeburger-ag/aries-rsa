@@ -483,10 +483,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     protected void removeServiceExports(ServiceReference<?> sref) {
         List<ExportRegistration> regs = new ArrayList<ExportRegistration>(1);
         synchronized (exportedServices) {
-            for (Iterator<Collection<ExportRegistration>> it = exportedServices.values().iterator(); it.hasNext();) {
-                Collection<ExportRegistration> value = it.next();
-                for (Iterator<ExportRegistration> it2 = value.iterator(); it2.hasNext();) {
-                    ExportRegistration er = it2.next();
+            for (Collection<ExportRegistration> value : exportedServices.values()) {
+                for (ExportRegistration er : value) {
                     if (er.getExportReference().getExportedService().equals(sref)) {
                         regs.add(er);
                     }

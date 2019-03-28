@@ -587,7 +587,7 @@ public class TcpTransport implements Transport {
                     reduction = remaining - read_allowance;
                     dst.limit(dst.limit() - reduction);
                 }
-                int rc=0;
+                int rc;
                 try {
                     rc = channel.read(dst);
                     read_allowance -= rc;
@@ -620,7 +620,7 @@ public class TcpTransport implements Transport {
                     reduction = remaining - write_allowance;
                     src.limit(src.limit() - reduction);
                 }
-                int rc = 0;
+                int rc;
                 try {
                     rc = channel.write(src);
                     write_allowance -= rc;

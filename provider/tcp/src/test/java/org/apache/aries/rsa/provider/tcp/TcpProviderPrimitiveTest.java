@@ -89,7 +89,7 @@ public class TcpProviderPrimitiveTest {
     
     @Test
     public void testLong() {
-        Assert.assertEquals(1l, myServiceProxy.callLong(1l));
+        Assert.assertEquals(1L, myServiceProxy.callLong(1L));
     }
 
     @Test

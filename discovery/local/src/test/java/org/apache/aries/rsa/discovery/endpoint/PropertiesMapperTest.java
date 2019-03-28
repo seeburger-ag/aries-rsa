@@ -60,7 +60,7 @@ public class PropertiesMapperTest {
         m.put("char", '@');
         m.put("Character2", 'X');
 
-        m.put("bool-list", Arrays.asList(new Boolean[]{true, false}));
+        m.put("bool-list", Arrays.asList(true, false));
         m.put("empty-set", new HashSet<Object>());
 
         Set<String> stringSet = new LinkedHashSet<String>();
