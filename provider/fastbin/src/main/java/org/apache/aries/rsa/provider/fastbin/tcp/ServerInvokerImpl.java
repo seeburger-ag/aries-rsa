@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServerInvokerImpl.class);
-    static private final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<String, Class>(8, 1.0F);
+    static private final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
     static {
         PRIMITIVE_TO_CLASS.put("Z", boolean.class);
         PRIMITIVE_TO_CLASS.put("B", byte.class);
@@ -70,7 +70,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     protected final DispatchQueue queue;
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
-    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<UTF8Buffer, ServiceFactoryHolder>();
+    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<>();
     private StreamProvider streamProvider;
 
     static class MethodData {
@@ -91,7 +91,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private final ServiceFactory factory;
         private final ClassLoader loader;
         private final Class clazz;
-        private HashMap<Buffer, MethodData> method_cache = new HashMap<Buffer, MethodData>();
+        private HashMap<Buffer, MethodData> method_cache = new HashMap<>();
 
         public ServiceFactoryHolder(ServiceFactory factory, ClassLoader loader) {
             this.factory = factory;

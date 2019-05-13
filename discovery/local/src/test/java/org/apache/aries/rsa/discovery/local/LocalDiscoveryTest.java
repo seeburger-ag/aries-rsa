@@ -51,7 +51,7 @@ public class LocalDiscoveryTest {
         EasyMock.replay(b1);
         Bundle b2 = EasyMock.createMock(Bundle.class);
         EasyMock.expect(b2.getState()).andReturn(Bundle.ACTIVE);
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Remote-Service", "OSGI-INF/remote-service/");
         EasyMock.expect(b2.getHeaders()).andReturn(headers);
 
@@ -68,9 +68,9 @@ public class LocalDiscoveryTest {
         ld.processExistingBundles(bundles);
 
         assertEquals(3, ld.endpointDescriptions.size());
-        Set<String> expected = new HashSet<String>(
-                Arrays.asList("http://somewhere:12345", "http://somewhere:1", "http://somewhere"));
-        Set<String> actual = new HashSet<String>();
+        Set<String> expected = new HashSet<>(
+            Arrays.asList("http://somewhere:12345", "http://somewhere:1", "http://somewhere"));
+        Set<String> actual = new HashSet<>();
         for (Map.Entry<EndpointDescription, Bundle> entry : ld.endpointDescriptions.entrySet()) {
             assertSame(b2, entry.getValue());
             actual.add(entry.getKey().getId());
@@ -85,7 +85,7 @@ public class LocalDiscoveryTest {
         Bundle bundle = EasyMock.createMock(Bundle.class);
         EasyMock.expect(bundle.getSymbolicName()).andReturn("testing.bundle").anyTimes();
         EasyMock.expect(bundle.getState()).andReturn(Bundle.ACTIVE);
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Remote-Service", "OSGI-INF/rsa/");
         EasyMock.expect(bundle.getHeaders()).andReturn(headers);
         EasyMock.expect(bundle.findEntries("OSGI-INF/rsa", "*.xml", false))
@@ -162,7 +162,7 @@ public class LocalDiscoveryTest {
         ServiceReference<EndpointEventListener> sr2 = epListenerWithScope("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))");
 
         EasyMock.reset(el);
-        final Set<String> actualEndpoints = new HashSet<String>();
+        final Set<String> actualEndpoints = new HashSet<>();
         el.endpointChanged(EasyMock.anyObject(EndpointEvent.class),
                 EasyMock.eq("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"));
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
@@ -185,7 +185,7 @@ public class LocalDiscoveryTest {
             ld.filterToListeners.get("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"));
 
         EasyMock.verify(el);
-        Set<String> expectedEndpoints = new HashSet<String>(Arrays.asList("org.example.ClassA", "org.example.ClassB"));
+        Set<String> expectedEndpoints = new HashSet<>(Arrays.asList("org.example.ClassA", "org.example.ClassB"));
         assertEquals(expectedEndpoints, actualEndpoints);
 
         // Remove the EndpointListener Service
@@ -198,7 +198,7 @@ public class LocalDiscoveryTest {
     public void testRegisterTracker() throws Exception {
         LocalDiscovery ld = new LocalDiscovery();
 
-        final Map<String, Object> props = new Hashtable<String, Object>();
+        final Map<String, Object> props = new Hashtable<>();
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, "(objectClass=Aaaa)");
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr = EasyMock.createMock(ServiceReference.class);
@@ -246,7 +246,7 @@ public class LocalDiscoveryTest {
         assertEquals(endpointListeners12, ld.filterToListeners.get("(objectClass=Aaaa)"));
 
         // Add another listener with a multi-value scope
-        final Map<String, Object> props2 = new Hashtable<String, Object>();
+        final Map<String, Object> props2 = new Hashtable<>();
         props2.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, Arrays.asList("(objectClass=X)", "(objectClass=Y)"));
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr3 = EasyMock.createMock(ServiceReference.class);
@@ -279,10 +279,10 @@ public class LocalDiscoveryTest {
 
         EndpointEventListener endpointListener = EasyMock.createMock(EndpointEventListener.class);
         ld.listenerToFilters.put(endpointListener,
-                new ArrayList<String>(Arrays.asList("(a=b)", "(objectClass=foo.bar.Bheuaark)")));
-        ld.filterToListeners.put("(a=b)", new ArrayList<EndpointEventListener>(Arrays.asList(endpointListener)));
+            new ArrayList<>(Arrays.asList("(a=b)", "(objectClass=foo.bar.Bheuaark)")));
+        ld.filterToListeners.put("(a=b)", new ArrayList<>(Arrays.asList(endpointListener)));
         ld.filterToListeners.put("(objectClass=foo.bar.Bheuaark)",
-                new ArrayList<EndpointEventListener>(Arrays.asList(endpointListener)));
+            new ArrayList<>(Arrays.asList(endpointListener)));
 
         assertEquals(1, ld.listenerToFilters.size());
         assertEquals(2, ld.filterToListeners.size());
@@ -297,7 +297,7 @@ public class LocalDiscoveryTest {
     }
 
     private ServiceReference<EndpointEventListener> epListenerWithScope(String scope) {
-        final Map<String, Object> props = new Hashtable<String, Object>();
+        final Map<String, Object> props = new Hashtable<>();
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, new String[] {scope});
         return mockService(props);
     }
@@ -319,7 +319,7 @@ public class LocalDiscoveryTest {
     private Bundle createBundle() {
         Bundle bundle = EasyMock.createMock(Bundle.class);
         EasyMock.expect(bundle.getState()).andReturn(Bundle.ACTIVE);
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Remote-Service", "OSGI-INF/rsa/ed4.xml");
         EasyMock.expect(bundle.getHeaders()).andReturn(headers);
         EasyMock.expect(bundle.findEntries("OSGI-INF/rsa", "ed4.xml", false))

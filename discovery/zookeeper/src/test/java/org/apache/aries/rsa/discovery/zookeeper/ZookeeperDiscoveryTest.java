@@ -47,7 +47,7 @@ public class ZookeeperDiscoveryTest {
             }  
         };
         
-        Dictionary<String, Object> configuration = new Hashtable<String, Object>();
+        Dictionary<String, Object> configuration = new Hashtable<>();
         zkd.updated(configuration);
     }
     
@@ -65,7 +65,7 @@ public class ZookeeperDiscoveryTest {
             }  
         };
         
-        Dictionary<String, Object> configuration = new Hashtable<String, Object>();
+        Dictionary<String, Object> configuration = new Hashtable<>();
         configuration.put("zookeeper.host", "myhost");
         configuration.put("zookeeper.port", "1");
         configuration.put("zookeeper.timeout", "1000");

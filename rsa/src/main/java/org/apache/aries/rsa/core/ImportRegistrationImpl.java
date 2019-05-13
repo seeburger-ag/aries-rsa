@@ -79,7 +79,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     private void initParent() {
         parent = this;
-        children = new ArrayList<ImportRegistrationImpl>(1);
+        children = new ArrayList<>(1);
     }
 
     private void ensureParent() {
@@ -161,7 +161,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     private List<ImportRegistrationImpl> copyChildren() {
         synchronized (this) {
-            return new ArrayList<ImportRegistrationImpl>(children);
+            return new ArrayList<>(children);
         }
     }
 

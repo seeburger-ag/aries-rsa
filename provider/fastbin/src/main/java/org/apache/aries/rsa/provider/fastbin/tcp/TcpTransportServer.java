@@ -190,7 +190,7 @@ public class TcpTransportServer implements TransportServer {
     }
 
     protected final void handleSocket(SocketChannel socket) throws Exception {
-        HashMap<String, Object> options = new HashMap<String, Object>();
+        HashMap<String, Object> options = new HashMap<>();
 //      options.put("maxInactivityDuration", Long.valueOf(maxInactivityDuration));
 //      options.put("maxInactivityDurationInitalDelay", Long.valueOf(maxInactivityDurationInitalDelay));
 //      options.put("trace", Boolean.valueOf(trace));

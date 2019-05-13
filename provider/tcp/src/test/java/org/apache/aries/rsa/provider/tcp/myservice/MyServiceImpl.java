@@ -84,7 +84,7 @@ public class MyServiceImpl implements MyService {
     
     @Override
     public Promise<String> callAsyncPromise(final int delay) {
-        final Deferred<String> deferred = new Deferred<String>();
+        final Deferred<String> deferred = new Deferred<>();
         new Thread(new Runnable() {
             
             @Override

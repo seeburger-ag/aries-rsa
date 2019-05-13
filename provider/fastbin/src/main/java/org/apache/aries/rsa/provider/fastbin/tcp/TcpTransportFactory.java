@@ -43,7 +43,7 @@ public class TcpTransportFactory {
         TcpTransportServer server = createTcpTransportServer(uri);
         if (server == null) return null;
 
-        Map<String, String> options = new HashMap<String, String>(URISupport.parseParameters(uri));
+        Map<String, String> options = new HashMap<>(URISupport.parseParameters(uri));
         IntrospectionSupport.setProperties(server, options);
         Map<String, Object> transportOptions = IntrospectionSupport.extractProperties(options, "transport.");
         server.setTransportOption(transportOptions);
@@ -56,7 +56,7 @@ public class TcpTransportFactory {
         TcpTransport transport = createTransport(uri);
         if (transport == null) return null;
 
-        Map<String, String> options = new HashMap<String, String>(URISupport.parseParameters(uri));
+        Map<String, String> options = new HashMap<>(URISupport.parseParameters(uri));
         URI localLocation = getLocalLocation(uri);
 
         transport.connecting(uri, localLocation);
@@ -106,7 +106,7 @@ public class TcpTransportFactory {
         if (path != null && path.length() > 0) {
             int localPortIndex = path.indexOf(':');
             try {
-                Integer.parseInt(path.substring(localPortIndex + 1, path.length()));
+                Integer.parseInt(path.substring(localPortIndex + 1));
                 String localString = location.getScheme() + ":/" + path;
                 localLocation = new URI(localString);
             } catch (Exception e) {

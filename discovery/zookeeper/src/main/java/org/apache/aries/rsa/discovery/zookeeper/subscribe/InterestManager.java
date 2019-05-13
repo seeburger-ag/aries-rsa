@@ -43,7 +43,7 @@ public class InterestManager implements EndpointEventListener {
     private static final Logger LOG = LoggerFactory.getLogger(InterestManager.class);
 
     private final ZookeeperEndpointRepository repository;
-    private final Map<ServiceReference, Interest> interests = new ConcurrentHashMap<ServiceReference, Interest>();
+    private final Map<ServiceReference, Interest> interests = new ConcurrentHashMap<>();
 
     protected static class Interest {
         List<String> scopes;

@@ -587,7 +587,7 @@ public class TcpTransport implements Transport {
                     reduction = remaining - read_allowance;
                     dst.limit(dst.limit() - reduction);
                 }
-                int rc=0;
+                int rc;
                 try {
                     rc = channel.read(dst);
                     read_allowance -= rc;
@@ -620,7 +620,7 @@ public class TcpTransport implements Transport {
                     reduction = remaining - write_allowance;
                     src.limit(src.limit() - reduction);
                 }
-                int rc = 0;
+                int rc;
                 try {
                     rc = channel.write(src);
                     write_allowance -= rc;
@@ -662,7 +662,7 @@ public class TcpTransport implements Transport {
     //
 
     public static abstract class State {
-        LinkedList<Runnable> callbacks = new LinkedList<Runnable>();
+        LinkedList<Runnable> callbacks = new LinkedList<>();
 
         void add(Runnable r) {
             if (r != null) {
@@ -784,7 +784,7 @@ public class TcpTransport implements Transport {
     }
 
     class CANCELING extends SocketState {
-        private LinkedList<Runnable> runnables =  new LinkedList<Runnable>();
+        private LinkedList<Runnable> runnables = new LinkedList<>();
         private int remaining;
         private boolean dispose;
 

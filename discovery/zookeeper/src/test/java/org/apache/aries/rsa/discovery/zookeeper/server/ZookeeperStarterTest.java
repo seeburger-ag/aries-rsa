@@ -56,7 +56,7 @@ public class ZookeeperStarterTest extends TestCase {
                 this.main = mockServer;
             }
         };
-        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        Dictionary<String, Object> props = new Hashtable<>();
         props.put("clientPort", "1234");
         starter.updated(props);
         assertNotNull(starter.main);

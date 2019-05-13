@@ -48,7 +48,7 @@ public class ListenerHookImplTest {
 
         Filter f = FrameworkUtil.createFilter(filter);
 
-        Dictionary<String, String> m = new Hashtable<String, String>();
+        Dictionary<String, String> m = new Hashtable<>();
         m.put("a", "b");
         assertTrue(filter + " filter must match as uuid is missing", f.match(m));
         m.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, "MyUUID");

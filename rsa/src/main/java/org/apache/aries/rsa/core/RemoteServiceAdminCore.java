@@ -60,10 +60,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminCore.class);
 
-    private final Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices
-        = new LinkedHashMap<Map<String, Object>, Collection<ExportRegistration>>();
-    private final Map<EndpointDescription, Collection<ImportRegistration>> importedServices
-        = new LinkedHashMap<EndpointDescription, Collection<ImportRegistration>>();
+    private final Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices = new LinkedHashMap<>();
+    private final Map<EndpointDescription, Collection<ImportRegistration>> importedServices = new LinkedHashMap<>();
 
     // Is stored in exportedServices while the export is in progress as a marker
     private final List<ExportRegistration> exportInProgress = Collections.emptyList();
@@ -170,7 +168,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         if (!exportRegs.isEmpty()) {
             // enlist initial export registrations in global list of exportRegistrations
             synchronized (exportedServices) {
-                exportedServices.put(key, new ArrayList<ExportRegistration>(exportRegs));
+                exportedServices.put(key, new ArrayList<>(exportRegs));
             }
             eventProducer.publishNotification(exportRegs);
         }
@@ -300,7 +298,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             throw new IllegalArgumentException("service is missing the service.exported.interfaces property");
         }
 
-        List<String> interfaces = new ArrayList<String>(1);
+        List<String> interfaces = new ArrayList<>(1);
         if (exportedInterfaces.size() == 1 && "*".equals(exportedInterfaces.get(0))) {
             // FIXME: according to the spec, this should only return the interfaces, and not
             // non-interface classes (which are valid OBJECTCLASS values, even if discouraged)
@@ -330,7 +328,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private Map<String, Object> makeKey(Map<String, Object> properties) {
         // FIXME: we should also make logically equal values actually compare as equal
         // (e.g. String+ values should be normalized)
-        Map<String, Object> converted = new HashMap<String, Object>(properties.size());
+        Map<String, Object> converted = new HashMap<>(properties.size());
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             Object val = entry.getValue();
             // convert arrays into lists so that they can be compared via equals()
@@ -343,10 +341,10 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     private List<ExportRegistration> copyExportRegistration(Collection<ExportRegistration> regs) {
-        Set<EndpointDescription> copiedEndpoints = new HashSet<EndpointDescription>();
+        Set<EndpointDescription> copiedEndpoints = new HashSet<>();
 
         // create a new list with copies of the exportRegistrations
-        List<ExportRegistration> copy = new ArrayList<ExportRegistration>(regs.size());
+        List<ExportRegistration> copy = new ArrayList<>(regs.size());
         for (ExportRegistration exportRegistration : regs) {
             if (exportRegistration instanceof ExportRegistrationImpl) {
                 ExportRegistrationImpl exportRegistrationImpl = (ExportRegistrationImpl) exportRegistration;
@@ -375,7 +373,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     @Override
     public Collection<ExportReference> getExportedServices() {
         synchronized (exportedServices) {
-            List<ExportReference> ers = new ArrayList<ExportReference>();
+            List<ExportReference> ers = new ArrayList<>();
             for (Collection<ExportRegistration> exportRegistrations : exportedServices.values()) {
                 for (ExportRegistration er : exportRegistrations) {
                     if (er.getExportReference() != null) {
@@ -390,7 +388,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     @Override
     public Collection<ImportReference> getImportedEndpoints() {
         synchronized (importedServices) {
-            List<ImportReference> irs = new ArrayList<ImportReference>();
+            List<ImportReference> irs = new ArrayList<>();
             for (Collection<ImportRegistration> irl : importedServices.values()) {
                 for (ImportRegistration impl : irl) {
                     irs.add(impl.getImportReference());
@@ -436,7 +434,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
             ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
             if (imRegs == null) {
-                imRegs = new ArrayList<ImportRegistration>();
+                imRegs = new ArrayList<>();
                 importedServices.put(endpoint, imRegs);
             }
             imRegs.add(imReg);
@@ -448,7 +446,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private List<String> determineConfigTypesForImport(EndpointDescription endpoint) {
         List<String> remoteConfigurationTypes = endpoint.getConfigurationTypes();
 
-        List<String> usableConfigurationTypes = new ArrayList<String>();
+        List<String> usableConfigurationTypes = new ArrayList<>();
         for (String ct : provider.getSupportedTypes()) {
             if (remoteConfigurationTypes.contains(ct)) {
                 usableConfigurationTypes.add(ct);
@@ -468,7 +466,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         ImportRegistrationImpl imReg = new ImportRegistrationImpl(epd, closeHandler, eventProducer);
         try {
             EndpointDescription endpoint = imReg.getImportedEndpointDescription();
-            Dictionary<String, Object> serviceProps = new Hashtable<String, Object>(endpoint.getProperties());
+            Dictionary<String, Object> serviceProps = new Hashtable<>(endpoint.getProperties());
             serviceProps.put(RemoteConstants.SERVICE_IMPORTED, true);
             serviceProps.remove(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
 
@@ -497,12 +495,10 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
      * @param sref the service whose exports should be removed and closed
      */
     protected void removeServiceExports(ServiceReference<?> sref) {
-        List<ExportRegistration> regs = new ArrayList<ExportRegistration>(1);
+        List<ExportRegistration> regs = new ArrayList<>(1);
         synchronized (exportedServices) {
-            for (Iterator<Collection<ExportRegistration>> it = exportedServices.values().iterator(); it.hasNext();) {
-                Collection<ExportRegistration> value = it.next();
-                for (Iterator<ExportRegistration> it2 = value.iterator(); it2.hasNext();) {
-                    ExportRegistration er = it2.next();
+            for (Collection<ExportRegistration> value : exportedServices.values()) {
+                for (ExportRegistration er : value) {
                     if (er.getExportReference().getExportedService().equals(sref)) {
                         regs.add(er);
                     }
@@ -553,7 +549,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     // remove all import registrations
     protected void closeImportRegistrations() {
-        Collection<ImportRegistration> copy = new ArrayList<ImportRegistration>();
+        Collection<ImportRegistration> copy = new ArrayList<>();
         synchronized (importedServices) {
             for (Collection<ImportRegistration> irs : importedServices.values()) {
                 copy.addAll(irs);
@@ -566,7 +562,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     private List<ExportRegistration> getExportsForBundle(Bundle exportingBundle) {
         synchronized (exportedServices) {
-            List<ExportRegistration> bundleRegs = new ArrayList<ExportRegistration>();
+            List<ExportRegistration> bundleRegs = new ArrayList<>();
             for (Collection<ExportRegistration> regs : exportedServices.values()) {
                 if (!regs.isEmpty()) {
                     ExportRegistration exportRegistration = regs.iterator().next();
@@ -613,7 +609,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     static void overlayProperties(Map<String, Object> serviceProperties,
                                          Map<String, Object> additionalProperties) {
-        Map<String, String> keysLowerCase = new HashMap<String, String>();
+        Map<String, String> keysLowerCase = new HashMap<>();
         for (String key : serviceProperties.keySet()) {
             keysLowerCase.put(key.toLowerCase(), key);
         }
@@ -647,7 +643,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
      */
     private Map<String, Object> getProperties(ServiceReference<?> serviceReference) {
         String[] keys = serviceReference.getPropertyKeys();
-        Map<String, Object> props = new HashMap<String, Object>(keys.length);
+        Map<String, Object> props = new HashMap<>(keys.length);
         for (String key : keys) {
             Object val = serviceReference.getProperty(key);
             props.put(key, val);
@@ -657,7 +653,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     
     protected Map<String, Object> createEndpointProps(Map<String, Object> effectiveProps, 
                                                       Class<?>[] ifaces) {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         copyEndpointProperties(effectiveProps, props);
         props.remove(org.osgi.framework.Constants.SERVICE_ID);
         EndpointHelper.addObjectClass(props, ifaces);

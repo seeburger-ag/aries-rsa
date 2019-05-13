@@ -33,8 +33,8 @@ public class OverlayPropertiesTest {
     
     @Test
     public void testOverlayProperties() {
-        Map<String, Object> sProps = new HashMap<String, Object>();
-        Map<String, Object> aProps = new HashMap<String, Object>();
+        Map<String, Object> sProps = new HashMap<>();
+        Map<String, Object> aProps = new HashMap<>();
 
         RemoteServiceAdminCore.overlayProperties(sProps, aProps);
         assertEquals(0, sProps.size());
@@ -49,7 +49,7 @@ public class OverlayPropertiesTest {
         aProps.put(Constants.OBJECTCLASS, new String[] {"Y"});
         aProps.put(Constants.SERVICE_ID.toUpperCase(), 51L);
 
-        Map<String, Object> aPropsOrg = new HashMap<String, Object>(aProps);
+        Map<String, Object> aPropsOrg = new HashMap<>(aProps);
         RemoteServiceAdminCore.overlayProperties(sProps, aProps);
         assertEquals("The additional properties should not be modified", aPropsOrg, aProps);
 
@@ -65,16 +65,16 @@ public class OverlayPropertiesTest {
     
     @Test
     public void testOverlayProperties2() {
-        Map<String, Object> original = new HashMap<String, Object>();
+        Map<String, Object> original = new HashMap<>();
 
         original.put("MyProp", "my value");
         original.put(Constants.OBJECTCLASS, "myClass");
 
-        Map<String, Object> copy = new HashMap<String, Object>();
+        Map<String, Object> copy = new HashMap<>();
         copy.putAll(original);
 
         // nothing should change here
-        Map<String, Object> overload = new HashMap<String, Object>();
+        Map<String, Object> overload = new HashMap<>();
         RemoteServiceAdminCore.overlayProperties(copy, overload);
 
         assertEquals(original.size(), copy.size());
@@ -86,7 +86,7 @@ public class OverlayPropertiesTest {
         copy.putAll(original);
 
         // a property should be added
-        overload = new HashMap<String, Object>();
+        overload = new HashMap<>();
         overload.put("new", "prop");
 
         RemoteServiceAdminCore.overlayProperties(copy, overload);
@@ -102,7 +102,7 @@ public class OverlayPropertiesTest {
         copy.putAll(original);
 
         // only one property should be added
-        overload = new HashMap<String, Object>();
+        overload = new HashMap<>();
         overload.put("new", "prop");
         overload.put("NEW", "prop");
 
@@ -119,7 +119,7 @@ public class OverlayPropertiesTest {
         copy.putAll(original);
 
         // nothing should change here
-        overload = new HashMap<String, Object>();
+        overload = new HashMap<>();
         overload.put(Constants.OBJECTCLASS, "assd");
         overload.put(Constants.SERVICE_ID, "asasdasd");
         RemoteServiceAdminCore.overlayProperties(copy, overload);
@@ -133,7 +133,7 @@ public class OverlayPropertiesTest {
         copy.putAll(original);
 
         // overwrite own prop
-        overload = new HashMap<String, Object>();
+        overload = new HashMap<>();
         overload.put("MyProp", "newValue");
         RemoteServiceAdminCore.overlayProperties(copy, overload);
 
@@ -149,7 +149,7 @@ public class OverlayPropertiesTest {
         copy.putAll(original);
 
         // overwrite own prop in different case
-        overload = new HashMap<String, Object>();
+        overload = new HashMap<>();
         overload.put("MYPROP", "newValue");
         RemoteServiceAdminCore.overlayProperties(copy, overload);
 

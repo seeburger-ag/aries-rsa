@@ -67,7 +67,7 @@ public class URISupport {
         }
 
         public URI toURI() throws URISyntaxException {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             if (scheme != null) {
                 sb.append(scheme);
                 sb.append(':');
@@ -104,17 +104,17 @@ public class URISupport {
 
     public static Map<String, String> parseQuery(String uri) throws URISyntaxException {
         try {
-            Map<String, String> rc = new HashMap<String, String>();
+            Map<String, String> rc = new HashMap<>();
             if (uri != null) {
                 String[] parameters = uri.split("&");
-                for (int i = 0; i < parameters.length; i++) {
-                    int p = parameters[i].indexOf("=");
+                for (String parameter : parameters) {
+                    int p = parameter.indexOf("=");
                     if (p >= 0) {
-                        String name = URLDecoder.decode(parameters[i].substring(0, p), "UTF-8");
-                        String value = URLDecoder.decode(parameters[i].substring(p + 1), "UTF-8");
+                        String name = URLDecoder.decode(parameter.substring(0, p), "UTF-8");
+                        String value = URLDecoder.decode(parameter.substring(p + 1), "UTF-8");
                         rc.put(name, value);
                     } else {
-                        rc.put(parameters[i], null);
+                        rc.put(parameter, null);
                     }
                 }
             }
@@ -216,7 +216,7 @@ public class URISupport {
      * @return
      */
     private static String[] splitComponents(String str) {
-        List<String> l = new ArrayList<String>();
+        List<String> l = new ArrayList<>();
 
         int last = 0;
         int depth = 0;
@@ -264,7 +264,7 @@ public class URISupport {
     public static String createQueryString(Map<String,String> options) throws URISyntaxException {
         try {
             if (options.size() > 0) {
-                StringBuffer rc = new StringBuffer();
+                StringBuilder rc = new StringBuilder();
                 boolean first = true;
                 for (Map.Entry<String,String> entry : options.entrySet()) {
                     if (first) {

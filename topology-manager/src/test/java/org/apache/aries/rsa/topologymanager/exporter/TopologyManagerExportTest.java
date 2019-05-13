@@ -161,7 +161,7 @@ public class TopologyManagerExportTest {
     }
 
     private EndpointDescription createEndpoint() {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         props.put(RemoteConstants.ENDPOINT_ID, "1");
         props.put(Constants.OBJECTCLASS, new String[] {"abc"});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "cxf");

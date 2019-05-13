@@ -62,7 +62,7 @@ public class InvocationTest {
     public void testInvoke() throws Exception {
 
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -91,12 +91,12 @@ public class InvocationTest {
             // of primitives / objects and array dimensions.
             assertEquals('a', hello.mix(0));
             assertEquals('b', hello.mix(new int[]{0}));
-            assertEquals('c', hello.mix(new Integer(0)));
-            assertEquals('d', hello.mix(new Integer[]{new Integer(0)}));
+            assertEquals('c', hello.mix(Integer.valueOf(0)));
+            assertEquals('d', hello.mix(new Integer[]{0}));
             assertEquals('e', hello.mix(new int[0][0]));
             assertEquals('f', hello.mix(new Integer[0][0]));
 
-            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<String>();
+            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<>();
             hello.hello("Hiram", future1);
             assertEquals("Hello Hiram!", future1.get(2, TimeUnit.SECONDS));
 
@@ -121,7 +121,7 @@ public class InvocationTest {
     public void testInvokeInvalidServiceID() throws Exception {
 
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -169,7 +169,7 @@ public class InvocationTest {
     public void testObjectMethods() throws Exception {
 
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -205,7 +205,7 @@ public class InvocationTest {
     public void testOverflowAsync() throws Exception {
 
     	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+    	HashMap<String, SerializationStrategy> map = new HashMap<>();
     	map.put("protobuf", new ProtobufSerializationStrategy());
 
     	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -230,9 +230,9 @@ public class InvocationTest {
     		char[] chars = new char[65*1024];
     		String payload = new String(chars);
 
-    		final List<AsyncCallbackFuture<String>> futures = new ArrayList<AsyncCallbackFuture<String>>();
+    		final List<AsyncCallbackFuture<String>> futures = new ArrayList<>();
     		for(int i = 0; i < 100; i++) {
-    			AsyncCallbackFuture<String> future = new AsyncCallbackFuture<String>();
+    			AsyncCallbackFuture<String> future = new AsyncCallbackFuture<>();
     			hello.hello(payload, future);
     			futures.add(future);
     		}
@@ -255,7 +255,7 @@ public class InvocationTest {
     public void testOverflow() throws Exception {
 
     	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+    	HashMap<String, SerializationStrategy> map = new HashMap<>();
     	map.put("protobuf", new ProtobufSerializationStrategy());
 
     	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -324,7 +324,7 @@ public class InvocationTest {
     public void testNoOverflow() throws Exception {
 
     	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+    	HashMap<String, SerializationStrategy> map = new HashMap<>();
     	map.put("protobuf", new ProtobufSerializationStrategy());
 
     	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -361,7 +361,7 @@ public class InvocationTest {
 
     @Test(timeout=30*1000)
     public void testUnderLoadSyncObject() throws Exception {
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
 
         DispatchQueue queue = Dispatch.createQueue();
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -427,9 +427,9 @@ public class InvocationTest {
             final long end = System.nanoTime();
 
             long latency_sum = 0;
-            for (int t = 0; t < latencies.length; t++) {
-                if( latencies[t] != -1 ) {
-                    latency_sum += latencies[t];
+            for (long latency : latencies) {
+                if (latency != -1) {
+                    latency_sum += latency;
                 }
             }
             double latency_avg = ((latency_sum * 1.0d)/requests.get()) / MILLIS_IN_A_NANO;
@@ -514,7 +514,7 @@ public class InvocationTest {
 
     @Test(timeout=30*1000)
     public void testUnderLoadAsyncProto() throws Exception {
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         DispatchQueue queue = Dispatch.createQueue();
@@ -556,9 +556,9 @@ public class InvocationTest {
             final long end = System.nanoTime();
 
             long latency_sum = 0;
-            for (int t = 0; t < latencies.length; t++) {
-                if( latencies[t] != -1 ) {
-                    latency_sum += latencies[t];
+            for (long latency : latencies) {
+                if (latency != -1) {
+                    latency_sum += latency;
                 }
             }
             double latency_avg = ((latency_sum * 1.0d)/requests.get()) / MILLIS_IN_A_NANO;

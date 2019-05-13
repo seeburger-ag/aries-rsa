@@ -69,7 +69,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
     private final BundleContext bctx;
     private volatile ServiceRegistration<?> serviceRegistration;
     
-    private final List<String> filters = new ArrayList<String>();
+    private final List<String> filters = new ArrayList<>();
     private final EndpointEventListener endpointListener;
     private final ListenerHookImpl listenerHook;
     private RSFindHook findHook;
@@ -77,7 +77,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
     /**
      * Count service interest by filter. This allows to modify the scope of the EndpointListener as seldom as possible
      */
-    private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<String>();
+    private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<>();
 
     public EndpointListenerManager(BundleContext bc, EndpointEventListener endpointListener) {
         this.bctx = bc;
@@ -125,7 +125,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
     }
 
     private Dictionary<String, Object> getEELProperties() {
-        Dictionary<String, Object> p = new Hashtable<String, Object>();
+        Dictionary<String, Object> p = new Hashtable<>();
         p.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
         return p;
     }

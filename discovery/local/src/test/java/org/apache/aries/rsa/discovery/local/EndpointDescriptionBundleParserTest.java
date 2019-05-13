@@ -140,8 +140,8 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
         assertTrue(Arrays.equals(new Integer[] {2, 1}, integerArray));
 
         assertEquals(Arrays.asList(true, false), props.get("bool-list"));
-        assertEquals(new HashSet<Object>(), props.get("long-set"));
-        Set<String> stringSet = new HashSet<String>();
+        assertEquals(new HashSet<>(), props.get("long-set"));
+        Set<String> stringSet = new HashSet<>();
         stringSet.add("Hello there");
         stringSet.add("How are you?");
         assertEquals(stringSet, props.get("string-set"));

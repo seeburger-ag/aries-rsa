@@ -41,7 +41,7 @@ public final class Utils {
      * @param dict a dictionary
      */
     public static void removeEmptyValues(Dictionary<String, ?> dict) {
-        List<String> keysToRemove = new ArrayList<String>();
+        List<String> keysToRemove = new ArrayList<>();
         Enumeration<String> keys = dict.keys();
         while (keys.hasMoreElements()) {
             String key = keys.nextElement();
@@ -78,7 +78,7 @@ public final class Utils {
      * @return the converted map, or an empty map if the given dictionary is null
      */
     public static <K, V> Map<K, V> toMap(Dictionary<K, V> dict) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         if (dict != null) {
             Enumeration<K> keys = dict.keys();
             while (keys.hasMoreElements()) {

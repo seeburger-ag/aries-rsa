@@ -51,7 +51,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     }
     
     public void start(BundleContext bctx) {
-        Dictionary<String, String> props = new Hashtable<String, String>();
+        Dictionary<String, String> props = new Hashtable<>();
         String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, 
                   String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 

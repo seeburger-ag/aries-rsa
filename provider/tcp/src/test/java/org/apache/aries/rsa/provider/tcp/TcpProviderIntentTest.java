@@ -52,7 +52,7 @@ public class TcpProviderIntentTest {
     
     @Test
     public void basicAndAsnycIntents() {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         String[] standardIntents = new String[] {"osgi.basic", "osgi.async"};
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, standardIntents);
@@ -62,7 +62,7 @@ public class TcpProviderIntentTest {
     
     @Test
     public void unknownIntent() {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, "unknown");
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
@@ -71,7 +71,7 @@ public class TcpProviderIntentTest {
     
     @Test
     public void unknownIntentExtra() {
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA, "unknown");
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);

@@ -49,7 +49,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         props.put("bundle.id", bctx.getBundle().getBundleId());
         props.put("bundle.symbolicname", bctx.getBundle().getSymbolicName());
 
-        String version = (String)bctx.getBundle().getHeaders().get("Bundle-Version");
+        String version = bctx.getBundle().getHeaders().get("Bundle-Version");
         Version v = version != null ? new Version(version) : Version.emptyVersion;
         setIfNotNull(props, "bundle.version", v);
 
@@ -60,7 +60,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
     public void remoteAdminEvent(RemoteServiceAdminEvent rsae) {
         String topic = remoteServiceAdminEventTypeToString(rsae.getType());
 
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         setIfNotNull(props, "cause", rsae.getException());
 
         EndpointDescription endpoint = null;

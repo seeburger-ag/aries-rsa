@@ -59,7 +59,7 @@ public class ClientServiceFactory implements ServiceFactory {
         final ClassLoader consumerLoader = requestingBundle.adapt(BundleWiring.class).getClassLoader();
         try {
             LOG.debug("getService() from serviceFactory for {}", interfaceNames);
-            final List<Class<?>> interfaces = new ArrayList<Class<?>>();
+            final List<Class<?>> interfaces = new ArrayList<>();
             for (String ifaceName : interfaceNames) {
                 interfaces.add(consumerLoader.loadClass(ifaceName));
             }

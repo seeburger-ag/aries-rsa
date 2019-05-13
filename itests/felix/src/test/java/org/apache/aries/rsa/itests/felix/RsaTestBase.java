@@ -71,13 +71,10 @@ public class RsaTestBase {
     }
 
     protected int getFreePort() throws IOException {
-        ServerSocket socket = new ServerSocket();
-        try {
+        try (ServerSocket socket = new ServerSocket()) {
             socket.setReuseAddress(true); // enables quickly reopening socket on same port
             socket.bind(new InetSocketAddress(0)); // zero finds a free port
             return socket.getLocalPort();
-        } finally {
-            socket.close();
         }
     }
 

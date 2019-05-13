@@ -42,7 +42,7 @@ import static org.junit.Assert.assertThat;
 public class PropertyValidatorTest {
     @Test
     public void testToMap() throws Exception {
-        Dictionary<String, String> dic = new Hashtable<String, String>();
+        Dictionary<String, String> dic = new Hashtable<>();
         dic.put("key", "value");
 
         assertThat(toMap(dic).size(), is(1));
@@ -55,7 +55,7 @@ public class PropertyValidatorTest {
 
     @Test
     public void testFilterConfigAdminProperties() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put(Constants.SERVICE_PID, "testPid");
         map.put(ConfigurationAdmin.SERVICE_FACTORYPID, "factoryPid");
         map.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, "bundleLocation");
@@ -73,18 +73,18 @@ public class PropertyValidatorTest {
 
     @Test
     public void testValidatePropertyTypes_objectClass() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, "test");
         Map<String, Object> config = validatePropertyTypes(map);
         assertThat(config.containsKey(Constants.OBJECTCLASS), is(true));
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>();
+        map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, new String[]{"test"});
         config = validatePropertyTypes(map);
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>();
+        map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, singletonList("test"));
         config = validatePropertyTypes(map);
         assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));

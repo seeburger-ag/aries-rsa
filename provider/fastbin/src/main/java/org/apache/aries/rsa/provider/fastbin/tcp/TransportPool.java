@@ -46,8 +46,8 @@ public abstract class TransportPool implements Service {
 
     protected final String uri;
     protected final DispatchQueue queue;
-    protected final LinkedList<Pair> pending = new LinkedList<Pair>();
-    protected final Map<Transport, TransportState> transports = new HashMap<Transport, TransportState>();
+    protected final LinkedList<Pair> pending = new LinkedList<>();
+    protected final Map<Transport, TransportState> transports = new HashMap<>();
     protected AtomicBoolean running = new AtomicBoolean(false);
 
     protected int poolSize;
@@ -191,7 +191,7 @@ public abstract class TransportPool implements Service {
 
         public TransportState() {
             time = 0;
-            inflight = new HashSet<Object>();
+            inflight = new HashSet<>();
         }
     }
 

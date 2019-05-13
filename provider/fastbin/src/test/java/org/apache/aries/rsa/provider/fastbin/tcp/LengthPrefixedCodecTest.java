@@ -72,12 +72,12 @@ public class LengthPrefixedCodecTest {
 
 	@Test
 	public void testGetWriteCounter() throws Exception {
-		assertEquals(0l, codec.getWriteCounter());
+		assertEquals(0L, codec.getWriteCounter());
 	}
 
 	@Test
 	public void testGetReadCounter() throws Exception {
-		assertEquals(0l, codec.getReadCounter());
+		assertEquals(0L, codec.getReadCounter());
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class LengthPrefixedCodecTest {
 		assertEquals(BufferState.WAS_EMPTY, state);
 		assertEquals(false, codec.full());
 		assertEquals(false, codec.empty());
-		assertEquals(0l, codec.getWriteCounter());
+		assertEquals(0L, codec.getWriteCounter());
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class LengthPrefixedCodecTest {
 		assertEquals(BufferState.NOT_EMPTY, state);
 		assertEquals(false, codec.full());
 		assertEquals(false, codec.empty());
-		assertEquals(0l, codec.getWriteCounter());
+		assertEquals(0L, codec.getWriteCounter());
 	}
 
 	@Test

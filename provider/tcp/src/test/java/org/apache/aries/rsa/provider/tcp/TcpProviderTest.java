@@ -68,7 +68,7 @@ public class TcpProviderTest {
     public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
         TCPProvider provider = new TCPProvider();
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put("aries.rsa.hostname", "localhost");
         props.put("aries.rsa.numThreads", "10");
@@ -123,7 +123,7 @@ public class TcpProviderTest {
      */
     @Test
     public void testCallWithInterfaceBasedParam() throws IOException, InterruptedException {
-        List<String> msgList = new ArrayList<String>();
+        List<String> msgList = new ArrayList<>();
         myServiceProxy.callWithList(msgList);
     }
 

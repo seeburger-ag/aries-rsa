@@ -172,7 +172,7 @@ public class RemoteServiceAdminCoreTest {
 
         c.replay();
 
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
         p.put(Constants.OBJECTCLASS, new String[] {
             "es.schaaf.my.class",
@@ -204,7 +204,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testExport() throws Exception {
-        final Map<String, Object> sProps = new HashMap<String, Object>();
+        final Map<String, Object> sProps = new HashMap<>();
         sProps.put("objectClass", new String[] {"java.lang.Runnable"});
         sProps.put("service.id", 51L);
         sProps.put("myProp", "myVal");
@@ -253,7 +253,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testExportWrongConfig() throws Exception {
-        final Map<String, Object> sProps = new HashMap<String, Object>();
+        final Map<String, Object> sProps = new HashMap<>();
         sProps.put("objectClass", new String[] {"java.lang.Runnable"});
         sProps.put("service.id", 51L);
         sProps.put("myProp", "myVal");
@@ -271,7 +271,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testExportOneConfigSupported() throws Exception {
-        final Map<String, Object> sProps = new HashMap<String, Object>();
+        final Map<String, Object> sProps = new HashMap<>();
         sProps.put("objectClass", new String[] {"java.lang.Runnable"});
         sProps.put("service.id", 51L);
         sProps.put("myProp", "myVal");
@@ -290,7 +290,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testExportException() throws Exception {
-        final Map<String, Object> sProps = new HashMap<String, Object>();
+        final Map<String, Object> sProps = new HashMap<>();
         sProps.put("objectClass", new String[] {"java.lang.Runnable"});
         sProps.put("service.id", 51L);
         sProps.put("service.exported.interfaces", "*");
@@ -311,7 +311,7 @@ public class RemoteServiceAdminCoreTest {
     @Test
     public void testCreateEndpointProps() {
         c.replay();
-        Map<String, Object> sd = new HashMap<String, Object>();
+        Map<String, Object> sd = new HashMap<>();
         sd.put(org.osgi.framework.Constants.SERVICE_ID, 42);
         Map<String, Object> props = rsaCore.createEndpointProps(sd, new Class[]{String.class});
 
@@ -325,7 +325,7 @@ public class RemoteServiceAdminCoreTest {
     }
 
     private Endpoint createEndpoint(final Map<String, Object> sProps) throws IOException {
-        Map<String, Object> eProps = new HashMap<String, Object>(sProps);
+        Map<String, Object> eProps = new HashMap<>(sProps);
         eProps.put("endpoint.id", "http://something");
         eProps.put("service.imported.configs", new String[] {MYCONFIG});
         final EndpointDescription epd = new EndpointDescription(eProps);
@@ -340,7 +340,7 @@ public class RemoteServiceAdminCoreTest {
         Bundle b = c.createMock(Bundle.class);
         expect(b.getBundleContext()).andReturn(bc).anyTimes();
         expect(b.getSymbolicName()).andReturn("rsabundle").anyTimes();
-        expect(b.getBundleId()).andReturn(10l).anyTimes();
+        expect(b.getBundleId()).andReturn(10L).anyTimes();
         expect(b.getVersion()).andReturn(new Version("1.0.0")).anyTimes();
         expect(b.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
         return b;
@@ -368,7 +368,7 @@ public class RemoteServiceAdminCoreTest {
     }
     
     private EndpointDescription creatEndpointDesc(String configType) {
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
         p.put(Constants.OBJECTCLASS, new String[] {
             "es.schaaf.my.class"

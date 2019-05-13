@@ -115,7 +115,7 @@ public class EventProducerTest {
         final Bundle bundle = c.createMock(Bundle.class);
         expect(bundle.getBundleId()).andReturn(42L).anyTimes();
         expect(bundle.getSymbolicName()).andReturn("test.bundle").anyTimes();
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Bundle-Version", "1.2.3.test");
         expect(bundle.getHeaders()).andReturn(headers).anyTimes();
         return bundle;

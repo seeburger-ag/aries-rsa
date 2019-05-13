@@ -50,7 +50,7 @@ class PropertiesMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PropertiesMapper.class);
 
     public Map<String, Object> toProps(List<PropertyType> properties) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         for (PropertyType prop : properties) {
             map.put(prop.getName(), getValue(prop));
         }
@@ -69,9 +69,9 @@ class PropertiesMapper {
                 if ("array".equals(elName)) {
                     value = getArray(inValue, type);
                 } else if ("set".equals(elName)) {
-                    value = handleCollection(inValue, new HashSet<Object>(), type);
+                    value = handleCollection(inValue, new HashSet<>(), type);
                 } else if ("list".equals(elName)) {
-                    value = handleCollection(inValue, new ArrayList<Object>(), type);
+                    value = handleCollection(inValue, new ArrayList<>(), type);
                 }
             } else if (el.getDeclaredType() == XmlType.class) {
                 value = readXML((XmlType)el.getValue(), type);
@@ -218,7 +218,7 @@ class PropertiesMapper {
 
         try {
             if ("Character".equals(boxedType)) {
-                return new Character(value.charAt(0));
+                return value.charAt(0);
             } else {
                 Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(javaType);
                 Constructor<?> ctor = cls.getConstructor(String.class);
@@ -280,7 +280,7 @@ class PropertiesMapper {
     }
 
     private static Object[] normalizeArray(Object val) {
-        List<Object> l = new ArrayList<Object>();
+        List<Object> l = new ArrayList<>();
         if (val instanceof int[]) {
             int[] ia = (int[]) val;
             for (int i : ia) {

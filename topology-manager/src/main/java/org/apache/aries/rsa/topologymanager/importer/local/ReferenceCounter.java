@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ReferenceCounter<K> {
 
-    private final ConcurrentMap<K, Integer> counts = new ConcurrentHashMap<K, Integer>();
+    private final ConcurrentMap<K, Integer> counts = new ConcurrentHashMap<>();
 
     /**
      * Increases the reference count for the given key,

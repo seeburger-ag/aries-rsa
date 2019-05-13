@@ -62,7 +62,7 @@ public class EventAdminHelperTest {
         final Bundle bundle = EasyMock.createNiceMock(Bundle.class);
         EasyMock.expect(bundle.getBundleId()).andReturn(42L).anyTimes();
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test.bundle").anyTimes();
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Bundle-Version", "1.2.3.test");
         EasyMock.expect(bundle.getHeaders()).andReturn(headers).anyTimes();
         EasyMock.replay(bundle);

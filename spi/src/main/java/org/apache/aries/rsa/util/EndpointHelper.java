@@ -32,7 +32,7 @@ public final class EndpointHelper {
     }
     
     public static String[] getClassNames(Class<?>[] ifaces) {
-        List<String> ifaceNames = new ArrayList<String>();
+        List<String> ifaceNames = new ArrayList<>();
         for (Class<?> iface : ifaces) {
             ifaceNames.add(iface.getName());
         }

@@ -54,7 +54,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     private EndpointEventListener listener;
     public static final String PATH_PREFIX = "/osgi/service_registry";
     
-    private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<String, EndpointDescription>();
+    private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<>();
     
     public ZookeeperEndpointRepository(ZooKeeper zk) {
         this(zk, null);
@@ -118,7 +118,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
      *         elements of the original array in the same order
      */
     public static List<String> removeEmpty(List<String> strings) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (strings == null) {
             return result;
         }
@@ -186,12 +186,8 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
                 String childPath = (path.endsWith("/") ? path : path + "/") + child;
                 watchRecursive(childPath);
             }
-        } catch (NoNodeException e) {
-            // Happens when a node was removed
-            LOG.debug(e.getMessage(), e);
-        } catch (ConnectionLossException e) {
-            LOG.debug(e.getMessage(), e);
-        } catch (SessionExpiredException e) {
+        } catch (NoNodeException | SessionExpiredException | ConnectionLossException e) {
+            // NoNodeException happens when a node was removed
             LOG.debug(e.getMessage(), e);
         } catch (Exception e) {
             LOG.info(e.getMessage(), e);
