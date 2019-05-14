@@ -61,7 +61,7 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
                                                                     eventProducer,
                                                                     provider,
                                                                     packageUtil);
-        RemoteServiceadminFactory rsaf = new RemoteServiceadminFactory(rsaCore);
+        RemoteServiceAdminFactory rsaf = new RemoteServiceAdminFactory(rsaCore);
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(REMOTE_INTENTS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_INTENTS_SUPPORTED));
         props.put(REMOTE_CONFIGS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_CONFIGS_SUPPORTED));
