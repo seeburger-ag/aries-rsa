@@ -35,11 +35,11 @@ public class EndpointListenerTracker extends ServiceTracker {
     private final InterestManager imManager;
 
     public EndpointListenerTracker(BundleContext bctx, InterestManager imManager) {
-        super(bctx, getfilter(), null);
+        super(bctx, getFilter(), null);
         this.imManager = imManager;
     }
     
-    private static Filter getfilter() {
+    private static Filter getFilter() {
         String filterSt = String.format("(|(objectClass=%s)(objectClass=%s))", EndpointEventListener.class.getName(), 
                 EndpointListener.class.getName());
         try {

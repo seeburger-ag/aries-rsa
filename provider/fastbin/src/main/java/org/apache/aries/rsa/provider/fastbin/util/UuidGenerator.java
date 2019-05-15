@@ -92,7 +92,7 @@ public class UuidGenerator {
 
     /**
      * As we have to find the hostname as a side-affect of generating a unique
-     * stub, we allow it's easy retrevial here
+     * stub, we allow its easy retrieval here
      *
      * @return the local host name
      */
@@ -103,7 +103,7 @@ public class UuidGenerator {
 
 
     /**
-     * Generate a unqiue id
+     * Generate a unique id
      *
      * @return a unique id
      */

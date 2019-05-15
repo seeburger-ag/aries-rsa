@@ -3,7 +3,7 @@
 Manages endpoint descriptions as zookeeper nodes. 
 
 * Local endpoints are published to zookeeper
-* Interests for services in the form of EndpointListener scopes are looked up in zookeper and the listeners are informed about any changes
+* Interests for services in the form of EndpointListener scopes are looked up in zookeeper and the listeners are informed about any changes
 on the matching endpoints
 
 ## Discovery Configuration

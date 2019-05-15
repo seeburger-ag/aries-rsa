@@ -13,7 +13,7 @@ as the return value of the remote method. The client will receive a proxy of tha
 
 ## Streaming Data
 
-When large amount of data (e.g. files) need to be transfered remotely it is not advisable to use large byte arrays as this will allocate a lot of memory. Instead the fastbin transport allows to
+When large amount of data (e.g. files) need to be transferred remotely it is not advisable to use large byte arrays as this will allocate a lot of memory. Instead the fastbin transport allows to
 use `InputStream` and `OutputStream` as parameter or return value. When a remote method contains such a parameter, the stream is replaced with a proxy implementation that pipes data remotely from/to the original stream.
 
 

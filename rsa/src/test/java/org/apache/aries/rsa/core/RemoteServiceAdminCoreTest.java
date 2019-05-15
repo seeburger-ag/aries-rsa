@@ -121,7 +121,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testDoNotImportUnsupportedConfig() {
-        EndpointDescription endpoint = creatEndpointDesc("unsupportedConfiguration");
+        EndpointDescription endpoint = createEndpointDesc("unsupportedConfiguration");
         
         c.replay();
 
@@ -136,7 +136,7 @@ public class RemoteServiceAdminCoreTest {
         expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
 
         c.replay();
-        EndpointDescription endpoint2 = creatEndpointDesc(MYCONFIG);
+        EndpointDescription endpoint2 = createEndpointDesc(MYCONFIG);
 
         ImportRegistration ireg = rsaCore.importService(endpoint2);
         assertNotNull(ireg);
@@ -367,7 +367,7 @@ public class RemoteServiceAdminCoreTest {
         return sref;
     }
     
-    private EndpointDescription creatEndpointDesc(String configType) {
+    private EndpointDescription createEndpointDesc(String configType) {
         Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
         p.put(Constants.OBJECTCLASS, new String[] {

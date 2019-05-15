@@ -35,11 +35,11 @@ final class EndpointEventListenerTracker extends ServiceTracker {
     private TopologyManagerExport tmExport;
 
     EndpointEventListenerTracker(BundleContext context, TopologyManagerExport tmExport) {
-        super(context, getfilter(), null);
+        super(context, getFilter(), null);
         this.tmExport = tmExport;
     }
     
-    private static Filter getfilter() {
+    private static Filter getFilter() {
         String filterSt = String.format("(|(objectClass=%s)(objectClass=%s))", EndpointEventListener.class.getName(), 
                 EndpointListener.class.getName());
         try {

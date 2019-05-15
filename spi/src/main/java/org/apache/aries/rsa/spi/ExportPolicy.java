@@ -28,7 +28,7 @@ import org.osgi.framework.ServiceReference;
  * not marked for export as well customize the way services are exported.
  * 
  * Use cases:
- * - Mandate SSL and basic authoriziation by adding the respective intents and configs
+ * - Mandate SSL and basic authorization by adding the respective intents and configs
  * - Add logging interceptor as intent
  * - Remove exported interfaces to filter out services
  */

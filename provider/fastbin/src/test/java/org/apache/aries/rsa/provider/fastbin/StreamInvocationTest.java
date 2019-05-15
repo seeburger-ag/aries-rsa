@@ -106,7 +106,7 @@ public class StreamInvocationTest {
         InputStream in = fillStream('a', 1000000);
         long time = System.currentTimeMillis();
         String result = testService.toString(in); //roughly 1 MB of data
-        System.out.println("Transfered 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
+        System.out.println("Transferred 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
         assertEquals(1000000, result.length());
         for(int i=0;i<result.length();i++) {
             assertEquals('a', result.charAt(i));
@@ -128,7 +128,7 @@ public class StreamInvocationTest {
         InputStream stream = testService.toStream(string); //roughly 1 MB of data
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String result = reader.readLine();
-        System.out.println("Transfered 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
+        System.out.println("Transferred 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
         assertEquals(1000000, result.length());
         for(int i=0;i<result.length();i++) {
             assertEquals('a', result.charAt(i));

@@ -60,8 +60,8 @@ public class BasicObjectInputStream extends ObjectInputStream {
     @Override
     protected Object resolveObject(Object obj) throws IOException {
         if (obj instanceof VersionMarker) {
-            VersionMarker verionMarker = (VersionMarker)obj;
-            return Version.parseVersion(verionMarker.getVersion());
+            VersionMarker versionMarker = (VersionMarker)obj;
+            return Version.parseVersion(versionMarker.getVersion());
         } else if (obj instanceof DTOMarker) {
             DTOMarker dtoMarker = (DTOMarker)obj;
             return dtoMarker.getDTO(loader);
