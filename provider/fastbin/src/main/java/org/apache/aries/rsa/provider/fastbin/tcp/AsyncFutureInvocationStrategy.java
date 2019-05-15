@@ -64,7 +64,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             completable.whenComplete(new BiConsumer<Object, Throwable>() {
                 public void accept(Object returnValue, Throwable exception) {
                     helper.send(exception, returnValue);
-                };
+                }
             });
 
         } catch (Throwable t) {

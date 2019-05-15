@@ -137,7 +137,7 @@ public class InputStreamProxyTest {
         try{
             streamProvider.read(id);
             fail("must have been closed already");
-        } catch(IOException e) {};
+        } catch(IOException e) {}
     }
 
     private OwnInputStream fillStream(char c, int repetitions) {

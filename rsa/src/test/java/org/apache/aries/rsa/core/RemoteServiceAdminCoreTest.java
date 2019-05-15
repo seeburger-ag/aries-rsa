@@ -93,10 +93,10 @@ public class RemoteServiceAdminCoreTest {
         EventProducer eventProducer = new EventProducer(rsaContext) {
             protected void notifyListeners(org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent rsae) {
                 // skip
-            };
+            }
         };
         rsaCore = new RemoteServiceAdminCore(rsaContext, apiContext, eventProducer, provider, packageUtil) {
-            protected void createServiceListener() {};
+            protected void createServiceListener() {}
         };
     }
 
