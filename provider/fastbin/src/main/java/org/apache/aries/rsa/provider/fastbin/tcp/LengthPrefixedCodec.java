@@ -152,7 +152,7 @@ public class LengthPrefixedCodec implements ProtocolCodec {
                         throw new ProtocolException("Expecting a size greater than 3");
                     }
                     else if( size > MAX_PACKET_SIZE ) {
-                        throw new ProtocolException("Paket length was declared as " + size + " but at most " + MAX_PACKET_SIZE + "is allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes");
+                        throw new ProtocolException("Packet length was declared as " + size + " but at most " + MAX_PACKET_SIZE + "is allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes");
                     }
                     if( size == 4 ) {
                         // weird.. empty frame.. guess it could happen.

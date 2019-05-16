@@ -257,7 +257,7 @@ public class TcpTransport implements Transport {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Failed to resolve local host address",e);
+            LOG.warn("Failed to resolve local host address", e);
         }
         return host;
     }
@@ -385,7 +385,7 @@ public class TcpTransport implements Transport {
         }
         try {
             long initial = codec.getReadCounter();
-            // Only process upto 64k worth of data at a time so we can give
+            // Only process up to 64k worth of data at a time so we can give
             // other connections a chance to process their requests.
             while( codec.getReadCounter()-initial < 1024*64 ) {
                 Object command = codec.read();

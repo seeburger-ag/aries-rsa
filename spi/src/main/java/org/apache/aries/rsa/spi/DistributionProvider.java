@@ -35,7 +35,7 @@ public interface DistributionProvider {
      * if it supports the config type.
      * 
      * @param serviceO service instance to be exported
-     * @param serviceContext bundle context of the bundle exporting the sevice
+     * @param serviceContext bundle context of the bundle exporting the service
      * @param effectiveProperties combined properties of the service and additional properties from rsa
      * @param exportedInterfaces name of the interface to be exported
      * @return Endpoint that represents the service that is exposed to the outside world

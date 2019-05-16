@@ -174,16 +174,16 @@ public class URISupport {
         }
 
         int p;
-        int intialParen = ssp.indexOf("(");
-        if (intialParen == 0) {
-            rc.host = ssp.substring(0, intialParen);
+        int initialParen = ssp.indexOf("(");
+        if (initialParen == 0) {
+            rc.host = ssp.substring(0, initialParen);
             p = rc.host.indexOf("/");
             if (p >= 0) {
                 rc.path = rc.host.substring(p);
                 rc.host = rc.host.substring(0, p);
             }
             p = ssp.lastIndexOf(")");
-            componentString = ssp.substring(intialParen + 1, p);
+            componentString = ssp.substring(initialParen + 1, p);
             params = ssp.substring(p + 1).trim();
 
         } else {
@@ -261,12 +261,12 @@ public class URISupport {
         return new URI(stripPrefix(uri.getSchemeSpecificPart().trim(), "//"));
     }
 
-    public static String createQueryString(Map<String,String> options) throws URISyntaxException {
+    public static String createQueryString(Map<String, String> options) throws URISyntaxException {
         try {
             if (options.size() > 0) {
                 StringBuilder rc = new StringBuilder();
                 boolean first = true;
-                for (Map.Entry<String,String> entry : options.entrySet()) {
+                for (Map.Entry<String, String> entry : options.entrySet()) {
                     if (first) {
                         first = false;
                     } else {
@@ -288,7 +288,7 @@ public class URISupport {
     }
 
     /**
-     * Creates a URI from the original URI and the remaining paramaters
+     * Creates a URI from the original URI and the remaining parameters
      * 
      * @throws URISyntaxException
      */

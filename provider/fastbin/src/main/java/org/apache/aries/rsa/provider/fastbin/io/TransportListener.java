@@ -39,7 +39,7 @@ public interface TransportListener {
     void onRefill(Transport transport);
 
     /**
-     * An unrecoverable exception has occured on the transport
+     * An unrecoverable exception has occurred on the transport
      * @param error
      */
     void onTransportFailure(Transport transport, IOException error);

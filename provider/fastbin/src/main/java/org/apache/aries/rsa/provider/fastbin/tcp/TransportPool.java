@@ -137,7 +137,7 @@ public abstract class TransportPool implements Service {
             queue.execute(new Runnable() {
                 public void run() {
                     final AtomicInteger latch = new AtomicInteger(transports.size());
-                    final Runnable coutDown = new Runnable() {
+                    final Runnable countDown = new Runnable() {
                         public void run() {
                             if (latch.decrementAndGet() == 0) {
                                 while (!pending.isEmpty()) {
@@ -156,7 +156,7 @@ public abstract class TransportPool implements Service {
                                 onFailure(id, new IOException("Transport stopped"));
                             }
                         }
-                        transport.stop(coutDown);
+                        transport.stop(countDown);
                     }
                 }
             });

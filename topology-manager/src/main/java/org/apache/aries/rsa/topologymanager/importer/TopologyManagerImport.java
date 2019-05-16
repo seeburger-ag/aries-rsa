@@ -94,7 +94,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     public void add(RemoteServiceAdmin rsa) {
         rsaSet.add(rsa);
         for (String filter : importPossibilities.keySet()) {
-            triggerSyncronizeImports(filter);
+            triggerSynchronizeImports(filter);
         }
     }
     
@@ -109,18 +109,18 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         }
     }
 
-    private void triggerSyncronizeImports(final String filter) {
+    private void triggerSynchronizeImports(final String filter) {
         LOG.debug("Import of a service for filter {} was queued", filter);
         if (!rsaSet.isEmpty()) {
             execService.execute(new Runnable() {
                 public void run() {
-                    syncronizeImports(filter);
+                    synchronizeImports(filter);
                 }
             });
         }
     }
     
-    private void syncronizeImports(final String filter) {
+    private void synchronizeImports(final String filter) {
         try {
             unImportForGoneEndpoints(filter);
             importServices(filter);
@@ -228,7 +228,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
                 importPossibilities.remove(filter, endpoint);
                 break;
         }
-        triggerSyncronizeImports(filter);
+        triggerSynchronizeImports(filter);
     }
     
 }

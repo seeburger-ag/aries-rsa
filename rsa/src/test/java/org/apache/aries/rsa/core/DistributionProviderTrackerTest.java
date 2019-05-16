@@ -70,7 +70,7 @@ public class DistributionProviderTrackerTest {
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {
             protected BundleContext getAPIContext() {
                 return apiContext;
-            };
+            }
         };
         tracker.addingService(providerRef);
         c.verify();
@@ -110,7 +110,7 @@ public class DistributionProviderTrackerTest {
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {
             protected BundleContext getAPIContext() {
                 return apiContext;
-            };
+            }
         };
         tracker.addingService(providerRef);
         c.verify();

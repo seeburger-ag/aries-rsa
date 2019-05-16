@@ -20,7 +20,7 @@ package org.apache.aries.rsa.provider.fastbin.io;
 
 
 /**
- * The core lifecyle interface for ActiveMQ components.
+ * The core lifecycle interface for ActiveMQ components.
  *
  * @version $Revision: 1.1 $
  */

@@ -25,14 +25,14 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoteServiceadminFactory implements ServiceFactory<RemoteServiceAdmin> {
+public class RemoteServiceAdminFactory implements ServiceFactory<RemoteServiceAdmin> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceadminFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminFactory.class);
 
     private final RemoteServiceAdminCore rsaCore;
     private int instances;
 
-    public RemoteServiceadminFactory(RemoteServiceAdminCore rsaCore) {
+    public RemoteServiceAdminFactory(RemoteServiceAdminCore rsaCore) {
         this.rsaCore = rsaCore;
     }
 

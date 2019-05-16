@@ -137,14 +137,14 @@ public class TopologyManagerExport implements ServiceListener {
         for (ServiceReference<?> serviceRef : toBeExported) {
             exportInBackground(serviceRef);
         }
-    };
+    }
 
     public void remove(RemoteServiceAdmin rsa) {
         ServiceExportsRepository repo = endpointRepo.remove(rsa);
         if (repo != null) {
             repo.close();
         }
-    };
+    }
 
     private void exportInBackground(final ServiceReference<?> sref) {
         execService.execute(new Runnable() {
