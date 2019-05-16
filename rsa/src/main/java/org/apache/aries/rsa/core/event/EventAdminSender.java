@@ -23,11 +23,13 @@ import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 
 public class EventAdminSender {
@@ -67,15 +69,17 @@ public class EventAdminSender {
     private Event toEvent(RemoteServiceAdminEvent rsaEvent) {
         String topic = getTopic(rsaEvent);
         Map<String, Object> props = new HashMap<>();
-        props.put("bundle", rsaEvent.getSource());
-        props.put("bundle.id", rsaEvent.getSource().getBundleId());
-        props.put("bundle.symbolicname", rsaEvent.getSource().getSymbolicName());
-        props.put("bundle.version", rsaEvent.getSource().getVersion());
+        Bundle bundle = rsaEvent.getSource();
+        props.put("bundle", bundle);
+        props.put("bundle.id", bundle.getBundleId());
+        props.put("bundle.symbolicname", bundle.getSymbolicName());
+        props.put("bundle.version", bundle.getVersion());
         props.put("bundle.signer", ""); // TODO What to put here
-        if (rsaEvent.getException() != null) {
-            props.put("exception", rsaEvent.getException());
-            props.put("exception.class", rsaEvent.getException().getClass());
-            props.put("exception.class", rsaEvent.getException().getMessage());
+        Throwable exception = rsaEvent.getException();
+        if (exception != null) {
+            props.put("exception", exception);
+            props.put("exception.class", exception.getClass().getName());
+            props.put("exception.message", exception.getMessage());
         }
         if (rsaEvent.getExportReference() != null) {
             EndpointDescription endpoint = rsaEvent.getExportReference().getExportedEndpoint();
@@ -83,8 +87,9 @@ public class EventAdminSender {
             props.put("endpoint.id", endpoint.getId());
             props.put("objectClass", endpoint.getInterfaces());
         }
-        if (rsaEvent.getImportReference() != null && rsaEvent.getImportReference().getImportedEndpoint() != null) {
-            props.put("service.imported.configs", rsaEvent.getImportReference().getImportedEndpoint().getConfigurationTypes());
+        ImportReference importReference = rsaEvent.getImportReference();
+        if (importReference != null && importReference.getImportedEndpoint() != null) {
+            props.put("service.imported.configs", importReference.getImportedEndpoint().getConfigurationTypes());
         }
         props.put("timestamp", System.currentTimeMillis());
         props.put("event", rsaEvent);
