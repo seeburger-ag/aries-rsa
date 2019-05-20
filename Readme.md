@@ -22,3 +22,26 @@ The discovery providers are responsible for finding the available endpoint descr
  * [zookeeper](discovery/zookeeper/Readme.md) - Manages endpoint descriptions as zookeeper nodes.
  * [local](discovery/local/Readme.md) - Scans bundles for endpoint descriptions
  * [config](discovery/config/Readme.md) - Reads endpoint descriptions from ConfigAdmin service
+
+## Releasing
+
+### Maven release
+
+    mvn clean release:prepare -DskipTests -Darguments=-DskipTests
+    mvn release:perform -DskipTests -Darguments=-DskipTests
+    
+This creates a staging repository. After all artifacts are deployed login to the [Apache maven repo](https://repository.apache.org) and close the staging repository.
+
+### Vote
+
+### Promote in Apache Repository
+
+
+
+### Copy to apache release svn
+
+The source zip needs to be copied to the [Apache release svn](https://dist.apache.org/repos/dist/release/aries).
+
+### Add checksum
+
+    gpg --print-md SHA512  <filename> >  <filename>.sha512
