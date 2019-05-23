@@ -21,6 +21,7 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -73,6 +74,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected final Map<Long, ResponseFuture> requests = new HashMap<Long, ResponseFuture>();
     protected final long timeout;
     protected final Map<String, SerializationStrategy> serializationStrategies;
+    protected final boolean isTracing;
 
     public ClientInvokerImpl(DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies) {
         this(queue, DEFAULT_TIMEOUT, serializationStrategies);
@@ -82,6 +84,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         this.queue = queue;
         this.timeout = timeout;
         this.serializationStrategies = serializationStrategies;
+        this.isTracing = LOGGER.isTraceEnabled();
     }
 
     public DispatchQueue queue() {
@@ -248,7 +251,8 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
         // Update the field size.
         BufferEditor editor = command.buffer().bigEndianEditor();
-        editor.writeInt(command.length);
+        final int commandSize = command.length;
+        editor.writeInt(commandSize);
         handler.lastRequestSize = command.length;
 
         queue().execute(new Runnable() {
@@ -269,8 +273,27 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
             }
         });
 
-        // TODO: make that configurable, that's only for tests
-        return future.get(timeout, TimeUnit.MILLISECONDS);
+        Object result;
+        try
+        {
+            result = future.get(timeout, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception e)
+        {
+            trace(method, address, args, commandSize, future, null, e);
+            throw e;
+        }
+        trace(method, address, args, commandSize, future, result, null);
+        return result;
+    }
+
+    private void trace(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex)
+    {
+        if (!isTracing) return;
+
+        String methodString = String.valueOf(method).replace("public abstract ", "");
+        String message = String.format("Finished call. Address=%s, future=%s, method=%s, args=%s, size=%d, result=%s", address, future, methodString, Arrays.toString(args), commandSize, result);
+        LOGGER.trace(message, ex);
     }
 
     private void writeBuffer(DataByteArrayOutputStream baos, Buffer value) throws IOException {
