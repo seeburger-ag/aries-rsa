@@ -117,8 +117,10 @@ public class ZookeeperEndpointRepositoryTest {
         repository.remove(endpoint);
 
         assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
-        assertThat(events.get(0), samePropertyValuesAs(new EndpointEvent(EndpointEvent.ADDED, endpoint)));
-        assertThat(events.get(1), samePropertyValuesAs(new EndpointEvent(EndpointEvent.REMOVED, endpoint)));
+        assertThat(events.get(0).getType(), equalTo(EndpointEvent.ADDED));
+        assertThat(events.get(1).getType(), equalTo(EndpointEvent.REMOVED));
+        assertThat(events.get(0).getEndpoint(), equalTo(endpoint));
+        assertThat(events.get(1).getEndpoint(), equalTo(endpoint));
         
         repository.close();
     }

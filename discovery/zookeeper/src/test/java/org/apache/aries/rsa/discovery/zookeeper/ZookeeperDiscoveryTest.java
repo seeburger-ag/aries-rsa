@@ -21,23 +21,27 @@ package org.apache.aries.rsa.discovery.zookeeper;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
 import org.apache.zookeeper.ZooKeeper;
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 
-
 public class ZookeeperDiscoveryTest {
 
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+    
+    @Mock
+    BundleContext bc;
+    
     @Test
     public void testDefaults() throws ConfigurationException {
-        IMocksControl c = EasyMock.createControl();
-        BundleContext bctx = c.createMock(BundleContext.class);
-        ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bctx) {
+        ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bc) {
             @Override
             protected ZooKeeper createZooKeeper(String host, String port, int timeout) {
                 Assert.assertEquals("localhost", host);
@@ -53,9 +57,7 @@ public class ZookeeperDiscoveryTest {
     
     @Test
     public void testConfig() throws ConfigurationException {
-        IMocksControl c = EasyMock.createControl();
-        BundleContext bctx = c.createMock(BundleContext.class);
-        ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bctx) {
+        ZooKeeperDiscovery zkd = new ZooKeeperDiscovery(bc) {
             @Override
             protected ZooKeeper createZooKeeper(String host, String port, int timeout) {
                 Assert.assertEquals("myhost", host);

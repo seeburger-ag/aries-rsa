@@ -21,7 +21,6 @@ package org.apache.aries.rsa.discovery.zookeeper;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter;
 import org.apache.zookeeper.server.ZooTrace;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -31,16 +30,13 @@ import org.osgi.service.cm.ManagedService;
 public class Activator implements BundleActivator {
 
     private static final String PID_DISCOVERY_ZOOKEEPER = "org.apache.aries.rsa.discovery.zookeeper";
-    private static final String PID_ZOOKEEPER_SERVER    = "org.apache.aries.rsa.discovery.zookeeper.server";
+    
     private ZooKeeperDiscovery zkd;
-    private ZookeeperStarter zkStarter;
 
     public synchronized void start(BundleContext bc) throws Exception {
         zkd = new ZooKeeperDiscovery(bc);
         bc.registerService(ManagedService.class, zkd, configProperties(PID_DISCOVERY_ZOOKEEPER));
         
-        zkStarter = new ZookeeperStarter(bc);
-        bc.registerService(ManagedService.class, zkStarter, configProperties(PID_ZOOKEEPER_SERVER));
     }
 
     public synchronized void stop(BundleContext bc) throws Exception {
@@ -48,10 +44,6 @@ public class Activator implements BundleActivator {
     	ZooTrace.getTextTraceLevel();
     	
         zkd.stop(true);
-        
-        if (zkStarter != null) {
-            zkStarter.shutdown();
-        }
     }
     
     private Dictionary<String, String> configProperties(String pid) {

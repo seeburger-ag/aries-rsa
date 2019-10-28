@@ -20,93 +20,72 @@ package org.apache.aries.rsa.discovery.zookeeper.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Dictionary;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
-import org.apache.zookeeper.server.ServerConfig;
-import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
-import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZookeeperStarter implements org.osgi.service.cm.ManagedService {
+@Component( //
+        configurationPolicy = ConfigurationPolicy.REQUIRE, //
+        configurationPid = "org.apache.aries.rsa.discovery.zookeeper.server" //
+)
+public class ZookeeperStarter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperStarter.class);
 
-    protected ZookeeperServer main;
-    private final BundleContext bundleContext;
+    protected ZookeeperServer server;
     private Thread zkMainThread;
-    private Map<String, ?> curConfiguration;
 
-    public ZookeeperStarter(BundleContext ctx) {
-        bundleContext = ctx;
-    }
-
-    public synchronized void shutdown() {
-        if (main != null) {
-            LOG.info("Shutting down ZooKeeper server");
-            try {
-                main.shutdown();
-                if (zkMainThread != null) {
-                    zkMainThread.join();
-                }
-            } catch (Throwable e) {
-                LOG.error(e.getMessage(), e);
-            }
-            main = null;
-            zkMainThread = null;
-        }
-    }
-
-    private void setDefaults(Dictionary<String, String> dict) throws IOException {
-        Utils.removeEmptyValues(dict); // to avoid NumberFormatExceptions
-        Utils.setDefault(dict, "tickTime", "2000");
-        Utils.setDefault(dict, "initLimit", "10");
-        Utils.setDefault(dict, "syncLimit", "5");
-        Utils.setDefault(dict, "clientPort", "2181");
-        Utils.setDefault(dict, "dataDir", new File(bundleContext.getDataFile(""), "zkdata").getCanonicalPath());
-    }
-
-    @SuppressWarnings("unchecked")
-    public synchronized void updated(Dictionary<String, ?> dict) throws ConfigurationException {
-        LOG.debug("Received configuration update for Zookeeper Server: " + dict);
+    @Activate
+    public synchronized void activate(BundleContext context, Map<String, String> config) throws ConfigurationException {
+        LOG.info("Activating zookeeper server with config: {}", config);
         try {
-            if (dict != null) {
-                setDefaults((Dictionary<String, String>)dict);
-            }
-            Map<String, ?> configMap = Utils.toMap(dict);
-            if (!configMap.equals(curConfiguration)) { // only if something actually changed
-                shutdown();
-                curConfiguration = configMap;
-                // config is null if it doesn't exist, is being deleted or has not yet been loaded
-                // in which case we just stop running
-                if (dict != null) {
-                    startFromConfig(parseConfig(dict));
-                    LOG.info("Applied configuration update: " + dict);
-                }
-            }
+            QuorumPeerConfig peerConfig = parseConfig(config, context);
+            startFromConfig(peerConfig);
         } catch (Exception th) {
-            LOG.error("Problem applying configuration update: " + dict, th);
+            LOG.warn("Problem applying configuration update: " + config, th);
         }
     }
 
-    private QuorumPeerConfig parseConfig(Dictionary<String, ?> dict) throws IOException, ConfigException {
-        QuorumPeerConfig config = new QuorumPeerConfig();
-        config.parseProperties(Utils.toProperties(dict));
-        return config;
+    @Deactivate
+    public synchronized void deactivate() {
+        if (server == null) {
+            return;
+        }
+        LOG.info("Shutting down ZooKeeper server");
+        try {
+            server.shutdown();
+            if (zkMainThread != null) {
+                zkMainThread.join();
+            }
+        } catch (Throwable e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
-    protected void startFromConfig(final QuorumPeerConfig config) {
+    protected ZookeeperServer createServer(final QuorumPeerConfig config) {
         int numServers = config.getServers().size();
-        main = numServers > 1 ? new MyQuorumPeerMain(config) : new MyZooKeeperServerMain(config);
+        return numServers > 1 ? new MyQuorumPeerMain(config) : new MyZooKeeperServerMain(config);
+    }
+
+    private void startFromConfig(final QuorumPeerConfig config) {
+        this.server = createServer(config);
         zkMainThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    main.startup();
+                    server.startup();
                 } catch (Throwable e) {
                     LOG.error("Problem running ZooKeeper server.", e);
                 }
@@ -115,50 +94,34 @@ public class ZookeeperStarter implements org.osgi.service.cm.ManagedService {
         zkMainThread.start();
     }
 
-    interface ZookeeperServer {
-        void startup() throws IOException;
-        void shutdown();
+    private QuorumPeerConfig parseConfig(Map<String, ?> config, BundleContext context) throws IOException, ConfigException {
+        Properties props = copyWithoutEmptyValues(config); // to avoid NumberFormatExceptions
+        String dataDir = new File(context.getDataFile(""), "zkdata").getCanonicalPath();
+        props.putIfAbsent("dataDir", dataDir);
+        props.putIfAbsent("tickTime", "2000");
+        props.putIfAbsent("initLimit", "10");
+        props.putIfAbsent("syncLimit", "5");
+        props.putIfAbsent("clientPort", "2181");
+        QuorumPeerConfig qconf = new QuorumPeerConfig();
+        qconf.parseProperties(props);
+        return qconf;
     }
 
-    static class MyQuorumPeerMain extends QuorumPeerMain implements ZookeeperServer {
-
-        private QuorumPeerConfig config;
-
-        MyQuorumPeerMain(QuorumPeerConfig config) {
-            this.config = config;
-        }
-
-        public void startup() throws IOException {
-            runFromConfig(config);
-        }
-
-        public void shutdown() {
-            if (null != quorumPeer) {
-                quorumPeer.shutdown();
+    /**
+     * Remove entries whose values are empty from the given dictionary.
+     *
+     * @param dict a dictionary
+     * @return 
+     */
+    private static Properties copyWithoutEmptyValues(Map<String, ?> dict) {
+        Properties props = new Properties();
+        for (String key : dict.keySet()) {
+            Object value = dict.get(key);
+            if (!(value instanceof String && "".equals(value))) {
+                props.put(key, value);
             }
         }
+        return props;
     }
 
-    static class MyZooKeeperServerMain extends ZooKeeperServerMain implements ZookeeperServer {
-
-        private QuorumPeerConfig config;
-
-        MyZooKeeperServerMain(QuorumPeerConfig config) {
-            this.config = config;
-        }
-
-        public void startup() throws IOException {
-            ServerConfig serverConfig = new ServerConfig();
-            serverConfig.readFrom(config);
-            runFromConfig(serverConfig);
-        }
-
-        public void shutdown() {
-            try {
-                super.shutdown();
-            } catch (Exception e) {
-                LOG.error("Error shutting down ZooKeeper", e);
-            }
-        }
-    }
 }
