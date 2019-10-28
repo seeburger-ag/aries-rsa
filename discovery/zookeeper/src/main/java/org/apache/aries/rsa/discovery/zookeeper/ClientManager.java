@@ -19,7 +19,6 @@
 package org.apache.aries.rsa.discovery.zookeeper;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Hashtable;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 )
 public class ClientManager implements Watcher {
 
-    private static final int MAX_PORT_WAIT_MS = 2000;
     private static final Logger LOG = LoggerFactory.getLogger(ClientManager.class);
 
     private ZooKeeper zkClient;
@@ -59,11 +57,7 @@ public class ClientManager implements Watcher {
         this.config = config;
         this.context = context;
         LOG.debug("Received configuration update for Zookeeper Discovery: {}", config);
-        CompletableFuture.runAsync(new Runnable() {
-            public void run() {
-                startClient();
-            }
-        });
+        startClient();
     }
 
     private void startClient() {
@@ -76,7 +70,6 @@ public class ClientManager implements Watcher {
 
     protected ZooKeeper createClient(DiscoveryConfig config) throws IOException {
         LOG.info("ZooKeeper discovery connecting to {}:{} with timeout {}", config.zookeeper_host(), config.zookeeper_port(), config.zookeeper_timeout());
-        waitPort(config);
         return new ZooKeeper(config.zookeeper_host() + ":" + config.zookeeper_port(), config.zookeeper_timeout(), this);
     }
 
@@ -119,26 +112,6 @@ public class ClientManager implements Watcher {
         }
     }
 
-    private void waitPort(DiscoveryConfig config) {
-        String host = config.zookeeper_host();
-        Integer port = Integer.parseInt(config.zookeeper_port());
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < MAX_PORT_WAIT_MS) {
-            try (Socket socket = new Socket(host, port)) {
-                return;
-            } catch (IOException e) {
-                safeSleep();
-            }
-        }
-    }
-
-    private void safeSleep() {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e1) {
-        }
-    }
-    
     @ObjectClassDefinition(name = "Zookeeper discovery config")
     public @interface DiscoveryConfig {
         String zookeeper_host() default "localhost";
