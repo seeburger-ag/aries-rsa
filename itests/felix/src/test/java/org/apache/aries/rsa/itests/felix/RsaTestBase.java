@@ -124,6 +124,7 @@ public class RsaTestBase {
     protected static Option rsaCore() {
         return composite(junit(), 
                          localRepo(),
+                         logback(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
@@ -137,6 +138,13 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
         );
+    }
+    
+    public static Option logback() {
+        return composite(systemProperty("logback.configurationFile").value("src/test/resources/logback.xml"),
+                mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.6"),
+                mavenBundle().groupId("ch.qos.logback").artifactId("logback-core").version("1.0.13"),
+                mavenBundle().groupId("ch.qos.logback").artifactId("logback-classic").version("1.0.13"));
     }
     
     protected static Option debug() {
