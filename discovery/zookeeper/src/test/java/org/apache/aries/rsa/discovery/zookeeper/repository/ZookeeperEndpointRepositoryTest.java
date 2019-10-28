@@ -19,7 +19,6 @@
 package org.apache.aries.rsa.discovery.zookeeper.repository;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -103,7 +102,8 @@ public class ZookeeperEndpointRepositoryTest {
                 sem.release();
             }
         };
-        ZookeeperEndpointRepository repository = new ZookeeperEndpointRepository(zk, listener);
+        ZookeeperEndpointRepository repository = new ZookeeperEndpointRepository(zk);
+        repository.addListener(listener);
         
         EndpointDescription endpoint = createEndpoint();
         repository.add(endpoint);

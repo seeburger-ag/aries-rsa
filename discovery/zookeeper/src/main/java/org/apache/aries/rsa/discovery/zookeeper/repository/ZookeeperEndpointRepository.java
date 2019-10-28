@@ -21,7 +21,6 @@ package org.apache.aries.rsa.discovery.zookeeper.repository;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,12 +56,7 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
     private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<>();
     
     public ZookeeperEndpointRepository(ZooKeeper zk) {
-        this(zk, null);
-    }
-    
-    public ZookeeperEndpointRepository(ZooKeeper zk, EndpointEventListener listener) {
         this.zk = zk;
-        this.listener = listener;
         this.parser = new EndpointDescriptionParser();
         try {
             createPath(PATH_PREFIX);
@@ -142,18 +136,18 @@ public class ZookeeperEndpointRepository implements Closeable, Watcher {
         case NodeCreated:
         case NodeDataChanged:
         case NodeChildrenChanged:
-        	watchRecursive(event.getPath());
-        	break;
-		case NodeDeleted:
-			handleRemoved(event.getPath());
-			break;
-		default:
-			break;
-		}
+            watchRecursive(event.getPath());
+            break;
+        case NodeDeleted:
+            handleRemoved(event.getPath());
+            break;
+        default:
+            break;
+        }
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         nodes.clear();
     }
 
