@@ -35,6 +35,7 @@ import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
 public class TopologyManagerImportTest {
 
@@ -83,8 +84,8 @@ public class TopologyManagerImportTest {
     private BundleContext getBundleContext(IMocksControl c) {
         ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
         BundleContext bc = c.createMock(BundleContext.class);
-        EasyMock.expect(bc.registerService(EasyMock.anyObject(Class.class),
-                                           EasyMock.anyObject(),
+        EasyMock.expect(bc.registerService(EasyMock.eq(RemoteServiceAdminListener.class),
+                                           EasyMock.anyObject(RemoteServiceAdminListener.class),
                                            (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
         return bc;
     }
