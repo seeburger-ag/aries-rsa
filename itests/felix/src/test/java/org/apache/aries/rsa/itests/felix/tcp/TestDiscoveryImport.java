@@ -31,9 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
+import org.apache.aries.rsa.discovery.zookeeper.ZookeeperEndpointPublisher;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -49,10 +48,14 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 @RunWith(PaxExam.class)
 public class TestDiscoveryImport extends RsaTestBase {
     @Inject
-    ZookeeperEndpointRepository repository;
+    ZookeeperEndpointPublisher publisher;
     
     @Inject
     BundleContext context;
+
+    private Semaphore sem = new Semaphore(0);;
+
+    private List<EndpointEvent> events = new ArrayList<>();
     
     @Configuration
     public static Option[] configure() throws Exception {
@@ -66,30 +69,32 @@ public class TestDiscoveryImport extends RsaTestBase {
         };
     }
 
-    @Ignore
     @Test
     public void testDiscoveryImport() throws Exception {
-        final Semaphore sem = new Semaphore(0);
-        final List<EndpointEvent> events = new ArrayList<>();
-        EndpointEventListener listener = new EndpointEventListener() {
-            
-            @Override
-            public void endpointChanged(EndpointEvent event, String filter) {
-                events.add(event);
-                sem.release();
-            }
-        };
+        context.registerService(EndpointEventListener.class, this::endpointChanged, listenerProps());
+        EndpointDescription endpoint = createEndpoint();
+        publisher.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint));
+        assertTrue(sem.tryAcquire(10, TimeUnit.SECONDS));
+        //assertThat(events.get(0), samePropertyValuesAs(new EndpointEvent(EndpointEvent.ADDED, endpoint)));
+    }
+
+    private Dictionary<String, Object> listenerProps() {
         Dictionary<String, Object> eprops = new Hashtable<>();
         eprops.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, "(objectClass=*)");
-        context.registerService(EndpointEventListener.class, listener, eprops);
+        return eprops;
+    }
+
+    private EndpointDescription createEndpoint() {
         Map<String, Object> props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[]{"my"});
         props.put(RemoteConstants.ENDPOINT_ID, "myid");
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "myconfig");
         EndpointDescription endpoint = new EndpointDescription(props);
-        repository.add(endpoint);
-        assertTrue(sem.tryAcquire(10, TimeUnit.SECONDS));
-        //assertThat(events.get(0), samePropertyValuesAs(new EndpointEvent(EndpointEvent.ADDED, endpoint)));
+        return endpoint;
     }
 
+    public void endpointChanged(EndpointEvent event, String filter) {
+        events.add(event);
+        sem.release();
+    }
 }

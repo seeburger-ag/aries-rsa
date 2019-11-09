@@ -16,103 +16,73 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper.publish;
+package org.apache.aries.rsa.discovery.zookeeper;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
-import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Listens for local EndpointEvents using old and new style listeners and publishes changes to 
  * the ZooKeeperEndpointRepository
  */
 @SuppressWarnings("deprecation")
+@Component(service = {}, immediate = true)
 public class PublishingEndpointListener implements EndpointEventListener, EndpointListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PublishingEndpointListener.class);
-
     private ServiceRegistration<?> listenerReg;
-    private ZookeeperEndpointRepository repository;
-
-    public PublishingEndpointListener(ZookeeperEndpointRepository repository) {
-        this.repository = repository;
-    }
     
+    @Reference
+    private ZookeeperEndpointPublisher repository;
+
+    @Activate
     public void start(BundleContext bctx) {
-        Dictionary<String, String> props = new Hashtable<>();
         String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
-        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, 
-                  String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
-                                RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid));
-        props.put(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID, "true");
         String[] ifAr = {EndpointEventListener.class.getName(), EndpointListener.class.getName()};
+        Dictionary<String, String> props = serviceProperties(uuid);
         listenerReg = bctx.registerService(ifAr, this, props);
     }
-    
+
+    @Deactivate
     public void stop() {
-        if (listenerReg != null) {
-            listenerReg.unregister();
-            listenerReg = null;
-        }
+        listenerReg.unregister();
     }
 
     @Override
     public void endpointChanged(EndpointEvent event, String filter) {
-        EndpointDescription endpoint = event.getEndpoint();
-        switch (event.getType()) {
-        case EndpointEvent.ADDED:
-            endpointAdded(endpoint, filter);
-            break;
-        case EndpointEvent.REMOVED:
-            endpointRemoved(endpoint, filter);
-            break;
-        case EndpointEvent.MODIFIED:
-            endpointModified(endpoint, filter);
-            break;
-        }
+        repository.endpointChanged(event);
     }
     
-    private void endpointModified(EndpointDescription endpoint, String filter) {
-        try {
-            repository.modify(endpoint);
-        } catch (Exception ex) {
-            logException("modification", endpoint, ex);
-        }
-    }
-
     @Override
     public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        try {
-            repository.add(endpoint);
-        } catch (Exception ex) {
-            logException("adding", endpoint, ex);
-        }
+        endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), matchedFilter);
     }
 
     @Override
     public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-        try {
-            repository.remove(endpoint);
-        } catch (Exception ex) {
-            logException("removal", endpoint, ex);
-        }
+        endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), matchedFilter);
     }
-    
-    private void logException(String operation, EndpointDescription endpoint, Exception ex) {
-        String msg = String.format("Exception during %s of endpoint %s", operation, endpoint.getId());
-        LOG.error(msg, ex);
+
+    private Dictionary<String, String> serviceProperties(String uuid) {
+        String scope = String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
+                        RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid);
+        Dictionary<String, String> props = new Hashtable<>();
+        props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, scope);
+        props.put(ClientManager.DISCOVERY_ZOOKEEPER_ID, "true");
+        return props;
     }
+
 
 }

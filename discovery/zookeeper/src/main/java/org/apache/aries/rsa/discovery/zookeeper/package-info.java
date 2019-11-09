@@ -16,12 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.local;
-
-import junit.framework.TestCase;
-
-public class ActivatorTest extends TestCase {
-
-    public void testActivator() throws Exception {
-    }
-}
+@org.osgi.annotation.bundle.Capability( //
+        namespace = "osgi.remoteserviceadmin.discovery", //
+        attribute = {"protocols:List<String>=zookeeper"}, //
+        version = "1.1.0"
+)
+package org.apache.aries.rsa.discovery.zookeeper;

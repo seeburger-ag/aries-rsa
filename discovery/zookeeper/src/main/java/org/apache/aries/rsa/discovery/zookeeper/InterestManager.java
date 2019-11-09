@@ -16,16 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper.subscribe;
+package org.apache.aries.rsa.discovery.zookeeper;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
-import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
@@ -39,10 +42,12 @@ import org.slf4j.LoggerFactory;
  * Events from repository are then forwarded to all interested EndpointEventListeners.
  */
 @SuppressWarnings({"deprecation", "rawtypes"})
-public class InterestManager implements EndpointEventListener {
+@Component(service = InterestManager.class)
+public class InterestManager {
     private static final Logger LOG = LoggerFactory.getLogger(InterestManager.class);
 
-    private final ZookeeperEndpointRepository repository;
+    private Map<String, EndpointDescription> nodes = new ConcurrentHashMap<>();
+    
     private final Map<ServiceReference, Interest> interests = new ConcurrentHashMap<>();
 
     protected static class Interest {
@@ -50,11 +55,51 @@ public class InterestManager implements EndpointEventListener {
         Object epListener;
     }
 
-    public InterestManager(ZookeeperEndpointRepository repository) {
-        this.repository = repository;
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    public void bindEndpointEventListener(ServiceReference<EndpointEventListener> sref, EndpointEventListener epListener) {
+        addInterest(sref, epListener);
+    }
+    
+    public void updatedEndpointEventListener(ServiceReference<EndpointEventListener> sref, EndpointEventListener epListener) {
+        addInterest(sref, epListener);
+    }
+    
+    public void unbindEndpointEventListener(ServiceReference<EndpointEventListener> sref) {
+        removeInterest(sref);
     }
 
-    public void addInterest(ServiceReference<?> sref, Object epListener) {
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    public void bindEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
+        addInterest(sref, epListener);
+    }
+    
+    public void updatedEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
+        addInterest(sref, epListener);
+    }
+    
+    public void unbindEndpointListener(ServiceReference<EndpointListener> sref) {
+        removeInterest(sref);
+    }
+
+    private void removeInterest(ServiceReference<?> sref) {
+        if (interests.containsKey(sref)) {
+            List<String> scopes = getScopes(sref);
+            LOG.info("removing interests: {}", scopes);
+            interests.remove(sref);
+        }
+    }
+    
+    /**
+     * Read current endpoint stored at a znode
+     * 
+     * @param path
+     * @return
+     */
+    EndpointDescription read(String path) {
+        return nodes.get(path);
+    }
+
+    private void addInterest(ServiceReference<?> sref, Object epListener) {
         if (isOurOwnEndpointEventListener(sref)) {
             LOG.debug("Skipping our own EndpointEventListener");
             return;
@@ -71,28 +116,40 @@ public class InterestManager implements EndpointEventListener {
             interest.scopes = scopes;
             interests.put(sref, interest);
             sendExistingEndpoints(scopes, epListener);
+        } else {
+            interest.scopes = scopes;
+            sendExistingEndpoints(scopes, epListener);
         }
     }
 
     private void sendExistingEndpoints(List<String> scopes, Object epListener) {
-        for (EndpointDescription endpoint : repository.getAll()) {
+        for (EndpointDescription endpoint : nodes.values()) {
             EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
             notifyListener(event, scopes, epListener);
         }
     }
 
-    private static boolean isOurOwnEndpointEventListener(ServiceReference<?> EndpointEventListener) {
+    private static boolean isOurOwnEndpointEventListener(ServiceReference<?> endpointEventListener) {
         return Boolean.parseBoolean(String.valueOf(
-                EndpointEventListener.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)));
+                endpointEventListener.getProperty(ClientManager.DISCOVERY_ZOOKEEPER_ID)));
+    }
+    
+    public void handleRemoved(String path) {
+        EndpointDescription endpoint = nodes.remove(path);
+        if (endpoint != null) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+            endpointChanged(event);
+        }
     }
 
-    public void removeInterest(ServiceReference<EndpointEventListener> epListenerRef) {
-        LOG.info("removing EndpointEventListener interests: {}", epListenerRef);
-        interests.remove(epListenerRef);
+    public void handleChanged(String path, EndpointDescription endpoint) {
+        EndpointDescription old = nodes.put(path, endpoint);
+        int type = old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED;
+        EndpointEvent event = new EndpointEvent(type, endpoint);
+        endpointChanged(event);
     }
 
-    @Override
-    public void endpointChanged(EndpointEvent event, String filter) {
+    private void endpointChanged(EndpointEvent event) {
         for (Interest interest : interests.values()) {
             notifyListener(event, interest.scopes, interest.epListener);
         }
@@ -146,7 +203,9 @@ public class InterestManager implements EndpointEventListener {
         }
     }
 
+    @Deactivate
     public synchronized void close() {
+        nodes.clear();
         interests.clear();
     }
 

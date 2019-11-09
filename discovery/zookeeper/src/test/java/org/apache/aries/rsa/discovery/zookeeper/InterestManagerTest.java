@@ -16,60 +16,50 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper.subscribe;
+package org.apache.aries.rsa.discovery.zookeeper;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.aries.rsa.discovery.zookeeper.ZooKeeperDiscovery;
-import org.apache.aries.rsa.discovery.zookeeper.repository.ZookeeperEndpointRepository;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
-public class InterfaceMonitorManagerTest {
+public class InterestManagerTest {
 
     @Test
     public void testEndpointListenerTrackerCustomizer() {
         IMocksControl c = EasyMock.createControl();
         ServiceReference<EndpointEventListener> sref = createService(c, "(objectClass=mine)");
         ServiceReference<EndpointEventListener> sref2 = createService(c, "(objectClass=mine)");
-        ZookeeperEndpointRepository repository = c.createMock(ZookeeperEndpointRepository.class);
-        List<EndpointDescription> endpoints = new ArrayList<>();
-        expect(repository.getAll()).andReturn(endpoints).atLeastOnce();
         EndpointEventListener epListener1 = c.createMock(EndpointEventListener.class); 
         EndpointEventListener epListener2 = c.createMock(EndpointEventListener.class); 
 
         c.replay();
 
-        InterestManager eltc = new InterestManager(repository);
+        InterestManager im = new InterestManager();
         // sref has no scope -> nothing should happen
-        assertEquals(0, eltc.getInterests().size());
+        assertEquals(0, im.getInterests().size());
 
+        im.bindEndpointEventListener(sref, epListener1);
+        assertEquals(1, im.getInterests().size());
 
-        eltc.addInterest(sref, epListener1);
-        assertEquals(1, eltc.getInterests().size());
+        im.bindEndpointEventListener(sref, epListener1);
+        assertEquals(1, im.getInterests().size());
 
-        eltc.addInterest(sref, epListener1);
-        assertEquals(1, eltc.getInterests().size());
+        im.bindEndpointEventListener(sref2, epListener2);
+        assertEquals(2, im.getInterests().size());
 
-        eltc.addInterest(sref2, epListener2);
-        assertEquals(2, eltc.getInterests().size());
+        im.unbindEndpointEventListener(sref);
+        assertEquals(1, im.getInterests().size());
 
-        eltc.removeInterest(sref);
-        assertEquals(1, eltc.getInterests().size());
+        im.unbindEndpointEventListener(sref);
+        assertEquals(1, im.getInterests().size());
 
-        eltc.removeInterest(sref);
-        assertEquals(1, eltc.getInterests().size());
-
-        eltc.removeInterest(sref2);
-        assertEquals(0, eltc.getInterests().size());
+        im.unbindEndpointEventListener(sref2);
+        assertEquals(0, im.getInterests().size());
 
         c.verify();
     }
@@ -78,7 +68,7 @@ public class InterfaceMonitorManagerTest {
     private ServiceReference<EndpointEventListener> createService(IMocksControl c, String scope) {
         ServiceReference<EndpointEventListener> sref = c.createMock(ServiceReference.class);
         expect(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE)).andReturn(scope).atLeastOnce();
-        expect(sref.getProperty(ZooKeeperDiscovery.DISCOVERY_ZOOKEEPER_ID)).andReturn(null).atLeastOnce();
+        expect(sref.getProperty(ClientManager.DISCOVERY_ZOOKEEPER_ID)).andReturn(null).atLeastOnce();
         return sref;
     }
 

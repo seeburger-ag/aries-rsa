@@ -80,7 +80,7 @@ public class PropertiesMapperTest {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         EndpointDescription epd = new EndpointDescription(m);
-        new EndpointDescriptionParser().writeEndpoint(epd, bos);
+        new EndpointDescriptionParserImpl().writeEndpoint(epd, bos);
         byte[] epData = bos.toByteArray();
         System.out.println(new String(epData));
         URL edURL = getClass().getResource("/ed2-generated.xml");

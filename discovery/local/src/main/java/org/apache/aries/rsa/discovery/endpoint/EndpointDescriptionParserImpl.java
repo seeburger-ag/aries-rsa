@@ -33,16 +33,19 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.aries.rsa.spi.EndpointDescriptionParser;
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionType;
 import org.osgi.xmlns.rsa.v1_0.EndpointDescriptionsType;
 import org.osgi.xmlns.rsa.v1_0.ObjectFactory;
 import org.osgi.xmlns.rsa.v1_0.PropertyType;
 
-public class EndpointDescriptionParser {
+@Component
+public class EndpointDescriptionParserImpl implements EndpointDescriptionParser {
     private JAXBContext jaxbContext;
 
-    public EndpointDescriptionParser() {
+    public EndpointDescriptionParserImpl() {
         try {
             jaxbContext = JAXBContext.newInstance(EndpointDescriptionsType.class);
         } catch (JAXBException e) {

@@ -58,7 +58,7 @@ public class TestRoundTrip extends RsaTestBase {
                 rsaCore(),
                 rsaDiscoveryZookeeper(),
                 rsaProviderTcp(),
-                RsaTestBase.echoTcpConsumer(),
+                echoTcpConsumer(),
                 configZKDiscovery()
         };
     }

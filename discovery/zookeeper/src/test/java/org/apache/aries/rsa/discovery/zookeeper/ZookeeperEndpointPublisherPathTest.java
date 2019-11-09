@@ -16,23 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.endpoint;
+package org.apache.aries.rsa.discovery.zookeeper;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
-public class EndpointDescriptionParserTest {
-
+public class ZookeeperEndpointPublisherPathTest {
+    
     @Test
-    public void testEndpointDescriptionsFromURL() throws IOException {
-        URL ed1URL = getClass().getResource("/ed1.xml");
-        List<EndpointDescription> edElements = new EndpointDescriptionParserImpl().
-            readEndpoints(ed1URL.openStream());
-        Assert.assertEquals(4, edElements.size());
+    public void testGetZooKeeperPath() {
+        assertEquals(ZookeeperEndpointPublisher.PATH_PREFIX + '/' + "http:##org.example.Test",
+            ZookeeperEndpointPublisher.getZooKeeperPath("http://org.example.Test"));
+
+        assertEquals(ZookeeperEndpointPublisher.PATH_PREFIX, ZookeeperEndpointPublisher.getZooKeeperPath(""));
     }
+    
 }

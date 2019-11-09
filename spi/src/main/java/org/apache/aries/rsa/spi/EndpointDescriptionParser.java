@@ -16,23 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.endpoint;
+package org.apache.aries.rsa.spi;
 
-import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
-public class EndpointDescriptionParserTest {
-
-    @Test
-    public void testEndpointDescriptionsFromURL() throws IOException {
-        URL ed1URL = getClass().getResource("/ed1.xml");
-        List<EndpointDescription> edElements = new EndpointDescriptionParserImpl().
-            readEndpoints(ed1URL.openStream());
-        Assert.assertEquals(4, edElements.size());
-    }
+public interface EndpointDescriptionParser {
+    
+    List<EndpointDescription> readEndpoints(InputStream is);
+    
+    EndpointDescription readEndpoint(InputStream is);
+    
+    void writeEndpoint(EndpointDescription epd, OutputStream os);
 }

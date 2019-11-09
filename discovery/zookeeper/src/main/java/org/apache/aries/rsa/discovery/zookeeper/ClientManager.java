@@ -18,14 +18,15 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.server.ZooTrace;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -40,16 +41,16 @@ import org.slf4j.LoggerFactory;
 @Component(//
         service = ClientManager.class,
         immediate = true,
-        configurationPid = "org.apache.aries.rsa.discovery.zookeeper", //
+        configurationPid = ClientManager.DISCOVERY_ZOOKEEPER_ID, //
         configurationPolicy = ConfigurationPolicy.REQUIRE //
 )
 public class ClientManager implements Watcher {
-
+    public static final String DISCOVERY_ZOOKEEPER_ID = "org.apache.aries.rsa.discovery.zookeeper";
     private static final Logger LOG = LoggerFactory.getLogger(ClientManager.class);
 
     private ZooKeeper zkClient;
     private DiscoveryConfig config;
-    private ServiceRegistration<ZooKeeper> reg;
+    private volatile ServiceRegistration<ZooKeeper> reg;
     private BundleContext context;
 
     @Activate
@@ -81,11 +82,7 @@ public class ClientManager implements Watcher {
         if (reg != null) {
             reg.unregister();
         }
-        CompletableFuture.runAsync(new Runnable() {
-            public void run() {
-                closeClient();
-            }
-        });
+        runAsync(this::closeClient);
     }
 
     private void closeClient() {

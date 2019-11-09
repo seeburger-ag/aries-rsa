@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper.repository;
+package org.apache.aries.rsa.discovery.zookeeper;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -35,9 +35,10 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParserImpl;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ServerCnxnFactory;
@@ -45,46 +46,35 @@ import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-public class ZookeeperEndpointRepositoryTest {
-    
+@RunWith(MockitoJUnitRunner.class)
+public class ZookeeperDiscoveryTest {
+    final Semaphore semConnected = new Semaphore(0);
+    final Semaphore sem = new Semaphore(0);
     private ZooKeeperServer server;
     private ZooKeeper zk;
     private ServerCnxnFactory factory;
     private List<EndpointEvent> events = new ArrayList<>();
+    @Mock
+    private ServiceReference<EndpointEventListener> sref;
 
     @Before
     public void before() throws IOException, InterruptedException, KeeperException {
-        File target = new File("target");
-        File zookeeperDir = new File(target, "zookeeper");
-        server = new ZooKeeperServer(zookeeperDir, zookeeperDir, 2000);
-        factory = new NIOServerCnxnFactory();
-        int clientPort = getClientPort();
-        factory.configure(new InetSocketAddress(clientPort), 10);
-        factory.startup(server);
-        Watcher watcher = new Watcher() {
-
-            @Override
-            public void process(WatchedEvent event) {
-                System.out.println(event);
-            }
-            
-        };
-        zk = new ZooKeeper("localhost:" + server.getClientPort(), 1000, watcher);
+        startZookeeperServer();
+        zk = new ZooKeeper("localhost:" + server.getClientPort(), 1000, this::process);
         printNodes("/");
     }
     
-    private int getClientPort() throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(0)) {
-            return serverSocket.getLocalPort();
-        }
-    }
-
     @After
     public void after() throws InterruptedException {
         //zk.close(); // Seems to cause SessionTimeout error 
@@ -93,44 +83,62 @@ public class ZookeeperEndpointRepositoryTest {
 
     @Test
     public void test() throws IOException, URISyntaxException, KeeperException, InterruptedException {
-        final Semaphore sem = new Semaphore(0);
-        EndpointEventListener listener = new EndpointEventListener() {
-            
-            @Override
-            public void endpointChanged(EndpointEvent event, String filter) {
-                events.add(event);
-                sem.release();
-            }
-        };
-        ZookeeperEndpointRepository repository = new ZookeeperEndpointRepository(zk);
-        repository.addListener(listener);
+        EndpointDescriptionParserImpl parser = new EndpointDescriptionParserImpl();
+        ZookeeperEndpointPublisher repository = new ZookeeperEndpointPublisher(zk, parser);
+        repository.activate();
+        InterestManager im = new InterestManager();
+        
+        String scope = "("+ Constants.OBJECTCLASS +"=*)";
+        Mockito.when(sref.getProperty(Mockito.eq(EndpointEventListener.ENDPOINT_LISTENER_SCOPE))).thenReturn(scope);
+        im.bindEndpointEventListener(sref, this::onEndpointChanged);
+        ZookeeperEndpointListener zklistener = new ZookeeperEndpointListener(zk, parser, im);
+        
+        assertThat(semConnected.tryAcquire(1, SECONDS), equalTo(true));
         
         EndpointDescription endpoint = createEndpoint();
-        repository.add(endpoint);
+        repository.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint));
         
-        assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
-
+        assertThat(sem.tryAcquire(100, SECONDS), equalTo(true));
+    
         String path = "/osgi/service_registry/http:##test.de#service1";
-        EndpointDescription ep2 = repository.read(path);
+        EndpointDescription ep2 = zklistener.read(path);
         assertNotNull(ep2);
 
-        repository.remove(endpoint);
-
+        repository.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint));
+    
         assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
         assertThat(events.get(0).getType(), equalTo(EndpointEvent.ADDED));
         assertThat(events.get(1).getType(), equalTo(EndpointEvent.REMOVED));
         assertThat(events.get(0).getEndpoint(), equalTo(endpoint));
         assertThat(events.get(1).getEndpoint(), equalTo(endpoint));
-        
-        repository.close();
+    }
+
+    private void process(WatchedEvent event) {
+        if (event.getState() == KeeperState.SyncConnected) {
+            semConnected.release();
+        }
+        System.out.println(event);
+    }
+
+    private void startZookeeperServer() throws IOException, InterruptedException {
+        File target = new File("target");
+        File zookeeperDir = new File(target, "zookeeper");
+        server = new ZooKeeperServer(zookeeperDir, zookeeperDir, 2000);
+        factory = new NIOServerCnxnFactory();
+        int clientPort = getClientPort();
+        factory.configure(new InetSocketAddress(clientPort), 10);
+        factory.startup(server);
     }
     
-    @Test
-    public void testGetZooKeeperPath() {
-        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX + '/' + "http:##org.example.Test",
-            ZookeeperEndpointRepository.getZooKeeperPath("http://org.example.Test"));
+    private int getClientPort() throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        }
+    }
 
-        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX, ZookeeperEndpointRepository.getZooKeeperPath(""));
+    private void onEndpointChanged(EndpointEvent event, String filter) {
+        events.add(event);
+        sem.release();
     }
 
     private EndpointDescription createEndpoint() {
@@ -143,7 +151,7 @@ public class ZookeeperEndpointRepositoryTest {
         return endpoint;
     }
 
-    public void printNodes(String path) throws KeeperException, InterruptedException {
+    private void printNodes(String path) throws KeeperException, InterruptedException {
         List<String> children = zk.getChildren(path, false);
         for (String child : children) {
             String newPath = path.endsWith("/") ? path : path + "/";

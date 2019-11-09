@@ -18,20 +18,20 @@
  */
 package org.apache.aries.rsa.itests.felix.tcp;
 
+import static org.awaitility.Awaitility.await;
+
 import java.io.ByteArrayInputStream;
-import java.util.List;
 
 import javax.inject.Inject;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.zookeeper.ZookeeperEndpointPublisher;
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.spi.DistributionProvider;
+import org.apache.aries.rsa.spi.EndpointDescriptionParser;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,10 +42,14 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 @RunWith(PaxExam.class)
 public class TestDiscoveryExport extends RsaTestBase {
-    private static final String GREETER_ZOOKEEPER_NODE = "/osgi/service_registry";
-
     @Inject
     DistributionProvider tcpProvider;
+    
+    @Inject
+    EndpointDescriptionParser parser;
+    
+    @Inject
+    ZooKeeper zookeeper;
 
     @Configuration
     public static Option[] configure() throws Exception {
@@ -70,44 +74,21 @@ public class TestDiscoveryExport extends RsaTestBase {
     }
 
     private EndpointDescription getEndpoint() throws Exception {
-        ZooKeeper zk = new ZooKeeper("localhost:" + ZK_PORT, 1000, new DummyWatcher());
-        assertNodeExists(zk, GREETER_ZOOKEEPER_NODE, 10000);
-        String endpointPath = getEndpointPath(zk, GREETER_ZOOKEEPER_NODE);
-        EndpointDescription epd = getEndpointDescription(zk, endpointPath);
-        zk.close();
-        return epd;
+        String endpointName = await("Node exists").until(this::getEndpointPath, Matchers.notNullValue());
+        return getEndpointDescription(zookeeper, ZookeeperEndpointPublisher.PATH_PREFIX + "/" + endpointName);
     }
 
     private EndpointDescription getEndpointDescription(ZooKeeper zk, String endpointPath)
         throws KeeperException, InterruptedException {
         byte[] data = zk.getData(endpointPath, false, null);
         ByteArrayInputStream is = new ByteArrayInputStream(data);
-        return new EndpointDescriptionParser().readEndpoint(is);
+        return parser.readEndpoint(is);
     }
 
-    private String getEndpointPath(ZooKeeper zk, String servicePath) throws KeeperException, InterruptedException {
-        List<String> children = zk.getChildren(servicePath, false);
-        return servicePath + "/" + children.iterator().next();
-    }
-
-    private void assertNodeExists(ZooKeeper zk, String zNode, int timeout) {
-        long endTime = System.currentTimeMillis() + timeout;
-        Stat stat = null;
-        while (stat == null && System.currentTimeMillis() < endTime) {
-            try {
-                stat = zk.exists(zNode, null);
-                Thread.sleep(200);
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
-        Assert.assertNotNull("ZooKeeper node " + zNode + " was not found", stat);
-    }
-    
-    private final class DummyWatcher implements Watcher {
-        @Override
-        public void process(WatchedEvent event) {
-        }
+    private String getEndpointPath() throws KeeperException, InterruptedException {
+        return zookeeper.getChildren(ZookeeperEndpointPublisher.PATH_PREFIX, false).stream()
+                .findFirst()
+                .orElse(null);
     }
 
 }

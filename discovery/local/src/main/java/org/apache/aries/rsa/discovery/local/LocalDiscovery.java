@@ -31,15 +31,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
+@Component(immediate = true)
 public class LocalDiscovery implements BundleListener {
 
     // this is effectively a set which allows for multiple service descriptions with the
@@ -52,6 +58,18 @@ public class LocalDiscovery implements BundleListener {
 
     public LocalDiscovery() {
         this.bundleParser = new EndpointDescriptionBundleParser();
+    }
+    
+    @Activate
+    public void activate(BundleContext context) {
+        Bundle[] bundles = context.getBundles();
+        processExistingBundles(bundles);
+        context.addBundleListener(this);
+    }
+    
+    @Deactivate
+    public void deactivate(BundleContext context) {
+        context.removeBundleListener(this);
     }
 
     public void processExistingBundles(Bundle[] bundles) {
@@ -66,7 +84,8 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    void addListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
+    @Reference
+    void bindListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
         List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         if (filters.isEmpty()) {
             return;
@@ -93,7 +112,7 @@ public class LocalDiscovery implements BundleListener {
      * itself to clean up any orphans. See Remote Service Admin spec 122.6.3
      * @param endpointListener
      */
-    void removeListener(EndpointEventListener endpointListener) {
+    void unbindListener(EndpointEventListener endpointListener) {
         synchronized (listenerToFilters) {
             Collection<String> filters = listenerToFilters.remove(endpointListener);
             if (filters == null) {

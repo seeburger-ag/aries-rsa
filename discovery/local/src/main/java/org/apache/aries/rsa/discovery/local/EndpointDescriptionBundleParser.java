@@ -25,7 +25,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParserImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
@@ -37,10 +37,10 @@ public final class EndpointDescriptionBundleParser {
     private static final String REMOTE_SERVICES_HEADER_NAME = "Remote-Service";
     private static final String REMOTE_SERVICES_DIRECTORY = "OSGI-INF/remote-service/";
 
-    private EndpointDescriptionParser parser;
+    private EndpointDescriptionParserImpl parser;
 
     public EndpointDescriptionBundleParser() {
-        parser = new EndpointDescriptionParser();
+        parser = new EndpointDescriptionParserImpl();
     }
 
     public List<EndpointDescription> getAllEndpointDescriptions(Bundle b) {
@@ -57,7 +57,7 @@ public final class EndpointDescriptionBundleParser {
         return elements;
     }
     
-    Enumeration<URL> getEndpointDescriptionURLs(Bundle b) {
+    private Enumeration<URL> getEndpointDescriptionURLs(Bundle b) {
         String origDir = getRemoteServicesDir(b);
         
         // Split origDir into dir and file pattern
