@@ -18,11 +18,13 @@
  */
 package org.apache.aries.rsa.topologymanager.importer;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
 /**
  * Minimal implementation of a thread-safe map where each key can have multiple values.
@@ -66,6 +68,10 @@ public class MultiMap<K, V> {
 
     public Set<K> keySet() {
         return map.keySet();
+    }
+
+    public Set<V> allValues() {
+        return map.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
     public void clear() {
