@@ -188,7 +188,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
 
     private void unImport(ImportReference ref) {
         List<ImportRegistration> removed = new ArrayList<>();
-        HashSet<String> imported = new HashSet<>(importedServices.keySet());
+        Set<String> imported = importedServices.keySet();
         for (String key : imported) {
             for (ImportRegistration ir : importedServices.get(key)) {
                 if (ir.getImportReference().equals(ref)) {
