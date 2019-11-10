@@ -16,11 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper;
+package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.aries.rsa.discovery.zookeeper.Interest;
 import org.apache.aries.rsa.spi.EndpointDescriptionParser;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.ConnectionLossException;
@@ -29,44 +33,45 @@ import org.apache.zookeeper.KeeperException.SessionExpiredException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(immediate = true)
-public class ZookeeperEndpointListener {
+/**
+ * Listens to endpoint changes in Zookeeper and forwards changes in Endpoints to InterestManager. 
+ */
+public class ZookeeperEndpointListener implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperEndpointListener.class);
     
-    @Reference
+    private Map<String, EndpointDescription> endpoints = new ConcurrentHashMap<>();
+    
     private ZooKeeper zk;
     
-    @Reference
     private EndpointDescriptionParser parser;
     
-    @Reference
-    private InterestManager listener;
+    private EndpointEventListener listener;
     
-    @Reference
-    private ZookeeperEndpointPublisher publisher;
-    
-    public ZookeeperEndpointListener() {
-    }
-    
-    public ZookeeperEndpointListener(ZooKeeper zk, EndpointDescriptionParser parser, InterestManager listener) {
+    ZookeeperEndpointListener(ZooKeeper zk, EndpointDescriptionParser parser, EndpointEventListener listener) {
         this.zk = zk;
         this.parser = parser;
         this.listener = listener;
-        activate();
+        watchRecursive(ZookeeperEndpointRepository.PATH_PREFIX);
     }
     
-    @Activate
-    public void activate() {
-        watchRecursive(ZookeeperEndpointPublisher.PATH_PREFIX);
+    @Override
+    public void close() {
+        // TODO unregister watchers
+        endpoints.clear();
     }
     
+    public void sendExistingEndpoints(Interest interest) {
+        endpoints.values().stream()
+            .map(endpoint -> new EndpointEvent(EndpointEvent.ADDED, endpoint))
+            .forEach(interest::notifyListener);
+    }
+
     private void process(WatchedEvent event) {
         String path = event.getPath();
         LOG.info("Received event {}", event);
@@ -77,7 +82,7 @@ public class ZookeeperEndpointListener {
             watchRecursive(path);
             break;
         case NodeDeleted:
-            listener.handleRemoved(path);
+            onRemoved(path);
             break;
         default:
             break;
@@ -89,7 +94,7 @@ public class ZookeeperEndpointListener {
         try {
             EndpointDescription endpoint = read(path);
             if (endpoint != null) {
-                listener.handleChanged(path, endpoint);
+                onChanged(path, endpoint);
             }
             List<String> children = zk.getChildren(path, this::process);
             if (children == null) {
@@ -106,8 +111,23 @@ public class ZookeeperEndpointListener {
             LOG.info(e.getMessage(), e);
         }
     }
+    
+    private void onChanged(String path, EndpointDescription endpoint) {
+        EndpointDescription old = endpoints.put(path, endpoint);
+        int type = old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED;
+        EndpointEvent event = new EndpointEvent(type, endpoint);
+        listener.endpointChanged(event, null);
+    }
 
-    EndpointDescription read(String path) throws KeeperException, InterruptedException {
+    private void onRemoved(String path) {
+        EndpointDescription endpoint = endpoints.remove(path);
+        if (endpoint != null) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
+            listener.endpointChanged(event, null);
+        }
+    }
+
+    private EndpointDescription read(String path) throws KeeperException, InterruptedException {
         Stat stat = new Stat();
         byte[] data = zk.getData(path, this::process, stat);
         if (data == null || data.length == 0) {

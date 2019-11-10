@@ -20,9 +20,9 @@ package org.apache.aries.rsa.itests.felix.tcp;
 
 
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import javax.inject.Inject;
 
@@ -30,14 +30,12 @@ import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
 import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFindHook extends RsaTestBase {
@@ -70,11 +68,11 @@ public class TestFindHook extends RsaTestBase {
 
     @Test
     public void testFind() throws Exception {
-        await().until(() -> getEchoServices().size(), Matchers.equalTo(1));
+        await().until(this::numEchoServices, equalTo(1));
     }
 
-    private Collection<ServiceReference<EchoService>> getEchoServices() throws InvalidSyntaxException {
-        return context.getServiceReferences(EchoService.class, null);
+    private int numEchoServices() throws InvalidSyntaxException {
+        return context.getServiceReferences(EchoService.class, null).size();
     }
 
 }

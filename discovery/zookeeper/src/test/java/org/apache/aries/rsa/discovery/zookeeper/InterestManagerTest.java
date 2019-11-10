@@ -18,57 +18,74 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper;
 
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointListener;
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
+@RunWith(MockitoJUnitRunner.class)
 public class InterestManagerTest {
+    
+    @Mock
+    private ZookeeperEndpointRepository repository;
+    
+    @Mock
+    private EndpointEventListener epListener1;
+    
+    @Mock
+    private EndpointEventListener epListener2;
 
+    @Mock
+    private ZookeeperEndpointListener listener;
+
+    @InjectMocks
+    private InterestManager im;
+    
     @Test
     public void testEndpointListenerTrackerCustomizer() {
-        IMocksControl c = EasyMock.createControl();
-        ServiceReference<EndpointEventListener> sref = createService(c, "(objectClass=mine)");
-        ServiceReference<EndpointEventListener> sref2 = createService(c, "(objectClass=mine)");
-        EndpointEventListener epListener1 = c.createMock(EndpointEventListener.class); 
-        EndpointEventListener epListener2 = c.createMock(EndpointEventListener.class); 
-
-        c.replay();
-
-        InterestManager im = new InterestManager();
+        when(repository.createListener(Mockito.any())).thenReturn(listener);
+        im.activate();
+        ServiceReference<EndpointEventListener> sref = createService("(objectClass=mine)");
+        ServiceReference<EndpointEventListener> sref2 = createService("(objectClass=mine)");
         // sref has no scope -> nothing should happen
-        assertEquals(0, im.getInterests().size());
+        assertNumInterests(0);
 
         im.bindEndpointEventListener(sref, epListener1);
-        assertEquals(1, im.getInterests().size());
+        assertNumInterests(1);
 
         im.bindEndpointEventListener(sref, epListener1);
-        assertEquals(1, im.getInterests().size());
+        assertNumInterests(1);
 
         im.bindEndpointEventListener(sref2, epListener2);
-        assertEquals(2, im.getInterests().size());
+        assertNumInterests(2);
 
         im.unbindEndpointEventListener(sref);
-        assertEquals(1, im.getInterests().size());
+        assertNumInterests(1);
 
         im.unbindEndpointEventListener(sref);
-        assertEquals(1, im.getInterests().size());
+        assertNumInterests(1);
 
         im.unbindEndpointEventListener(sref2);
-        assertEquals(0, im.getInterests().size());
+        assertNumInterests(0);
+    }
 
-        c.verify();
+    private void assertNumInterests(int expectedNum) {
+        assertEquals(expectedNum, im.getInterests().size());
     }
 
     @SuppressWarnings("unchecked")
-    private ServiceReference<EndpointEventListener> createService(IMocksControl c, String scope) {
-        ServiceReference<EndpointEventListener> sref = c.createMock(ServiceReference.class);
-        expect(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE)).andReturn(scope).atLeastOnce();
-        expect(sref.getProperty(ClientManager.DISCOVERY_ZOOKEEPER_ID)).andReturn(null).atLeastOnce();
+    private ServiceReference<EndpointEventListener> createService(String scope) {
+        ServiceReference<EndpointEventListener> sref = Mockito.mock(ServiceReference.class);
+        when(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE)).thenReturn(scope);
         return sref;
     }
 

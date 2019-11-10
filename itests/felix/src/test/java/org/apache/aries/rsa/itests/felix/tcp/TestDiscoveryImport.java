@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import org.apache.aries.rsa.discovery.zookeeper.ZookeeperEndpointPublisher;
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +48,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 @RunWith(PaxExam.class)
 public class TestDiscoveryImport extends RsaTestBase {
     @Inject
-    ZookeeperEndpointPublisher publisher;
+    ZookeeperEndpointRepository publisher;
     
     @Inject
     BundleContext context;

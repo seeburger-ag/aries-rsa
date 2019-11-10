@@ -16,20 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper;
+package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.junit.Test;
 
-public class ZookeeperEndpointPublisherPathTest {
+public class ZookeeperEndpointRepositoryPathTest {
     
     @Test
     public void testGetZooKeeperPath() {
-        assertEquals(ZookeeperEndpointPublisher.PATH_PREFIX + '/' + "http:##org.example.Test",
-            ZookeeperEndpointPublisher.getZooKeeperPath("http://org.example.Test"));
+        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX + '/' + "http:##org.example.Test",
+            ZookeeperEndpointRepository.getZooKeeperPath("http://org.example.Test"));
 
-        assertEquals(ZookeeperEndpointPublisher.PATH_PREFIX, ZookeeperEndpointPublisher.getZooKeeperPath(""));
+        assertEquals(ZookeeperEndpointRepository.PATH_PREFIX, ZookeeperEndpointRepository.getZooKeeperPath(""));
     }
     
 }

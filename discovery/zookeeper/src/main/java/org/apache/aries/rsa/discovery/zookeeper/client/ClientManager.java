@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper;
+package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
@@ -38,6 +38,10 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Creates a Zookeeper client from a config. The Zookeeper service is published when the connection
+ * has been established and will be unpublished when the connection goes away.
+ */
 @Component(//
         service = ClientManager.class,
         immediate = true,

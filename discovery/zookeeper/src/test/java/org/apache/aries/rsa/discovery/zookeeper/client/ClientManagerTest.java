@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper;
+package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import static org.junit.Assert.assertEquals;
 
@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.aries.rsa.discovery.zookeeper.ClientManager.DiscoveryConfig;
+import org.apache.aries.rsa.discovery.zookeeper.client.ClientManager;
+import org.apache.aries.rsa.discovery.zookeeper.client.ClientManager.DiscoveryConfig;
 import org.apache.zookeeper.ZooKeeper;
 import org.junit.Before;
 import org.junit.Rule;

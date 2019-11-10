@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.aries.rsa.discovery.zookeeper;
+package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -38,13 +38,17 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(service = ZookeeperEndpointPublisher.class)
-public class ZookeeperEndpointPublisher {
+/**
+ * Is called by PublishingEndpointListener with local Endpoint changes and forward the changes to Zookeeper. 
+ */
+@Component(service = ZookeeperEndpointRepository.class)
+public class ZookeeperEndpointRepository {
     public static final String PATH_PREFIX = "/osgi/service_registry";
-    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperEndpointPublisher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperEndpointRepository.class);
     private final Map<Integer, String> typeNames = new HashMap<>();
     
     @Reference
@@ -53,14 +57,14 @@ public class ZookeeperEndpointPublisher {
     @Reference
     private EndpointDescriptionParser parser;
     
-    public ZookeeperEndpointPublisher() {
+    public ZookeeperEndpointRepository() {
         typeNames.put(EndpointEvent.ADDED, "added");
         typeNames.put(EndpointEvent.MODIFIED, "modified");
         typeNames.put(EndpointEvent.MODIFIED_ENDMATCH, "modified");
         typeNames.put(EndpointEvent.REMOVED, "removed");
     }
     
-    public ZookeeperEndpointPublisher(ZooKeeper zk, EndpointDescriptionParser parser) {
+    public ZookeeperEndpointRepository(ZooKeeper zk, EndpointDescriptionParser parser) {
         this();
         this.zk = zk;
         this.parser = parser;
@@ -73,6 +77,10 @@ public class ZookeeperEndpointPublisher {
         } catch (Exception e) {
             throw new IllegalStateException("Unable to create base path");
         }
+    }
+    
+    public ZookeeperEndpointListener createListener(EndpointEventListener listener) {
+        return new ZookeeperEndpointListener(zk, parser, listener);
     }
 
     public void endpointChanged(EndpointEvent event) {
@@ -134,7 +142,7 @@ public class ZookeeperEndpointPublisher {
     }
 
     private void createBasePath() throws KeeperException, InterruptedException {
-        String path = ZookeeperEndpointPublisher.getZooKeeperPath("");
+        String path = ZookeeperEndpointRepository.getZooKeeperPath("");
         createPath(path);
     }
 

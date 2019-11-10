@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +38,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 @RunWith(MockitoJUnitRunner.class)
 public class PublishingEndpointListenerTest {
     @Mock
-    ZookeeperEndpointPublisher repository;
+    ZookeeperEndpointRepository repository;
 
     @InjectMocks
     PublishingEndpointListener eli;

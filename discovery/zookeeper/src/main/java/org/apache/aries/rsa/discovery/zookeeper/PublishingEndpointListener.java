@@ -21,6 +21,8 @@ package org.apache.aries.rsa.discovery.zookeeper;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.rsa.discovery.zookeeper.client.ClientManager;
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -35,8 +37,8 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 /**
- * Listens for local EndpointEvents using old and new style listeners and publishes changes to 
- * the ZooKeeperEndpointRepository
+ * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener} 
+ * and publishes changes to the {@link ZooKeeperEndpointRepository}
  */
 @SuppressWarnings("deprecation")
 @Component(service = {}, immediate = true)
@@ -45,7 +47,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     private ServiceRegistration<?> listenerReg;
     
     @Reference
-    private ZookeeperEndpointPublisher repository;
+    private ZookeeperEndpointRepository repository;
 
     @Activate
     public void start(BundleContext bctx) {

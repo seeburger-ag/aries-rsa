@@ -24,7 +24,7 @@ import java.io.ByteArrayInputStream;
 
 import javax.inject.Inject;
 
-import org.apache.aries.rsa.discovery.zookeeper.ZookeeperEndpointPublisher;
+import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointRepository;
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -75,7 +75,7 @@ public class TestDiscoveryExport extends RsaTestBase {
 
     private EndpointDescription getEndpoint() throws Exception {
         String endpointName = await("Node exists").until(this::getEndpointPath, Matchers.notNullValue());
-        return getEndpointDescription(zookeeper, ZookeeperEndpointPublisher.PATH_PREFIX + "/" + endpointName);
+        return getEndpointDescription(zookeeper, ZookeeperEndpointRepository.PATH_PREFIX + "/" + endpointName);
     }
 
     private EndpointDescription getEndpointDescription(ZooKeeper zk, String endpointPath)
@@ -86,7 +86,7 @@ public class TestDiscoveryExport extends RsaTestBase {
     }
 
     private String getEndpointPath() throws KeeperException, InterruptedException {
-        return zookeeper.getChildren(ZookeeperEndpointPublisher.PATH_PREFIX, false).stream()
+        return zookeeper.getChildren(ZookeeperEndpointRepository.PATH_PREFIX, false).stream()
                 .findFirst()
                 .orElse(null);
     }
