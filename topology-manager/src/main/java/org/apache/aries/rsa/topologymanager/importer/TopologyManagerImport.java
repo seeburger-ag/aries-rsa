@@ -56,12 +56,12 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
      */
-    private final MultiMap<EndpointDescription> importPossibilities = new MultiMap<>();
+    private final MultiMap<String, EndpointDescription> importPossibilities = new MultiMap<>();
 
     /**
      * List of already imported Endpoints by their matched filter
      */
-    private final MultiMap<ImportRegistration> importedServices = new MultiMap<>();
+    private final MultiMap<String, ImportRegistration> importedServices = new MultiMap<>();
     
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new HashSet<>();

@@ -27,17 +27,18 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * Minimal implementation of a thread-safe map where each key can have multiple values.
  *
- * @param <T> the value type
+ * @param <K> the key type
+ * @param <V> the value type
  */
-public class MultiMap<T> {
+public class MultiMap<K, V> {
 
-    private Map<String, Set<T>> map;
+    private Map<K, Set<V>> map;
     
     public MultiMap() {
         map = new ConcurrentHashMap<>();
     }
     
-    public void put(String key, T value) {
+    public void put(K key, V value) {
         map.compute(key, (k, v) -> {
             if (v == null) {
                 v = new CopyOnWriteArraySet<>();
@@ -47,23 +48,23 @@ public class MultiMap<T> {
         });
     }
 
-    public Set<T> get(String key) {
-        Set<T> values = map.get(key);
+    public Set<V> get(K key) {
+        Set<V> values = map.get(key);
         return values == null ? Collections.emptySet() : Collections.unmodifiableSet(values);
     }
 
-    public void remove(String key, T value) {
+    public void remove(K key, V value) {
         // reminder: returning null from the compute lambda will remove the mapping
         map.compute(key, (k, v) -> v != null && v.remove(value) && v.isEmpty() ? null : v);
     }
 
-    public void remove(T value) {
-        for (String key : map.keySet()) {
+    public void remove(V value) {
+        for (K key : map.keySet()) {
             remove(key, value);
         }
     }
 
-    public Set<String> keySet() {
+    public Set<K> keySet() {
         return map.keySet();
     }
 
