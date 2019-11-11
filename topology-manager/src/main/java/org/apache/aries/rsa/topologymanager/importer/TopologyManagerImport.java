@@ -19,9 +19,9 @@
 package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -47,11 +47,11 @@ import org.slf4j.LoggerFactory;
 public class TopologyManagerImport implements EndpointEventListener, RemoteServiceAdminListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerImport.class);
-    private ExecutorService execService;
 
+    private final ExecutorService execService;
     private final BundleContext bctx;
-    private Set<RemoteServiceAdmin> rsaSet;
-    private boolean stopped;
+    private final Set<RemoteServiceAdmin> rsaSet;
+    private volatile boolean stopped;
 
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
@@ -64,7 +64,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     private final MultiMap<String, ImportRegistration> importedServices = new MultiMap<>();
     
     public TopologyManagerImport(BundleContext bc) {
-        this.rsaSet = new HashSet<>();
+        this.rsaSet = new CopyOnWriteArraySet<>();
         bctx = bc;
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     }
