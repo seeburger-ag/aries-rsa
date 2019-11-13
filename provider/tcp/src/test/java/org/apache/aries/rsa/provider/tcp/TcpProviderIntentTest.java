@@ -51,7 +51,7 @@ public class TcpProviderIntentTest {
     }
     
     @Test
-    public void basicAndAsnycIntents() {
+    public void basicAndAsyncIntents() {
         Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         String[] standardIntents = new String[] {"osgi.basic", "osgi.async"};

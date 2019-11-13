@@ -283,21 +283,21 @@ public class TcpTransport implements Transport {
 
         if( max_read_rate!=0 || max_write_rate!=0 ) {
             rateLimitingChannel = new RateLimitingChannel();
-            schedualRateAllowanceReset();
+            scheduleRateAllowanceReset();
         }
 
         remoteAddress = channel.socket().getRemoteSocketAddress().toString();
         listener.onTransportConnected(this);
     }
 
-    private void schedualRateAllowanceReset() {
+    private void scheduleRateAllowanceReset() {
         dispatchQueue.executeAfter(1, TimeUnit.SECONDS, new Runnable(){
             public void run() {
                 if (!socketState.isConnected()) {
                     return;
                 }
                 rateLimitingChannel.resetAllowance();
-                schedualRateAllowanceReset();
+                scheduleRateAllowanceReset();
             }
         });
     }

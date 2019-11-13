@@ -87,7 +87,7 @@ public class TCPServer implements Closeable, Runnable {
         String methodName = (String)ois.readObject();
         Object[] args = (Object[])ois.readObject();
         Object result = invoker.invoke(methodName, args);
-        result = resolveAsnyc(result);
+        result = resolveAsync(result);
         if (result instanceof InvocationTargetException) {
             result = ((InvocationTargetException) result).getCause();
         }
@@ -95,7 +95,7 @@ public class TCPServer implements Closeable, Runnable {
     }
 
     @SuppressWarnings("unchecked")
-    private Object resolveAsnyc(Object result) throws InterruptedException {
+    private Object resolveAsync(Object result) throws InterruptedException {
         if (result instanceof Future) {
             Future<Object> fu = (Future<Object>) result;
             try {
