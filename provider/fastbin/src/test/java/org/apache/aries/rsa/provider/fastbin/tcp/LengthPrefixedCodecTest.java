@@ -111,7 +111,7 @@ public class LengthPrefixedCodecTest {
 		final Buffer value = Buffer.ascii("TESTDATA");
 		codec.write(value);
 		final int bytesThatWillBeWritten = value.length();
-		expect(writableByteChannel.write((ByteBuffer) anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
+		expect(writableByteChannel.write(anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
 		replay(writableByteChannel);
 
 		final BufferState state = codec.flush();
@@ -129,7 +129,7 @@ public class LengthPrefixedCodecTest {
 		final Buffer value = Buffer.ascii("TESTDATA");
 		codec.write(value);
 		final int bytesThatWillBeWritten = value.length() / 2;
-		expect(writableByteChannel.write((ByteBuffer) anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
+		expect(writableByteChannel.write(anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
 		replay(writableByteChannel);
 
 		final BufferState state = codec.flush();

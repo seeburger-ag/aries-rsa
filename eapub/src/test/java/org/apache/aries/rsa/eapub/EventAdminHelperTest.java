@@ -68,7 +68,7 @@ public class EventAdminHelperTest {
         EasyMock.replay(bundle);
 
         EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        ea.postEvent(EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
@@ -144,7 +144,7 @@ public class EventAdminHelperTest {
         final Exception exportException = new Exception();
 
         EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        ea.postEvent(EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {

@@ -133,7 +133,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testImport() {
-        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
+        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class"}), anyObject(), anyObject())).andReturn(null);
 
         c.replay();
         EndpointDescription endpoint2 = createEndpointDesc(MYCONFIG);
@@ -168,7 +168,7 @@ public class RemoteServiceAdminCoreTest {
 
     @Test
     public void testImportWithMultipleInterfaces() {
-        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class", "java.lang.Runnable"}), anyObject(), (Dictionary<String, ? >)anyObject())).andReturn(null);
+        expect(apiContext.registerService(EasyMock.aryEq(new String[]{"es.schaaf.my.class", "java.lang.Runnable"}), anyObject(), anyObject())).andReturn(null);
 
         c.replay();
 
@@ -356,7 +356,7 @@ public class RemoteServiceAdminCoreTest {
         ServiceReference sref = c.createMock(ServiceReference.class);
         expect(sref.getBundle()).andReturn(sb).anyTimes();
         expect(sref.getPropertyKeys()).andReturn(propKeys).anyTimes();
-        expect(sref.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+        expect(sref.getProperty(EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
                 return sProps.get(EasyMock.getCurrentArguments()[0]);

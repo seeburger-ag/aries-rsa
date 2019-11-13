@@ -203,7 +203,7 @@ public class LocalDiscoveryTest {
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
-        EasyMock.expect(sr.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+        EasyMock.expect(sr.getProperty(EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 return props.get(EasyMock.getCurrentArguments()[0]);
             }
@@ -226,7 +226,7 @@ public class LocalDiscoveryTest {
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr2 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr2.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
-        EasyMock.expect(sr2.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+        EasyMock.expect(sr2.getProperty(EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 return props.get(EasyMock.getCurrentArguments()[0]);
             }
@@ -251,7 +251,7 @@ public class LocalDiscoveryTest {
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr3 = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr3.getPropertyKeys()).andReturn(props2.keySet().toArray(new String[] {})).anyTimes();
-        EasyMock.expect(sr3.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+        EasyMock.expect(sr3.getProperty(EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 return props2.get(EasyMock.getCurrentArguments()[0]);
             }
@@ -306,7 +306,7 @@ public class LocalDiscoveryTest {
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr = EasyMock.createMock(ServiceReference.class);
         EasyMock.expect(sr.getPropertyKeys()).andReturn(props.keySet().toArray(new String[] {})).anyTimes();
-        EasyMock.expect(sr.getProperty((String) EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
+        EasyMock.expect(sr.getProperty(EasyMock.anyObject())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 return props.get(EasyMock.getCurrentArguments()[0]);
             }

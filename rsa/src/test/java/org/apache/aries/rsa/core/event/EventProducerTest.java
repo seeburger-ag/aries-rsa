@@ -99,7 +99,7 @@ public class EventProducerTest {
         EventProducer eventProducer = new EventProducer(bc);
         final Exception exportException = new Exception();
         ExportRegistrationImpl ereg = new ExportRegistrationImpl(exportException, closeHandler, eventProducer);
-        eventProducer.publishNotification(Arrays.<ExportRegistration>asList(ereg));
+        eventProducer.publishNotification(Arrays.asList(ereg));
 
         RemoteServiceAdminEvent rsae = capturedEvent.getValue();
         Assert.assertSame(exportException, rsae.getException());

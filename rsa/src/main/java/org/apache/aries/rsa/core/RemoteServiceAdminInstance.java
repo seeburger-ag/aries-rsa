@@ -53,7 +53,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
     @Override
     @SuppressWarnings("rawtypes")
     public List<ExportRegistration> exportService(final ServiceReference ref, final Map properties) {
-        return closed ? Collections.<ExportRegistration>emptyList() : rsaCore.exportService(ref, properties);
+        return closed ? Collections.emptyList() : rsaCore.exportService(ref, properties);
     }
 
     @Override

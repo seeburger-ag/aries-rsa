@@ -135,7 +135,7 @@ public class TopologyManagerExportTest {
             final ServiceReference sref,
             EndpointDescription epd) {
         ExportRegistration exportRegistration = createExportRegistration(c, epd);
-        expect(rsa.exportService(EasyMock.same(sref), (Map<String, Object>)EasyMock.anyObject()))
+        expect(rsa.exportService(EasyMock.same(sref), EasyMock.anyObject()))
             .andReturn(Collections.singletonList(exportRegistration)).once();
     }
 

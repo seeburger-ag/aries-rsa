@@ -46,7 +46,7 @@ public class PropertyValidatorTest {
 
         assertThat(toMap(dic).size(), is(1));
         assertThat(toMap(dic).keySet().contains("key"), is(true));
-        assertThat(toMap(dic).get("key"), Is.<Object>is("value"));
+        assertThat(toMap(dic).get("key"), Is.is("value"));
 
         assertThat(toMap(null), notNullValue());
         assertThat(toMap(null).size(), is(0));
@@ -76,17 +76,17 @@ public class PropertyValidatorTest {
         map.put(Constants.OBJECTCLASS, "test");
         Map<String, Object> config = validatePropertyTypes(map);
         assertThat(config.containsKey(Constants.OBJECTCLASS), is(true));
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
 
         map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, new String[]{"test"});
         config = validatePropertyTypes(map);
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
 
         map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, singletonList("test"));
         config = validatePropertyTypes(map);
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
     }
 
     @Test

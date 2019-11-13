@@ -81,7 +81,7 @@ public class EndpointListenerNotifierTest {
         
         EndpointListenerNotifier notifier = new EndpointListenerNotifier();
         Filter filter = FrameworkUtil.createFilter("(objectClass=myClass)");
-        notifier.add(epl, new HashSet(asList(filter)), Collections.<EndpointDescription>emptyList());
+        notifier.add(epl, new HashSet(asList(filter)), Collections.emptyList());
         notifier.sendEvent(new EndpointEvent(EndpointEvent.ADDED, endpoint1));
         notifier.sendEvent(new EndpointEvent(EndpointEvent.ADDED, endpoint2));
         notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint1));
