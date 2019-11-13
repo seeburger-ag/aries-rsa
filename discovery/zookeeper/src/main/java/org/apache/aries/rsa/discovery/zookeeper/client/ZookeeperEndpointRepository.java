@@ -18,10 +18,10 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.client;
 
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +169,7 @@ public class ZookeeperEndpointRepository {
     }
 
     private void createPath(String path) throws KeeperException, InterruptedException {
-        List<String> parts = asList(path.split("/")).stream()
+        List<String> parts = Arrays.stream(path.split("/"))
                 .filter(this::notEmpty)
                 .collect(toList());
         StringBuilder current = new StringBuilder();

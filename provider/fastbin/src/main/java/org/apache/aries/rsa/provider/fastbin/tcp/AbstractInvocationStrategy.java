@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("rawtypes")
 public abstract class AbstractInvocationStrategy implements InvocationStrategy {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
 
     @Override
     public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception {

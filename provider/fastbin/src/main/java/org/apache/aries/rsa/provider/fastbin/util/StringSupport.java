@@ -35,7 +35,7 @@ public class StringSupport {
     }
 
     public static String fillString(int count, char character) {
-        char t[] = new char[count];
+        char[] t = new char[count];
         Arrays.fill(t, character);
         return new String(t);
     }

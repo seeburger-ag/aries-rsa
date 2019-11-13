@@ -88,7 +88,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
 
     public void start() {
         EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
-        String[] ifAr = new String[] {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
+        String[] ifAr = {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
         serviceRegistration = bctx.registerService(ifAr, endpointListenerAdapter, getEELProperties());
 
         bctx.registerService(ListenerHook.class, listenerHook, null);

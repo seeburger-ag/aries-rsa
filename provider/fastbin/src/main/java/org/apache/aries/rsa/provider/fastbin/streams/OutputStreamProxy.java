@@ -45,7 +45,7 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         init();
     }
 
-    private final void init() {
+    private void init() {
         buffer = new byte[StreamProviderImpl.CHUNK_SIZE];
         chunkCounter = new AtomicInteger(-1);
     }

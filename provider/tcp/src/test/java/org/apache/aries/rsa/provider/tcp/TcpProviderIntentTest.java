@@ -54,7 +54,7 @@ public class TcpProviderIntentTest {
     public void basicAndAsyncIntents() {
         Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
-        String[] standardIntents = new String[] {"osgi.basic", "osgi.async"};
+        String[] standardIntents = {"osgi.basic", "osgi.async"};
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, standardIntents);
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat("Service should be exported as the intents: " + Arrays.toString(standardIntents) + " must be supported", ep, notNullValue());

@@ -44,7 +44,6 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
-import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
@@ -148,7 +147,6 @@ public class EventProducerTest {
         props.put(RemoteConstants.ENDPOINT_ID, "foo://bar");
         props.put(Constants.OBJECTCLASS, new String[] {"org.foo.Bar", "org.boo.Far"});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, new String[] {"org.apache.cxf.ws"});
-        final EndpointDescription epd = new EndpointDescription(props);
-        return epd;
+        return new EndpointDescription(props);
     }
 }

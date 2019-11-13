@@ -191,8 +191,7 @@ public class StreamInvocationTest {
                     while((i = in.read()) != -1) {
                         out.write(i);
                     }
-                    byte[] md5 = digest.digest(out.toByteArray());
-                    return md5;
+                    return digest.digest(out.toByteArray());
                 }
                 catch (Exception e) {
                     e.printStackTrace();

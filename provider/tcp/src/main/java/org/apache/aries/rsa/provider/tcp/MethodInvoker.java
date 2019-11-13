@@ -95,7 +95,6 @@ public class MethodInvoker {
                 parameterTypes.add(arg.getClass());
             }
         }
-        Class<?>[] parameterTypesAr = parameterTypes.toArray(new Class[]{});
-        return parameterTypesAr;
+        return parameterTypes.toArray(new Class[]{});
     }
 }

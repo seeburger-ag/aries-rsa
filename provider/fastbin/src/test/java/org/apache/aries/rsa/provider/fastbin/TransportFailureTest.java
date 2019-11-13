@@ -92,7 +92,7 @@ public class TransportFailureTest {
         }
     }
 
-    public static interface Hello {
+    public interface Hello {
         void hello(String name, AsyncCallback<String> callback) throws Exception;
     }
 

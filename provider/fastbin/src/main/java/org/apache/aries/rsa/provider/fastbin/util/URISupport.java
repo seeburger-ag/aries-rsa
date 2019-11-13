@@ -38,7 +38,7 @@ public class URISupport {
         private String host;
         private String scheme;
         private String path;
-        private URI components[];
+        private URI[] components;
         private Map<String, String> parameters;
         private String fragment;
 
@@ -191,7 +191,7 @@ public class URISupport {
             params = "";
         }
 
-        String components[] = splitComponents(componentString);
+        String[] components = splitComponents(componentString);
         rc.components = new URI[components.length];
         for (int i = 0; i < components.length; i++) {
             rc.components[i] = new URI(components[i].trim());
@@ -220,7 +220,7 @@ public class URISupport {
 
         int last = 0;
         int depth = 0;
-        char chars[] = str.toCharArray();
+        char[] chars = str.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             switch (chars[i]) {
             case '(':
@@ -245,7 +245,7 @@ public class URISupport {
             l.add(s);
         }
 
-        String rc[] = new String[l.size()];
+        String[] rc = new String[l.size()];
         l.toArray(rc);
         return rc;
     }
@@ -327,9 +327,7 @@ public class URISupport {
     }
 
     public int indexOfParenthesisMatch(String str) {
-        int result = -1;
-
-        return result;
+        return -1;
     }
 
 }

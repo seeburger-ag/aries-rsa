@@ -157,7 +157,7 @@ public class TcpProviderPrimitiveTest {
     public void testDTOAr() {
         DTOType dto = new DTOType();
         dto.value = "Test";
-        DTOType[] dtoAr = new DTOType[] {dto};
+        DTOType[] dtoAr = {dto};
         DTOType[] result = myServiceProxy.callDTOAr(dtoAr);
         assertThat(result[0], samePropertyValuesAs(dtoAr[0]));
     }

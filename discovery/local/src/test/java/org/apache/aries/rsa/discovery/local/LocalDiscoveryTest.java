@@ -62,7 +62,7 @@ public class LocalDiscoveryTest {
             .andReturn(Collections.enumeration(urls));
         EasyMock.replay(b2);
 
-        Bundle[] bundles = new Bundle[] {b1, b2};
+        Bundle[] bundles = {b1, b2};
 
         LocalDiscovery ld = new LocalDiscovery();
         ld.processExistingBundles(bundles);

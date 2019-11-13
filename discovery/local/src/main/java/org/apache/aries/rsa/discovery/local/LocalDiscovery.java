@@ -94,11 +94,7 @@ public class LocalDiscovery implements BundleListener {
         synchronized (listenerToFilters) {
             listenerToFilters.put(endpointListener, filters);
             for (String filter : filters) {
-                Collection<EndpointEventListener> listeners = filterToListeners.get(filter);
-                if (listeners == null) {
-                    listeners = new ArrayList<>();
-                    filterToListeners.put(filter, listeners);
-                }
+                Collection<EndpointEventListener> listeners = filterToListeners.computeIfAbsent(filter, k -> new ArrayList<>());
                 listeners.add(endpointListener);
             }
         }

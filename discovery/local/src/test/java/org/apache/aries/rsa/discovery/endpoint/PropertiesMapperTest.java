@@ -68,7 +68,7 @@ public class PropertiesMapperTest {
         stringSet.add("How are you?");
         m.put("string-set", stringSet);
 
-        int[] intArray = new int[] {1, 2};
+        int[] intArray = {1, 2};
         m.put("int-array", intArray);
 
         String xml = "<xml>\n"

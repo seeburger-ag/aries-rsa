@@ -166,8 +166,7 @@ public class ZookeeperDiscoveryTest {
         props.put(RemoteConstants.ENDPOINT_ID, "http://test.de/service1");
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my");
 
-        EndpointDescription endpoint = new EndpointDescription(props);
-        return endpoint;
+        return new EndpointDescription(props);
     }
 
     private void printNodes(String path) throws KeeperException, InterruptedException {

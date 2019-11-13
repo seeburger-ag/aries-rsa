@@ -51,8 +51,8 @@ import org.junit.Test;
 import org.osgi.framework.ServiceException;
 
 public class InvocationTest {
-    final static long MILLIS_IN_A_NANO = TimeUnit.MILLISECONDS.toNanos(1);
-    final static long SECONDS_IN_A_NANO = TimeUnit.SECONDS.toNanos(1);
+    static final long MILLIS_IN_A_NANO = TimeUnit.MILLISECONDS.toNanos(1);
+    static final long SECONDS_IN_A_NANO = TimeUnit.SECONDS.toNanos(1);
 
     final int BENCHMARK_CLIENTS = 100;
     final int BENCHMARK_INVOCATIONS_PER_CLIENT = 1000;
@@ -379,7 +379,7 @@ public class InvocationTest {
 
             final AtomicInteger requests = new AtomicInteger(0);
             final AtomicInteger failures = new AtomicInteger(0);
-            final long latencies[] = new long[BENCHMARK_CLIENTS * BENCHMARK_INVOCATIONS_PER_CLIENT];
+            final long[] latencies = new long[BENCHMARK_CLIENTS * BENCHMARK_INVOCATIONS_PER_CLIENT];
 
             final long start = System.nanoTime();
             Thread[] threads = new Thread[BENCHMARK_CLIENTS];
@@ -440,7 +440,7 @@ public class InvocationTest {
 
         final int thread_idx;
         final int nbInvocationsPerThread;
-        final long latencies[];
+        final long[] latencies;
         final AtomicInteger requests;
         final AtomicInteger failures;
         final Hello hello;
@@ -529,7 +529,7 @@ public class InvocationTest {
 
             final AtomicInteger requests = new AtomicInteger(0);
             final AtomicInteger failures = new AtomicInteger(0);
-            final long latencies[] = new long[BENCHMARK_CLIENTS * BENCHMARK_INVOCATIONS_PER_CLIENT];
+            final long[] latencies = new long[BENCHMARK_CLIENTS * BENCHMARK_INVOCATIONS_PER_CLIENT];
 
             final long start = System.nanoTime();
             AsyncClient[] threads = new AsyncClient[BENCHMARK_CLIENTS];
@@ -585,7 +585,7 @@ public class InvocationTest {
 
     }
 
-    static private StringValue.Bean stringValue(String hello) {
+    private static StringValue.Bean stringValue(String hello) {
         StringValue.Bean rc = new StringValue.Bean();
         rc.setValue(hello);
         return rc;
@@ -681,9 +681,7 @@ public class InvocationTest {
         @Override
         public Future<String> helloAsync(final String name) {
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            return executor.submit(() -> {
-                return hello(name);
-            });
+            return executor.submit(() -> hello(name));
         }
     }
 

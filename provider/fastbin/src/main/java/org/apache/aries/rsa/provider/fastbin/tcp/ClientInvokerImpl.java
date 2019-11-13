@@ -54,7 +54,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
     @SuppressWarnings("rawtypes")
-    private final static Map<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
+    private static final Map<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
 
     static {
         CLASS_TO_PRIMITIVE.put(boolean.class, "Z");
@@ -316,8 +316,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
                     e = executionException.getCause();
                 }
                 if (e instanceof RuntimeException) {
-                    RuntimeException runtimeException = (RuntimeException)e;
-                    throw runtimeException;
+                    throw e;
                 }
                 Class< ? >[] exceptionTypes = method.getExceptionTypes();
                 for (Class< ? > exceptionType : exceptionTypes) {

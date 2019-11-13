@@ -82,7 +82,6 @@ public class ClientServiceFactoryTest extends TestCase {
         map.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
         map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "myGreatConfiguration");
         map.put(Constants.OBJECTCLASS, new String[]{String.class.getName()});
-        EndpointDescription endpoint = new EndpointDescription(map);
-        return endpoint;
+        return new EndpointDescription(map);
     }
 }

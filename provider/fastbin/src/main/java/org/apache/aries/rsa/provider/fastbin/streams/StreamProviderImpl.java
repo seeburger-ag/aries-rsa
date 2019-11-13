@@ -98,8 +98,7 @@ public class StreamProviderImpl implements StreamProvider {
         if(closeable == null)
             throw new IOException("No Stream with id " + id + "available");
         try {
-            T result = (T)closeable;
-            return result;
+            return (T)closeable;
         }
         catch (ClassCastException e) {
             throw new IOException("No Stream with id " + id + "available");

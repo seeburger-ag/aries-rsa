@@ -77,9 +77,7 @@ public class FastBinProvider implements DistributionProvider {
     public void close() {
         client.stop();
         final Semaphore counter = new Semaphore(0);
-        server.stop(() -> {
-            counter.release(1);
-        });
+        server.stop(() -> counter.release(1));
         try {
             if(!counter.tryAcquire(1, 30, TimeUnit.SECONDS)) {
                 LOG.warn("Server/Client failed to shut down in time. Proceeding shutdown anyway...");

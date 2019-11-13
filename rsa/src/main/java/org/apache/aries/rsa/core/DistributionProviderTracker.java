@@ -81,8 +81,7 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         } catch (BundleException e) {
             LOG.error(e.getMessage(), e);
         }
-        BundleContext apiContext = apiBundle.getBundleContext();
-        return apiContext;
+        return apiBundle.getBundleContext();
     }
 
     @Override

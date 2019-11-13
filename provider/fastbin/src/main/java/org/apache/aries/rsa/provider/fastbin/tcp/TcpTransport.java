@@ -77,15 +77,15 @@ public class TcpTransport implements Transport {
         }
     };
 
-    final public void start() {
+    public final void start() {
         start(null);
     }
 
-    final public void stop() {
+    public final void stop() {
         stop(null);
     }
 
-    final public void start(final Runnable onCompleted) {
+    public final void start(final Runnable onCompleted) {
         queue().execute(new Runnable() {
             public void run() {
                 if (_serviceState.isCreated() || _serviceState.isStopped()) {
@@ -114,7 +114,7 @@ public class TcpTransport implements Transport {
         });
     }
 
-    final public void stop(final Runnable onCompleted) {
+    public final void stop(final Runnable onCompleted) {
         queue().execute(new Runnable() {
             public void run() {
                 if (_serviceState instanceof STARTED) {
@@ -654,7 +654,7 @@ public class TcpTransport implements Transport {
     // Transport states
     //
 
-    public static abstract class State {
+    public abstract static class State {
         LinkedList<Runnable> callbacks = new LinkedList<>();
 
         void add(Runnable r) {

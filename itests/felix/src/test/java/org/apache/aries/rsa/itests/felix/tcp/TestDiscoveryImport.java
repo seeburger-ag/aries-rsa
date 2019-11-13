@@ -89,8 +89,7 @@ public class TestDiscoveryImport extends RsaTestBase {
         props.put(Constants.OBJECTCLASS, new String[]{"my"});
         props.put(RemoteConstants.ENDPOINT_ID, "myid");
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "myconfig");
-        EndpointDescription endpoint = new EndpointDescription(props);
-        return endpoint;
+        return new EndpointDescription(props);
     }
 
     public void endpointChanged(EndpointEvent event, String filter) {

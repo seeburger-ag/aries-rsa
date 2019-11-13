@@ -72,7 +72,7 @@ public enum InvocationType {
      */
     private static boolean promiseAvailable;
 
-    private InvocationType(InvocationStrategy strategy) {
+    InvocationType(InvocationStrategy strategy) {
         this.strategy = strategy;
     }
 

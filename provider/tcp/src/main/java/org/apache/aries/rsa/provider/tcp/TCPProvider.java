@@ -93,7 +93,7 @@ public class TCPProvider implements DistributionProvider {
         throws IntentUnsatisfiedException {
         try {
             URI address = new URI(endpoint.getId());
-            Integer timeout = new EndpointPropertiesParser(endpoint).getTimeoutMillis();
+            int timeout = new EndpointPropertiesParser(endpoint).getTimeoutMillis();
             InvocationHandler handler = new TcpInvocationHandler(cl, address.getHost(), address.getPort(), timeout);
             return Proxy.newProxyInstance(cl, interfaces, handler);
         } catch (Exception e) {

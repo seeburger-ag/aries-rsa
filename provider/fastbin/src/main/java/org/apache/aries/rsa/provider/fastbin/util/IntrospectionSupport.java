@@ -228,11 +228,7 @@ public final class IntrospectionSupport {
     }
 
     private static boolean isSettableType(Class<?> clazz) {
-        if (PropertyEditorManager.findEditor(clazz) != null) {
-            return true;
-        }
-
-        return false;
+        return PropertyEditorManager.findEditor(clazz) != null;
     }
 
     public static String toString(Object target) {

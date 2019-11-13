@@ -46,7 +46,7 @@ public class EndpointListenerImplTest extends Assert {
         TopologyManagerImport tm = c.createMock(TopologyManagerImport.class);
         ServiceRegistration sr = c.createMock(ServiceRegistration.class);
 
-        String[] ifAr = new String[] {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
+        String[] ifAr = {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
         // expect Listener registration
         EasyMock.expect(bc.registerService(EasyMock.aryEq(ifAr),
                                            EasyMock.anyObject(),

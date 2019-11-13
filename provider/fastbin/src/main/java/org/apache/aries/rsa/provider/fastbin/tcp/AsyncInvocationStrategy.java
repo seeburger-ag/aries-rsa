@@ -111,7 +111,7 @@ public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
         return (Class) t.getActualTypeArguments()[0];
     }
 
-    static private Class<?>[] payloadTypes(Method method) {
+    private static Class<?>[] payloadTypes(Method method) {
         Class<?>[] types = method.getParameterTypes();
         Class<?>[] new_types = new Class<?>[types.length-1];
         System.arraycopy(types, 0, new_types, 0, new_types.length);

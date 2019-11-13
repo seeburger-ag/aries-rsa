@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServerInvokerImpl.class);
-    static private final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
+    private static final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
     static {
         PRIMITIVE_TO_CLASS.put("Z", boolean.class);
         PRIMITIVE_TO_CLASS.put("B", byte.class);
@@ -106,7 +106,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             if( rc == null ) {
                 String[] parts = data.utf8().toString().split(",");
                 String name = parts[0];
-                Class params[] = new Class[parts.length-1];
+                Class[] params = new Class[parts.length-1];
                 for( int  i=0; i < params.length; i++) {
                     params[i] = decodeClass(parts[i+1]);
                 }
@@ -274,7 +274,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     }
 
     private Buffer readBuffer(DataByteArrayInputStream bais) throws IOException {
-        byte b[] = new byte[bais.readVarInt()];
+        byte[] b = new byte[bais.readVarInt()];
         bais.readFully(b);
         return new Buffer(b);
     }

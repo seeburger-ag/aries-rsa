@@ -90,11 +90,7 @@ public class TcpTransportFactory {
      * TcpTransport.
      */
     protected TcpTransport createTransport(URI uri) throws NoSuchAlgorithmException, Exception {
-        if( !uri.getScheme().equals("tcp") ) {
-            return null;
-        }
-        TcpTransport transport = new TcpTransport();
-        return transport;
+        return uri.getScheme().equals("tcp") ? new TcpTransport() : null;
     }
 
     protected URI getLocalLocation(URI location) {
