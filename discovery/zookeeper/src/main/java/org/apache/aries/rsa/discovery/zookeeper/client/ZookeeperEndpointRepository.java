@@ -137,8 +137,7 @@ public class ZookeeperEndpointRepository {
     }
 
     static String getZooKeeperPath(String name) {
-        String escaped = name.replace('/', '#');
-        return name == null || name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + escaped;
+        return name.isEmpty() ? PATH_PREFIX : PATH_PREFIX + '/' + name.replace('/', '#');
     }
 
     private void createBasePath() throws KeeperException, InterruptedException {
