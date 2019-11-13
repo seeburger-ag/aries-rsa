@@ -41,7 +41,7 @@ public class MethodInvoker {
         this.primTypes.put(Boolean.TYPE, Boolean.class);
         this.primTypes.put(Character.TYPE, Character.class);
     }
-    
+
     public Object invoke(String methodName, Object[] args) {
         Class<?>[] parameterTypesAr = getTypes(args);
         try {
@@ -51,7 +51,7 @@ public class MethodInvoker {
             return e;
         }
     }
-    
+
     private Method getMethod(String methodName, Class<?>[] parameterTypesAr) {
         try {
             return service.getClass().getMethod(methodName, parameterTypesAr);
@@ -65,7 +65,7 @@ public class MethodInvoker {
                     return method;
                 }
             }
-            throw new IllegalArgumentException(String.format("No method found that matches name %s, types %s", 
+            throw new IllegalArgumentException(String.format("No method found that matches name %s, types %s",
                                                              methodName, Arrays.toString(parameterTypesAr)));
         }
     }
@@ -87,7 +87,7 @@ public class MethodInvoker {
         }
         return type.isAssignableFrom(paramType);
     }
-    
+
     private Class<?>[] getTypes(Object[] args) {
         List<Class<?>> parameterTypes = new ArrayList<>();
         if (args != null) {

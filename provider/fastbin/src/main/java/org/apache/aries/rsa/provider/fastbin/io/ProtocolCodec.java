@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
-
-
 /**
  * Interface to encode and decode commands in and out of a a non blocking channel.
  *
@@ -43,7 +41,7 @@ public interface ProtocolCodec {
 
     /**
      * Non-blocking channel based decoding.
-     * 
+     *
      * @return
      * @throws IOException
      */
@@ -54,13 +52,11 @@ public interface ProtocolCodec {
      */
     public long getReadCounter();
 
-
     ///////////////////////////////////////////////////////////////////
     //
     // Methods related with writing to the channel
     //
     ///////////////////////////////////////////////////////////////////
-
 
     enum BufferState {
         EMPTY,
@@ -95,6 +91,5 @@ public interface ProtocolCodec {
      * @return The number of bytes written.
      */
     public long getWriteCounter();
-
 
 }

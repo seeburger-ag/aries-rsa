@@ -56,7 +56,7 @@ public class BasicObjectInputStream extends ObjectInputStream {
             return super.resolveClass(desc);
         }
     }
-    
+
     @Override
     protected Object resolveObject(Object obj) throws IOException {
         if (obj instanceof VersionMarker) {

@@ -30,19 +30,19 @@ public interface MyService {
     String echo(String msg);
 
     void callSlow(int delay);
-    
+
     void callException();
-    
+
     // Oneway not yet supported
     @Oneway
     void callOneWay(String msg);
-    
+
     void callWithList(List<String> msg);
-    
+
     Future<String> callAsyncFuture(int delay);
 
     Promise<String> callAsyncPromise(int delay);
 
-    CompletionStage<String> callAsyncCompletionStage(int delay); 
+    CompletionStage<String> callAsyncCompletionStage(int delay);
 
 }

@@ -144,7 +144,7 @@ public class URISupport {
      */
     public static URI createURIWithQuery(URI uri, String query) throws URISyntaxException {
         return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(),
-                       query, uri.getFragment());
+            query, uri.getFragment());
     }
 
     public static CompositeData parseComposite(URI uri) throws URISyntaxException {
@@ -289,7 +289,7 @@ public class URISupport {
 
     /**
      * Creates a URI from the original URI and the remaining parameters
-     * 
+     *
      * @throws URISyntaxException
      */
     public static URI createRemainingURI(URI originalURI, Map params) throws URISyntaxException {

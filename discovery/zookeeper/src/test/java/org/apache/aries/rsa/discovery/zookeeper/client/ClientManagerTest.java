@@ -42,18 +42,18 @@ public class ClientManagerTest {
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
-    
+
     @Mock
     BundleContext context;
-    
+
     @Mock
     ZooKeeper zookeeper;
-    
+
     Semaphore sem = new Semaphore(0);
-    
+
     private DiscoveryConfig config;
     private ClientManager zkd;
-    
+
     @Before
     public void before() {
         zkd = new ClientManager() {
@@ -62,16 +62,16 @@ public class ClientManagerTest {
                 ClientManagerTest.this.config = config;
                 sem.release();
                 return zookeeper;
-            }  
+            }
         };
     }
-    
+
     @Test
     public void testDefaults() throws ConfigurationException, InstantiationException, IllegalAccessException, InterruptedException {
         Map<String, Object> configuration = new HashMap<>();
-        
+
         zkd.activate(convert(configuration), context);
-        
+
         sem.tryAcquire(10, TimeUnit.SECONDS);
         assertEquals("localhost", config.zookeeper_host());
         assertEquals("2181", config.zookeeper_port());
@@ -84,11 +84,11 @@ public class ClientManagerTest {
         configuration.put("zookeeper.host", "myhost");
         configuration.put("zookeeper.port", "1");
         configuration.put("zookeeper.timeout", "1000");
-        
+
         DiscoveryConfig config2 = convert(configuration);
         assertEquals("myhost", config2.zookeeper_host());
         zkd.activate(config2, context);
-        
+
         sem.tryAcquire(10, TimeUnit.SECONDS);
         assertEquals("myhost", config.zookeeper_host());
         assertEquals("1", config.zookeeper_port());

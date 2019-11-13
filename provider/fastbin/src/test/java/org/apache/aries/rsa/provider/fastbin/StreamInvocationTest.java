@@ -47,17 +47,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-
 public class StreamInvocationTest {
 
     private ServerInvokerImpl server;
     private ClientInvokerImpl client;
     private TestService testService;
 
-
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         DispatchQueue queue = Dispatch.createQueue();
         HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -66,16 +63,13 @@ public class StreamInvocationTest {
         client = new ClientInvokerImpl(queue, map);
         client.start();
 //        server.stop();
-        server.registerService("service-id", new ServerInvoker.ServiceFactory()
-        {
-            public Object get()
-            {
+        server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+            public Object get() {
                 return new TestServiceImpl();
             }
 
-
-            public void unget()
-            {}
+            public void unget() {
+            }
         }, TestServiceImpl.class.getClassLoader());
 
         InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader());
@@ -85,14 +79,11 @@ public class StreamInvocationTest {
         Activator.INSTANCE.server = server;
     }
 
-
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         server.stop();
         client.stop();
     }
-
 
     @Test
     public void testToString() throws IOException {
@@ -112,7 +103,6 @@ public class StreamInvocationTest {
         }
 
     }
-
 
     @Test
     public void testToStream() throws IOException {

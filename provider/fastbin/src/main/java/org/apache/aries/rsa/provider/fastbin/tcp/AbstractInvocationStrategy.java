@@ -34,8 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
-public abstract class AbstractInvocationStrategy implements InvocationStrategy
-{
+public abstract class AbstractInvocationStrategy implements InvocationStrategy {
 
     protected final static Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
 
@@ -75,7 +74,6 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
         return clazz==InputStream.class || clazz==OutputStream.class;
     }
 
-
     /**
      * encodes the request to the stream
      * @param serializationStrategy
@@ -99,7 +97,6 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
      * @throws Exception
      */
     protected abstract ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception;
-
 
     @Override
     public final void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
@@ -192,6 +189,3 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
         }
     }
 }
-
-
-

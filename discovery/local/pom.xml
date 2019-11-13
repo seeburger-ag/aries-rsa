@@ -27,7 +27,7 @@
         <version>1.15.0-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
-    
+
     <groupId>org.apache.aries.rsa.discovery</groupId>
     <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
     <packaging>jar</packaging>
@@ -66,7 +66,7 @@
                     </execution>
                 </executions>
             </plugin>
-	        <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>

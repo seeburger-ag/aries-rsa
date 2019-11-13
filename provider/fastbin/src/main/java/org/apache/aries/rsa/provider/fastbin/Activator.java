@@ -42,12 +42,11 @@ import org.slf4j.LoggerFactory;
 @Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
 public class Activator extends BaseActivator implements ManagedService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
     static Activator INSTANCE;
     FastBinProvider provider;
     ClientInvoker client;
     ServerInvoker server;
-    
 
     @Override
     protected void doOpen() throws Exception {

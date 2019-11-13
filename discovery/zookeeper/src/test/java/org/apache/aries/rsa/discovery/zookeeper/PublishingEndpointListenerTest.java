@@ -50,7 +50,7 @@ public class PublishingEndpointListenerTest {
         eli.endpointChanged(event1, null);
         EndpointEvent event2 = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
         eli.endpointChanged(event2, null);
-        
+
         verify(repository).endpointChanged(event1);
         verify(repository).endpointChanged(event2);
     }

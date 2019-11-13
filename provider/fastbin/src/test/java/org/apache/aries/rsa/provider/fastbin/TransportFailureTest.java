@@ -68,7 +68,6 @@ public class TransportFailureTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
             Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{Hello.class}, handler);
 

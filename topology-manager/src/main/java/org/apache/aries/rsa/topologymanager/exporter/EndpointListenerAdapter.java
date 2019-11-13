@@ -54,7 +54,7 @@ public class EndpointListenerAdapter implements EndpointEventListener {
             break;
         }
     }
-    
+
     /**
      * Checks for equality of the adapted EndpointListener
      */

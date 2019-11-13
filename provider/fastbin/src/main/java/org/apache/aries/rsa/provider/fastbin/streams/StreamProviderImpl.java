@@ -47,7 +47,6 @@ public class StreamProviderImpl implements StreamProvider {
         return streamID;
     }
 
-
     @Override
     public int registerStream(OutputStream out) {
         int streamID = counter.incrementAndGet();
@@ -108,6 +107,3 @@ public class StreamProviderImpl implements StreamProvider {
     }
 
 }
-
-
-

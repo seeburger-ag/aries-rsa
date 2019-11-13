@@ -29,14 +29,12 @@ The discovery providers are responsible for finding the available endpoint descr
 
     mvn clean release:prepare -DskipTests -Darguments=-DskipTests
     mvn release:perform -DskipTests -Darguments=-DskipTests
-    
+
 This creates a staging repository. After all artifacts are deployed login to the [Apache maven repo](https://repository.apache.org) and close the staging repository.
 
 ### Vote
 
 ### Promote in Apache Repository
-
-
 
 ### Copy to apache release svn
 

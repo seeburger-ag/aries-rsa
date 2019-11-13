@@ -54,7 +54,7 @@ public class ListenerHookImplTest {
         m.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, "MyUUID");
         assertFalse(filter + " filter must NOT match as uuid is the local one", f.match(m));
     }
-    
+
     @Test
     public void testAddedRemoved() throws InvalidSyntaxException {
         IMocksControl c = EasyMock.createControl();
@@ -67,7 +67,7 @@ public class ListenerHookImplTest {
         ListenerInfo listener = c.createMock(ListenerInfo.class);
         EasyMock.expect(listener.getBundleContext()).andReturn(listenerBc);
         EasyMock.expect(listener.getFilter()).andReturn(filter).atLeastOnce();
-        
+
         // Main assertions
         serviceInterestListener.addServiceInterest(listenerHook.extendFilter(filter));
         EasyMock.expectLastCall();
@@ -75,7 +75,7 @@ public class ListenerHookImplTest {
         EasyMock.expectLastCall();
 
         Collection<ListenerInfo> listeners = Collections.singletonList(listener);
-        
+
         c.replay();
         listenerHook.added(listeners);
         listenerHook.removed(listeners);

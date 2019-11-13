@@ -41,23 +41,21 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaProviderTcp(), //
-         echoTcpService()
+        return new Option[] {
+            rsaCore(), //
+            rsaProviderTcp(), //
+            echoTcpService()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryConfig(), //
-         rsaProviderTcp(), //
-         echoTcpConsumer(), //
-         configImportEchoService()
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryConfig(), //
+            rsaProviderTcp(), //
+            echoTcpConsumer(), //
+            configImportEchoService()
         };
     }
 

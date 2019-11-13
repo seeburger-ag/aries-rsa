@@ -84,7 +84,7 @@ public class TcpInvocationHandler implements InvocationHandler {
     private Object createPromiseResult(final Method method, final Object[] args) {
         final Deferred<Object> deferred = new Deferred<>();
         new Thread(new Runnable() {
-            
+
             @Override
             public void run() {
                 try {
@@ -105,7 +105,7 @@ public class TcpInvocationHandler implements InvocationHandler {
             ) {
             socket.setSoTimeout(timeoutMillis);
             out.writeObject(method.getName());
-            
+
             out.writeObject(args);
             out.flush();
             result = parseResult(socket);

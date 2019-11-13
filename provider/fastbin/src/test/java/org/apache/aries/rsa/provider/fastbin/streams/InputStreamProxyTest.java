@@ -38,14 +38,11 @@ public class InputStreamProxyTest {
         streamProvider = new StreamProviderImpl();
     }
 
-
-
     @Test
     public void testUnsignedBytes() throws IOException {
         int length = 1024;
         ByteArrayOutputStream out = new ByteArrayOutputStream(length);
-        for(int i=0;i<length;i++)
-        {
+        for(int i=0;i<length;i++) {
             out.write((byte)i);
         }
         byte[] data = out.toByteArray();
@@ -163,6 +160,3 @@ public class InputStreamProxyTest {
         }
     }
 }
-
-
-

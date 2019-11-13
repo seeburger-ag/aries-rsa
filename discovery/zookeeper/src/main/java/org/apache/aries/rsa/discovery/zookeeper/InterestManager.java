@@ -47,18 +47,18 @@ public class InterestManager {
     private static final Logger LOG = LoggerFactory.getLogger(InterestManager.class);
 
     private Set<Interest> interests = ConcurrentHashMap.newKeySet();
-    
+
     private ZookeeperEndpointListener listener;
-    
+
     public InterestManager() {
     }
-    
+
     // Using ARepository name to make sure it is injected first
     @Reference
     public void bindARepository(ZookeeperEndpointRepository repository) {
         this.listener = repository.createListener(this::onEndpointChanged);
     }
-    
+
     @Deactivate
     public void deactivate() {
         this.listener.close();
@@ -68,16 +68,16 @@ public class InterestManager {
     private void onEndpointChanged(EndpointEvent event, String filter) {
         interests.forEach(interest -> interest.notifyListener(event));
     }
-    
+
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
     public void bindEndpointEventListener(ServiceReference<EndpointEventListener> sref, EndpointEventListener epListener) {
         addInterest(sref, epListener);
     }
-    
+
     public void updatedEndpointEventListener(ServiceReference<EndpointEventListener> sref, EndpointEventListener epListener) {
         addInterest(sref, epListener);
     }
-    
+
     public void unbindEndpointEventListener(ServiceReference<EndpointEventListener> sref) {
         interests.remove(new Interest(sref));
     }
@@ -86,11 +86,11 @@ public class InterestManager {
     public void bindEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
         addInterest(sref, epListener);
     }
-    
+
     public void updatedEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
         addInterest(sref, epListener);
     }
-    
+
     public void unbindEndpointListener(ServiceReference<EndpointListener> sref) {
         interests.remove(new Interest(sref));
     }
@@ -115,9 +115,9 @@ public class InterestManager {
 
     private static boolean isOurOwnEndpointEventListener(ServiceReference<?> endpointEventListener) {
         return Boolean.parseBoolean(String.valueOf(
-                endpointEventListener.getProperty(ClientManager.DISCOVERY_ZOOKEEPER_ID)));
+            endpointEventListener.getProperty(ClientManager.DISCOVERY_ZOOKEEPER_ID)));
     }
-    
+
     Set<Interest> getInterests() {
         return interests;
     }

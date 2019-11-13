@@ -85,7 +85,7 @@ public class PropertiesMapperTest {
         System.out.println(new String(epData));
         URL edURL = getClass().getResource("/ed2-generated.xml");
         InputSource expectedXml = new InputSource(edURL.openStream());
-        InputSource actualXml = new InputSource(new ByteArrayInputStream(epData)); 
+        InputSource actualXml = new InputSource(new ByteArrayInputStream(epData));
         XMLAssert.assertXMLEqual(expectedXml, actualXml);
     }
 

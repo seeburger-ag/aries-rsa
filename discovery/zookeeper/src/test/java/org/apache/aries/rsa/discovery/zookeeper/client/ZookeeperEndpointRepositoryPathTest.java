@@ -24,7 +24,7 @@ import org.apache.aries.rsa.discovery.zookeeper.client.ZookeeperEndpointReposito
 import org.junit.Test;
 
 public class ZookeeperEndpointRepositoryPathTest {
-    
+
     @Test
     public void testGetZooKeeperPath() {
         assertEquals(ZookeeperEndpointRepository.PATH_PREFIX + '/' + "http:##org.example.Test",
@@ -32,5 +32,5 @@ public class ZookeeperEndpointRepositoryPathTest {
 
         assertEquals(ZookeeperEndpointRepository.PATH_PREFIX, ZookeeperEndpointRepository.getZooKeeperPath(""));
     }
-    
+
 }

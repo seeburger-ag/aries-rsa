@@ -43,34 +43,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Is called by PublishingEndpointListener with local Endpoint changes and forward the changes to Zookeeper. 
+ * Is called by PublishingEndpointListener with local Endpoint changes and forward the changes to Zookeeper.
  */
 @Component(service = ZookeeperEndpointRepository.class)
 public class ZookeeperEndpointRepository {
     public static final String PATH_PREFIX = "/osgi/service_registry";
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperEndpointRepository.class);
     private final Map<Integer, String> typeNames = new HashMap<>();
-    
+
     @Reference
     private ZooKeeper zk;
-    
+
     @Reference
     private EndpointDescriptionParser parser;
-    
+
     public ZookeeperEndpointRepository() {
         typeNames.put(EndpointEvent.ADDED, "added");
         typeNames.put(EndpointEvent.MODIFIED, "modified");
         typeNames.put(EndpointEvent.MODIFIED_ENDMATCH, "modified");
         typeNames.put(EndpointEvent.REMOVED, "removed");
     }
-    
+
     public ZookeeperEndpointRepository(ZooKeeper zk, EndpointDescriptionParser parser) {
         this();
         this.zk = zk;
         this.parser = parser;
     }
 
-    @Activate 
+    @Activate
     public void activate() {
         try {
             createPath(PATH_PREFIX);
@@ -78,7 +78,7 @@ public class ZookeeperEndpointRepository {
             throw new IllegalStateException("Unable to create base path", e);
         }
     }
-    
+
     public ZookeeperEndpointListener createListener(EndpointEventListener listener) {
         return new ZookeeperEndpointListener(zk, parser, listener);
     }
@@ -104,12 +104,11 @@ public class ZookeeperEndpointRepository {
             logException(typeNames.get(event.getType()), event.getEndpoint(), e);
         }
     }
-    
+
     private void logException(String operation, EndpointDescription endpoint, Exception ex) {
         String msg = String.format("Exception during %s of endpoint %s", operation, endpoint.getId());
         LOG.error(msg, ex);
     }
-
 
     private void add(EndpointDescription endpoint) throws KeeperException, InterruptedException  {
         String path = getZooKeeperPath(endpoint.getId());
@@ -125,13 +124,13 @@ public class ZookeeperEndpointRepository {
         createBasePath();
         zk.setData(path, getData(endpoint), -1);
     }
-    
+
     private void remove(EndpointDescription endpoint) throws KeeperException, InterruptedException {
         String path = getZooKeeperPath(endpoint.getId());
         LOG.info("Removing endpoint in zookeeper. Endpoint: {}, Path: {}", endpoint, path);
         zk.delete(path, -1);
     }
-    
+
     private boolean notEmpty(String part) {
         return part != null && !part.isEmpty();
     }
@@ -150,7 +149,7 @@ public class ZookeeperEndpointRepository {
         parser.writeEndpoint(epd, bos);
         return bos.toByteArray();
     }
-    
+
     private void createEphemeralNode(String fullPath, byte[] data) throws KeeperException, InterruptedException {
         try {
             zk.create(fullPath, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
@@ -168,7 +167,7 @@ public class ZookeeperEndpointRepository {
             zk.create(fullPath, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
         }
     }
-    
+
     private void createPath(String path) throws KeeperException, InterruptedException {
         List<String> parts = asList(path.split("/")).stream()
                 .filter(this::notEmpty)

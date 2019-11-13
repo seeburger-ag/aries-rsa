@@ -82,7 +82,7 @@ public class ClientManager implements Watcher {
     public synchronized void stop() {
         // Load ZooTrace class early to avoid ClassNotFoundException on shutdown
         ZooTrace.getTextTraceLevel();
-        
+
         if (reg != null) {
             reg.unregister();
         }

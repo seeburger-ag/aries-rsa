@@ -30,7 +30,7 @@ public final class EndpointHelper {
     public static void addObjectClass(Map<String, Object> props, Class<?>[] interfaces) {
         props.put(org.osgi.framework.Constants.OBJECTCLASS, getClassNames(interfaces));
     }
-    
+
     public static String[] getClassNames(Class<?>[] ifaces) {
         List<String> ifaceNames = new ArrayList<>();
         for (Class<?> iface : ifaces) {

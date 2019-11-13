@@ -301,7 +301,7 @@ public class LocalDiscoveryTest {
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, new String[] {scope});
         return mockService(props);
     }
-    
+
     private ServiceReference<EndpointEventListener> mockService(final Map<String, Object> props) {
         @SuppressWarnings("unchecked")
         ServiceReference<EndpointEventListener> sr = EasyMock.createMock(ServiceReference.class);
@@ -311,7 +311,7 @@ public class LocalDiscoveryTest {
                 return props.get(EasyMock.getCurrentArguments()[0]);
             }
         }).anyTimes();
-    
+
         EasyMock.replay(sr);
         return sr;
     }

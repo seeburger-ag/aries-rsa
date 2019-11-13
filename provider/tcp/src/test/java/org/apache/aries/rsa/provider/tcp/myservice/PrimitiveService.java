@@ -25,21 +25,21 @@ import java.util.Set;
 import org.osgi.framework.Version;
 
 public interface PrimitiveService {
-    
+
     byte callByte(byte num);
-    
+
     short callShort(short num);
 
     int callInt(int num);
 
     long callLong(long num);
-    
+
     float callFloat(float num);
-    
+
     double callDouble(double num);
 
     boolean callBoolean(boolean bool);
-    
+
     byte[] callByteAr(byte[] byteAr);
 
     Version callVersion(Version version);

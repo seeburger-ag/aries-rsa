@@ -37,12 +37,9 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 import junit.framework.TestCase;
 
-
 public class ClientServiceFactoryTest extends TestCase {
 
-    @SuppressWarnings({
-     "rawtypes"
-    })
+    @SuppressWarnings("rawtypes")
     public void testGetService() throws ClassNotFoundException {
         final Object myTestProxyObject = new Object();
 
@@ -58,7 +55,6 @@ public class ClientServiceFactoryTest extends TestCase {
         EasyMock.expect(consumerBundle.getBundleContext()).andReturn(consumerContext);
         ServiceRegistration sreg = control.createMock(ServiceRegistration.class);
 
-
         DistributionProvider handler = mockDistributionProvider(myTestProxyObject);
         control.replay();
 
@@ -73,9 +69,9 @@ public class ClientServiceFactoryTest extends TestCase {
      */
     private DistributionProvider mockDistributionProvider(final Object proxy) {
         DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
-        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class), 
-                                               anyObject(BundleContext.class), 
-                                               isA(Class[].class), 
+        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class),
+                                               anyObject(BundleContext.class),
+                                               isA(Class[].class),
                                                anyObject(EndpointDescription.class))).andReturn(proxy);
         EasyMock.replay(handler);
         return handler;

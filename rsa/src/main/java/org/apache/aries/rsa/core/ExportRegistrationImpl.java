@@ -51,11 +51,11 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     private EventProducer sender;
 
-    private ExportRegistrationImpl(ExportRegistrationImpl parent, 
+    private ExportRegistrationImpl(ExportRegistrationImpl parent,
             CloseHandler rsaCore,
             EventProducer sender,
-            ExportReferenceImpl exportReference, 
-            Closeable server, 
+            ExportReferenceImpl exportReference,
+            Closeable server,
             Throwable exception) {
         this.sender = sender;
         this.parent = parent != null ? parent.parent : this; // a parent points to itself
@@ -186,7 +186,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
             return null;
         }
         ServiceReference<?> sref = getExportReference().getExportedService();
-        
+
         HashMap<String, Object> props = new HashMap<>(properties);
         EndpointDescription oldEpd = getExportReference().getExportedEndpoint();
         copyIfNull(props, oldEpd, RemoteConstants.ENDPOINT_ID);

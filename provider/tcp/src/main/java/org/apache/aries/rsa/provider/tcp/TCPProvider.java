@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 public class TCPProvider implements DistributionProvider {
     static final String TCP_CONFIG_TYPE = "aries.tcp";
     private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.async"};
-    
+
     private Logger logger = LoggerFactory.getLogger(TCPProvider.class);
 
     @Override
@@ -57,7 +57,7 @@ public class TCPProvider implements DistributionProvider {
     }
 
     @Override
-    public Endpoint exportService(Object serviceO, 
+    public Endpoint exportService(Object serviceO,
                                   BundleContext serviceContext,
                                   Map<String, Object> effectiveProperties,
                                   Class[] exportedInterfaces) {
@@ -86,8 +86,8 @@ public class TCPProvider implements DistributionProvider {
     }
 
     @Override
-    public Object importEndpoint(ClassLoader cl, 
-                                 BundleContext consumerContext, 
+    public Object importEndpoint(ClassLoader cl,
+                                 BundleContext consumerContext,
                                  Class[] interfaces,
                                  EndpointDescription endpoint)
         throws IntentUnsatisfiedException {

@@ -77,19 +77,19 @@ public class ServiceExportsRepository implements Closeable {
         public void update(ServiceReference<?> sref) {
             EndpointDescription updatedEndpoint = registration.update(getServiceProps(sref));
             if (reference != null) {
-            	this.endpoint = updatedEndpoint;
+                this.endpoint = updatedEndpoint;
                 EndpointEvent event = new EndpointEvent(EndpointEvent.MODIFIED, endpoint);
                 notifier.sendEvent(event);
             }
         }
 
-		private Map<String, ?> getServiceProps(ServiceReference<?> sref) {
-			HashMap<String, Object> props = new HashMap<>();
-			for (String key : sref.getPropertyKeys()) {
-				props.put(key, sref.getProperty(key));
-			} 
-			return props;
-		}
+        private Map<String, ?> getServiceProps(ServiceReference<?> sref) {
+            HashMap<String, Object> props = new HashMap<>();
+            for (String key : sref.getPropertyKeys()) {
+                props.put(key, sref.getProperty(key));
+            }
+            return props;
+        }
     }
 
     public ServiceExportsRepository(RemoteServiceAdmin rsa, EndpointListenerNotifier notifier) {
@@ -108,10 +108,10 @@ public class ServiceExportsRepository implements Closeable {
         List<ExportRegistrationHolder> holderList = new ArrayList<>(exports.size());
         exportsMap.put(sref, holderList);
         for (ExportRegistration reg : exports) {
-        	ExportReference exportReference = reg.getExportReference();
+            ExportReference exportReference = reg.getExportReference();
             if (exportReference != null) {
                 EndpointDescription endpoint = exportReference.getExportedEndpoint();
-    			ExportRegistrationHolder holder = new ExportRegistrationHolder(reg, endpoint);
+                ExportRegistrationHolder holder = new ExportRegistrationHolder(reg, endpoint);
                 holderList.add(holder);
             }
         }

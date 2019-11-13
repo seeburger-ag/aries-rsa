@@ -184,7 +184,6 @@ public class TcpTransport implements Transport {
         this.socketState = new CONNECTING();
     }
 
-
     public DispatchQueue queue() {
         return dispatchQueue;
     }
@@ -227,7 +226,7 @@ public class TcpTransport implements Transport {
                             trace("was connected.");
                             onConnected();
                         } catch (IOException e) {
-                             onTransportFailure(e);
+                            onTransportFailure(e);
                         }
                     }
                 });
@@ -320,7 +319,6 @@ public class TcpTransport implements Transport {
         socketState.onCanceled();
     }
 
-
     public boolean full() {
         return codec.full();
     }
@@ -350,9 +348,7 @@ public class TcpTransport implements Transport {
             onTransportFailure(e);
             return false;
         }
-
     }
-
 
     /**
      *
@@ -409,7 +405,6 @@ public class TcpTransport implements Transport {
         }
     }
 
-
     public String getRemoteAddress() {
         return remoteAddress;
     }
@@ -419,7 +414,6 @@ public class TcpTransport implements Transport {
             readSource.suspend();
         }
     }
-
 
     public void resumeRead() {
         if( isConnected() && readSource!=null ) {
@@ -498,7 +492,6 @@ public class TcpTransport implements Transport {
     public void setUseLocalHost(boolean useLocalHost) {
         this.useLocalHost = useLocalHost;
     }
-
 
     private void trace(String message) {
         if( LOG.isTraceEnabled() ) {
@@ -720,7 +713,6 @@ public class TcpTransport implements Transport {
     public static final class STOPPED extends State {
     }
 
-
     //
     // Socket states
     //
@@ -844,6 +836,5 @@ public class TcpTransport implements Transport {
             onCompleted.run();
         }
     }
-
 
 }

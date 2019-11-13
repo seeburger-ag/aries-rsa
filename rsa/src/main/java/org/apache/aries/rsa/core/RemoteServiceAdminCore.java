@@ -74,8 +74,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private PackageUtil packageUtil;
     private CloseHandler closeHandler;
 
-    public RemoteServiceAdminCore(BundleContext context, 
-            BundleContext apiContext, 
+    public RemoteServiceAdminCore(BundleContext context,
+            BundleContext apiContext,
             EventProducer eventProducer,
             DistributionProvider provider,
             PackageUtil packageUtil) {
@@ -95,7 +95,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         };
         createServiceListener();
     }
-    
+
     // listen for exported services being unregistered so we can close the export
     protected void createServiceListener() {
         this.exportedServiceListener = new ServiceListener() {
@@ -142,8 +142,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         }
     }
 
-    private boolean isExportConfigSupported(Map<String, Object> serviceProperties)
-    {
+    private boolean isExportConfigSupported(Map<String, Object> serviceProperties) {
         if (provider == null) {
             return false;
         }
@@ -213,7 +212,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     private ExportRegistration exportService(
             final List<String> interfaceNames,
-            final ServiceReference<?> serviceReference, 
+            final ServiceReference<?> serviceReference,
             final Map<String, Object> serviceProperties) {
         LOG.info("interfaces selected for export: " + interfaceNames);
 
@@ -230,7 +229,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             }
             final Class<?>[] interfaces = getInterfaces(serviceO, interfaceNames);
             final Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
-            
+
             // TODO unget service when export is destroyed
             Endpoint endpoint = AccessController.doPrivileged(new PrivilegedAction<Endpoint>() {
                 public Endpoint run() {
@@ -423,17 +422,17 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
                 LOG.info("No matching handler can be found for remote endpoint {}.", endpoint.getId());
                 return null;
             }
-            
+
             // TODO: somehow select the interfaces that should be imported ---> job of the TopologyManager?
             List<String> matchingInterfaces = endpoint.getInterfaces();
-            
+
             if (matchingInterfaces.size() == 0) {
                 LOG.info("No matching interfaces found for remote endpoint {}.", endpoint.getId());
                 return null;
             }
-            
-            LOG.info("Importing service {} with interfaces {} using handler {}.", 
-                     endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
+
+            LOG.info("Importing service {} with interfaces {} using handler {}.",
+                endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
 
             ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
             if (imRegs == null) {
@@ -445,7 +444,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             return imReg;
         }
     }
-    
+
     private List<String> determineConfigTypesForImport(EndpointDescription endpoint) {
         List<String> remoteConfigurationTypes = endpoint.getConfigurationTypes();
 
@@ -458,7 +457,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
         if (usableConfigurationTypes.size() == 0) {
             LOG.info("Ignoring endpoint {} as it has no compatible configuration types: {}.",
-                 endpoint.getId(), remoteConfigurationTypes);
+                endpoint.getId(), remoteConfigurationTypes);
         }
         return usableConfigurationTypes;
     }
@@ -475,7 +474,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
             ClientServiceFactory csf = new ClientServiceFactory(endpoint, handler, imReg);
             imReg.setClientServiceFactory(csf);
-            
+
             /**
              *  Export the factory using the api context as it has very few imports.
              *  If the bundle publishing the factory does not import the service interface
@@ -615,12 +614,12 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     static void overlayProperties(Map<String, Object> serviceProperties,
-                                         Map<String, Object> additionalProperties) {
+                                  Map<String, Object> additionalProperties) {
         Map<String, String> keysLowerCase = new HashMap<>();
         for (String key : serviceProperties.keySet()) {
             keysLowerCase.put(key.toLowerCase(), key);
         }
-    
+
         for (Map.Entry<String, Object> e : additionalProperties.entrySet()) {
             String key = e.getKey();
             String lowerKey = key.toLowerCase();
@@ -628,7 +627,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
                 || org.osgi.framework.Constants.OBJECTCLASS.toLowerCase().equals(lowerKey)) {
                 // objectClass and service.id must not be overwritten
                 LOG.info("exportService called with additional properties map that contained illegal key: "
-                          + key + ", the key is ignored");
+                    + key + ", the key is ignored");
             } else {
                 String origKey = keysLowerCase.get(lowerKey);
                 if (origKey != null) {
@@ -657,8 +656,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         }
         return props;
     }
-    
-    protected Map<String, Object> createEndpointProps(Map<String, Object> effectiveProps, 
+
+    protected Map<String, Object> createEndpointProps(Map<String, Object> effectiveProps,
                                                       Class<?>[] ifaces) {
         Map<String, Object> props = new HashMap<>();
         copyEndpointProperties(effectiveProps, props);
@@ -683,7 +682,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             }
         }
     }
-    
+
     private void checkPermission(EndpointPermission permission) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {

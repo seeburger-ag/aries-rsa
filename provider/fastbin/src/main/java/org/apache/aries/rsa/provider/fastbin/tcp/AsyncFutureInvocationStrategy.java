@@ -72,7 +72,6 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-
     @Override
     protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
         return new AsyncResponseFuture(loader, method, serializationStrategy, Dispatch.getCurrentQueue());
@@ -142,8 +141,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
 
         @Override
-        public Object get(long timeout, TimeUnit unit) throws Exception
-        {
+        public Object get(long timeout, TimeUnit unit) throws Exception {
             return future;
         }
     }
@@ -225,6 +223,3 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 }
-
-
-

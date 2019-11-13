@@ -25,9 +25,9 @@ import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransport;
  *
  */
 public interface TransportAcceptListener {
-    
+
     void onAccept(TransportServer transportServer, TcpTransport transport);
-    
+
     void onAcceptError(TransportServer transportServer, Exception error);
 
 }

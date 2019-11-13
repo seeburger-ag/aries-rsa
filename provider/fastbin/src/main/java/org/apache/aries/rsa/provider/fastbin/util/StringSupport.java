@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 /**
  * Helper class to hold common text/string manipulation methods.
- *  
+ *
  */
 public class StringSupport {
 
@@ -39,5 +39,5 @@ public class StringSupport {
         Arrays.fill(t, character);
         return new String(t);
     }
-    
+
 }

@@ -27,18 +27,18 @@ import org.junit.Test;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 public class FilterHelperTest {
-	
-	@Test
-	public void testIgnore() { 
-		assertThat(isClassExcluded(ConfigurationAdmin.class.getName()), equalTo(true));
-		assertThat(isClassExcluded("org.osgi.service.clusterinfo.NodeStatus"), equalTo(false));
-	}
+
+    @Test
+    public void testIgnore() {
+        assertThat(isClassExcluded(ConfigurationAdmin.class.getName()), equalTo(true));
+        assertThat(isClassExcluded("org.osgi.service.clusterinfo.NodeStatus"), equalTo(false));
+    }
 
     @Test
     public void testClass()  {
         testWithClassName(FilterHelperTest.class.getName());
     }
-    
+
     @Test
     public void testInnerClass()  {
         testWithClassName(InnerClass.class.getName());
@@ -49,7 +49,7 @@ public class FilterHelperTest {
         String objClass = FilterHelper.getObjectClass(filter);
         Assert.assertEquals(className, objClass);
     }
-    
+
     @Test
     public void testGetFullFilter() {
         String filter = "(a=b)";
@@ -58,7 +58,7 @@ public class FilterHelperTest {
         Assert.assertEquals("(objectClass=my.Test)", FilterHelper.getFullFilter(objectClass, null));
         Assert.assertEquals("(&(objectClass=my.Test)(a=b))", FilterHelper.getFullFilter(objectClass, filter));
     }
-    
+
     class InnerClass {
     }
 

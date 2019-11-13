@@ -35,21 +35,21 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("deprecation")
 public class Interest {
     private static final Logger LOG = LoggerFactory.getLogger(Interest.class);
-    
+
     private final ServiceReference<?> sref;
     private final List<String> scopes;
     private final Object epListener;
-    
+
     public Interest(ServiceReference<?> sref) {
         this(sref, null);
     }
-    
+
     public Interest(ServiceReference<?> sref, Object epListener) {
         this.sref = sref;
         this.scopes = StringPlus.normalize(sref.getProperty(ENDPOINT_LISTENER_SCOPE));
         this.epListener = epListener;
     }
-    
+
     public List<String> getScopes() {
         return scopes;
     }
@@ -57,7 +57,7 @@ public class Interest {
     public Object getEpListener() {
         return epListener;
     }
-    
+
     public void notifyListener(EndpointEvent event) {
         EndpointDescription endpoint = event.getEndpoint();
         Optional<String> currentScope = getFirstMatch(endpoint);
@@ -71,7 +71,7 @@ public class Interest {
             }
         }
     }
-    
+
     private Optional<String> getFirstMatch(EndpointDescription endpoint) {
         return scopes.stream().filter(endpoint::matches).findFirst();
     }
@@ -82,7 +82,7 @@ public class Interest {
             listener, currentScope, event.getType(), endpoint);
         listener.endpointChanged(event, currentScope);
     }
-    
+
     private void notifyEListener(EndpointEvent event, String currentScope, EndpointListener listener) {
         EndpointDescription endpoint = event.getEndpoint();
         LOG.info("Calling old listener on class {} for filter {}, type {}, endpoint {} ",
@@ -132,5 +132,5 @@ public class Interest {
     public String toString() {
         return "Interest [scopes=" + scopes + ", epListener=" + epListener.getClass() + "]";
     }
-    
+
 }

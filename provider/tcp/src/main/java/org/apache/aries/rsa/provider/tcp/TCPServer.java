@@ -61,7 +61,7 @@ public class TCPServer implements Closeable, Runnable {
             this.executor.execute(this);
         }
     }
-    
+
     int getPort() {
         return this.serverSocket.getLocalPort();
     }
@@ -111,7 +111,7 @@ public class TCPServer implements Closeable, Runnable {
                 result = e.getCause();
             }
         } else if (result instanceof Promise) {
-            Promise<Object> fu = (Promise<Object>) result;  
+            Promise<Object> fu = (Promise<Object>) result;
             try {
                 result = fu.getValue();
             } catch (InvocationTargetException e) {

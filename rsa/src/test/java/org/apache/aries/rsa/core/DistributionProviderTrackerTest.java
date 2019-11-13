@@ -38,17 +38,14 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-@SuppressWarnings({
-    "unchecked", "rawtypes"
-   })
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class DistributionProviderTrackerTest {
-
 
     @Test
     public void testAddingRemoved() throws InvalidSyntaxException {
         IMocksControl c = EasyMock.createControl();
         DistributionProvider provider = c.createMock(DistributionProvider.class);
-        
+
         ServiceReference<DistributionProvider> providerRef = c.createMock(ServiceReference.class);
         expect(providerRef.getProperty(RemoteConstants.REMOTE_INTENTS_SUPPORTED)).andReturn("");
         expect(providerRef.getProperty(RemoteConstants.REMOTE_CONFIGS_SUPPORTED)).andReturn("");
@@ -59,12 +56,12 @@ public class DistributionProviderTrackerTest {
         expect(context.createFilter(filterSt)).andReturn(filter);
         expect(context.getService(providerRef)).andReturn(provider);
         ServiceRegistration rsaReg = c.createMock(ServiceRegistration.class);
-        expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class), 
+        expect(context.registerService(EasyMock.isA(String.class), EasyMock.isA(ServiceFactory.class),
                                                 EasyMock.isA(Dictionary.class)))
             .andReturn(rsaReg).atLeastOnce();
         context.addServiceListener(anyObject(ServiceListener.class));
         expectLastCall().anyTimes();
-        
+
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {
@@ -74,7 +71,7 @@ public class DistributionProviderTrackerTest {
         };
         tracker.addingService(providerRef);
         c.verify();
-        
+
         c.reset();
         rsaReg.unregister();
         EasyMock.expectLastCall();
@@ -104,7 +101,7 @@ public class DistributionProviderTrackerTest {
             .andReturn(rsaReg).atLeastOnce();
         context.addServiceListener(anyObject(ServiceListener.class));
         expectLastCall().anyTimes();
-        
+
         final BundleContext apiContext = c.createMock(BundleContext.class);
         c.replay();
         DistributionProviderTracker tracker = new DistributionProviderTracker(context) {

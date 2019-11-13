@@ -91,9 +91,7 @@ public class EventProducer {
         }
     }
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void notifyListeners(RemoteServiceAdminEvent rsae) {
         try {
             ServiceReference[] listenerRefs = bctx.getServiceReferences(
@@ -127,6 +125,5 @@ public class EventProducer {
 
     public void notifyUpdate(ImportRegistration importReg) {
         notify(RemoteServiceAdminEvent.IMPORT_UPDATE, importReg.getImportReference(), importReg.getException());
-        
     }
 }

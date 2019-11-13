@@ -18,7 +18,6 @@
  */
 package org.apache.aries.rsa.provider.fastbin;
 
-
 public class ManagerTest {
 
     /*

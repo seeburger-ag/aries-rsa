@@ -38,9 +38,7 @@ public class EndpointListenerImplTest extends Assert {
 
     int testCase;
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test
     public void testScopeChange() {
         IMocksControl c = EasyMock.createNiceControl();
@@ -58,7 +56,7 @@ public class EndpointListenerImplTest extends Assert {
 
         // expect property changes based on later calls
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-           
+
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
                 Dictionary props = (Dictionary)args[0];

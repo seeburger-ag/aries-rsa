@@ -82,7 +82,6 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-
     @Override
     protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
         return new BlockingResponseFuture(loader, method, serializationStrategy);

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class RSFindHook implements FindHook {
     private static final Logger LOG = LoggerFactory.getLogger(RSFindHook.class);
-    
+
     private BundleContext bctx;
     private String frameworkUUID;
     private ServiceInterestListener serviceInterestListener;
@@ -43,14 +43,14 @@ public class RSFindHook implements FindHook {
 
     @Override
     public void find(BundleContext context, String name, String filter, boolean allServices,
-                     Collection<ServiceReference<?>> references) {
+            Collection<ServiceReference<?>> references) {
         if (context.equals(bctx)) {
             LOG.debug("ListenerHookImpl: skipping request from myself");
             return;
         }
-        
+
         String fullFilter = FilterHelper.getFullFilter(name, filter);
-        
+
         if (fullFilter == null) {
             LOG.debug("skipping empty filter");
             return;

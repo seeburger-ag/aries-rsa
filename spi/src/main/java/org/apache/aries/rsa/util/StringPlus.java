@@ -52,7 +52,7 @@ public final class StringPlus {
         if (object instanceof String[]) {
             return Arrays.asList((String[])object);
         }
-        
+
         if (object instanceof Collection) {
             Collection col = (Collection)object;
             List<String> ar = new ArrayList<>(col.size());

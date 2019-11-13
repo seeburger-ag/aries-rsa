@@ -36,7 +36,7 @@ class RecordingEndpointEventListener implements EndpointEventListener {
     public void endpointChanged(EndpointEvent event, String filter) {
         events.add(event);
     }
-    
+
     public void matches(EndpointEvent ... endpointEvents) {
         assertThat("Incorrect number of events received", events.size(), equalTo(endpointEvents.length));
         Iterator<EndpointEvent> it = events.iterator();
@@ -44,5 +44,5 @@ class RecordingEndpointEventListener implements EndpointEventListener {
             assertThat(it.next(), samePropertyValuesAs(event));
         }
     }
-     
+
 }

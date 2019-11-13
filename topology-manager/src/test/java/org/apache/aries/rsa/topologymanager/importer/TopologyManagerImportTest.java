@@ -55,7 +55,7 @@ public class TopologyManagerImportTest {
                 return ir;
             }
         }).once();
-        
+
         ir.close();
         EasyMock.expectLastCall();
         c.replay();
@@ -66,7 +66,7 @@ public class TopologyManagerImportTest {
         tm.endpointChanged(event, "myFilter");
         tm.add(rsa);
         assertTrue("rsa.ImportService should have been called",
-                   sema.tryAcquire(100, TimeUnit.SECONDS));
+            sema.tryAcquire(100, TimeUnit.SECONDS));
         tm.stop();
         c.verify();
     }

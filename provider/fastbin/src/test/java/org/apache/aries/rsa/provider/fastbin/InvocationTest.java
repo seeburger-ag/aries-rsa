@@ -57,7 +57,6 @@ public class InvocationTest {
     final int BENCHMARK_CLIENTS = 100;
     final int BENCHMARK_INVOCATIONS_PER_CLIENT = 1000;
 
-
     @Test(timeout=30*1000)
     public void testInvoke() throws Exception {
 
@@ -79,7 +78,6 @@ public class InvocationTest {
                 public void unget() {
                 }
             }, HelloImpl.class.getClassLoader());
-
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
             Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
@@ -139,7 +137,6 @@ public class InvocationTest {
                 }
             }, Hello2Impl.class.getClassLoader());
 
-
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id-broken", HelloImpl.class.getClassLoader());
             Hello2 hello  = (Hello2) Proxy.newProxyInstance(Hello2Impl.class.getClassLoader(), new Class[] { Hello2.class }, handler);
 
@@ -162,8 +159,6 @@ public class InvocationTest {
             client.stop();
         }
     }
-
-
 
     @Test
     public void testObjectMethods() throws Exception {
@@ -204,85 +199,83 @@ public class InvocationTest {
     @Test(timeout=30*1000)
     public void testOverflowAsync() throws Exception {
 
-    	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<>();
-    	map.put("protobuf", new ProtobufSerializationStrategy());
+        DispatchQueue queue = Dispatch.createQueue();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
+        map.put("protobuf", new ProtobufSerializationStrategy());
 
-    	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
-    	server.start();
+        ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
+        server.start();
 
-    	ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
-    	client.start();
+        ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
+        client.start();
 
-    	try {
-    		server.registerService("service-id", new ServerInvoker.ServiceFactory() {
-    			public Object get() {
-    				return new HelloImpl();
-    			}
-    			public void unget() {
-    			}
-    		}, HelloImpl.class.getClassLoader());
+        try {
+            server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+                public Object get() {
+                    return new HelloImpl();
+                }
+                public void unget() {
+                }
+            }, HelloImpl.class.getClassLoader());
 
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
-    		InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-    		Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            char[] chars = new char[65*1024];
+            String payload = new String(chars);
 
-    		char[] chars = new char[65*1024];
-    		String payload = new String(chars);
+            final List<AsyncCallbackFuture<String>> futures = new ArrayList<>();
+            for(int i = 0; i < 100; i++) {
+                AsyncCallbackFuture<String> future = new AsyncCallbackFuture<>();
+                hello.hello(payload, future);
+                futures.add(future);
+            }
 
-    		final List<AsyncCallbackFuture<String>> futures = new ArrayList<>();
-    		for(int i = 0; i < 100; i++) {
-    			AsyncCallbackFuture<String> future = new AsyncCallbackFuture<>();
-    			hello.hello(payload, future);
-    			futures.add(future);
-    		}
+            for(Future<String> f : futures) {
+                f.get(3, TimeUnit.SECONDS);
+            }
+            //future2.get(2, TimeUnit.SECONDS);
+            //assertEquals("Hello Hiram!", future1.get(2, TimeUnit.SECONDS));
 
-    		for(Future<String> f : futures) {
-    			f.get(3, TimeUnit.SECONDS);
-    		}
-//			future2.get(2, TimeUnit.SECONDS);
-    		//assertEquals("Hello Hiram!", future1.get(2, TimeUnit.SECONDS));
-
-    		//assertEquals("Hello Hiram!", hello.protobuf(stringValue(payload)).getValue());
-    	}
-    	finally {
-    		server.stop();
-    		client.stop();
-    	}
+            //assertEquals("Hello Hiram!", hello.protobuf(stringValue(payload)).getValue());
+        }
+        finally {
+            server.stop();
+            client.stop();
+        }
     }
 
     @Test(timeout=30*1000)
     public void testOverflow() throws Exception {
 
-    	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<>();
-    	map.put("protobuf", new ProtobufSerializationStrategy());
+        DispatchQueue queue = Dispatch.createQueue();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
+        map.put("protobuf", new ProtobufSerializationStrategy());
 
-    	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
-    	server.start();
+        ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
+        server.start();
 
-    	ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
-    	client.start();
+        ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
+        client.start();
 
-    	try {
-    		server.registerService("service-id", new ServerInvoker.ServiceFactory() {
-    			public Object get() {
-    				return new HelloImpl();
-    			}
-    			public void unget() {
-    			}
-    		}, HelloImpl.class.getClassLoader());
+        try {
+            server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+                public Object get() {
+                    return new HelloImpl();
+                }
+                public void unget() {
+                }
+            }, HelloImpl.class.getClassLoader());
 
-
-    		InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-    		final Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            final Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             final AtomicInteger requests = new AtomicInteger(0);
             final AtomicInteger responses = new AtomicInteger(0);
             final AtomicInteger failures = new AtomicInteger(0);
 
-    		char[] chars = new char[65*1024];
-    		final String payload = new String(chars);
+            char[] chars = new char[65*1024];
+            final String payload = new String(chars);
 
             Thread[] threads = new Thread[BENCHMARK_CLIENTS];
             for (int t = 0; t < BENCHMARK_CLIENTS; t++) {
@@ -313,50 +306,49 @@ public class InvocationTest {
             assertEquals(BENCHMARK_CLIENTS, responses.get());
             assertEquals(0, failures.get());
 
-    	}
-    	finally {
-    		server.stop();
-    		client.stop();
-    	}
+        }
+        finally {
+            server.stop();
+            client.stop();
+        }
     }
 
     @Test(timeout=30*1000)
     public void testNoOverflow() throws Exception {
 
-    	DispatchQueue queue = Dispatch.createQueue();
-    	HashMap<String, SerializationStrategy> map = new HashMap<>();
-    	map.put("protobuf", new ProtobufSerializationStrategy());
+        DispatchQueue queue = Dispatch.createQueue();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
+        map.put("protobuf", new ProtobufSerializationStrategy());
 
-    	ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
-    	server.start();
+        ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
+        server.start();
 
-    	ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
-    	client.start();
+        ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
+        client.start();
 
-    	try {
-    		server.registerService("service-id", new ServerInvoker.ServiceFactory() {
-    			public Object get() {
-    				return new HelloImpl();
-    			}
-    			public void unget() {
-    			}
-    		}, HelloImpl.class.getClassLoader());
+        try {
+            server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+                public Object get() {
+                    return new HelloImpl();
+                }
+                public void unget() {
+                }
+            }, HelloImpl.class.getClassLoader());
 
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
-    		InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-    		Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            char[] chars = new char[65*1024];
+            String payload = new String(chars);
 
-    		char[] chars = new char[65*1024];
-    		String payload = new String(chars);
-
-    		for(int i = 0; i < 100; i++) {
-    			hello.hello(payload);
-    		}
-    	}
-    	finally {
-    		server.stop();
-    		client.stop();
-    	}
+            for(int i = 0; i < 100; i++) {
+                hello.hello(payload);
+            }
+        }
+        finally {
+            server.stop();
+            client.stop();
+        }
     }
 
     @Test(timeout=30*1000)
@@ -378,7 +370,6 @@ public class InvocationTest {
                 public void unget() {
                 }
             }, HelloImpl.class.getClassLoader());
-
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
 
@@ -445,7 +436,6 @@ public class InvocationTest {
         }
     }
 
-
     class AsyncClient implements AsyncCallback<StringValue.Getter> {
 
         final int thread_idx;
@@ -461,7 +451,6 @@ public class InvocationTest {
 
         int i;
         long start;
-
 
         AsyncClient(int thread_idx, int nbInvocationsPerThread, Hello hello, AtomicInteger failures, AtomicInteger requests, long[] latencies) {
             this.failures = failures;
@@ -533,7 +522,6 @@ public class InvocationTest {
                 public void unget() {
                 }
             }, HelloImpl.class.getClassLoader());
-
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
 
@@ -671,8 +659,7 @@ public class InvocationTest {
         }
 
         @Override
-        public int hashCode()
-        {
+        public int hashCode() {
             return -7;
         }
     }

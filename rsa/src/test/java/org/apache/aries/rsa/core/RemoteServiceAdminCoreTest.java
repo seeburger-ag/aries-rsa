@@ -61,9 +61,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-@SuppressWarnings({
-    "rawtypes", "unchecked"
-   })
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class RemoteServiceAdminCoreTest {
 
     private static final String MYCONFIG = "myconfig";
@@ -72,10 +70,10 @@ public class RemoteServiceAdminCoreTest {
     private RemoteServiceAdminCore rsaCore;
     private BundleContext apiContext;
     private DummyProvider provider;
-    
+
     @Before
     public void setup() throws InvalidSyntaxException {
-        c = EasyMock.createControl();      
+        c = EasyMock.createControl();
         rsaContext = c.createMock(BundleContext.class);
         Bundle b = createDummyRsaBundle(rsaContext);
         expect(rsaContext.getProperty(Constants.FRAMEWORK_VERSION)).andReturn("1111").anyTimes();
@@ -122,12 +120,12 @@ public class RemoteServiceAdminCoreTest {
     @Test
     public void testDoNotImportUnsupportedConfig() {
         EndpointDescription endpoint = createEndpointDesc("unsupportedConfiguration");
-        
+
         c.replay();
 
         assertNull(rsaCore.importService(endpoint));
         assertEquals(0, rsaCore.getImportedEndpoints().size());
-        
+
         c.verify();
     }
 
@@ -242,7 +240,7 @@ public class RemoteServiceAdminCoreTest {
 
         ereg.close();
         assertNumExports(1);
-        
+
         ereg2.close();
         assertNumExports(0);
     }
@@ -319,7 +317,7 @@ public class RemoteServiceAdminCoreTest {
         assertEquals(42, props.get(RemoteConstants.ENDPOINT_SERVICE_ID));
         assertEquals("some_uuid1", props.get(RemoteConstants.ENDPOINT_FRAMEWORK_UUID));
         assertEquals(Arrays.asList("java.lang.String"),
-                     Arrays.asList((Object[]) props.get(org.osgi.framework.Constants.OBJECTCLASS)));
+            Arrays.asList((Object[]) props.get(org.osgi.framework.Constants.OBJECTCLASS)));
         assertEquals("1.0.0", props.get("endpoint.package.version.java.lang"));
         c.verify();
     }
@@ -351,7 +349,7 @@ public class RemoteServiceAdminCoreTest {
         Bundle sb = c.createMock(Bundle.class);
         expect(sb.getBundleContext()).andReturn(bc).anyTimes();
         expect(bc.getBundle()).andReturn(sb).anyTimes();
-    
+
         String[] propKeys = sProps.keySet().toArray(new String[] {});
         ServiceReference sref = c.createMock(ServiceReference.class);
         expect(sref.getBundle()).andReturn(sb).anyTimes();
@@ -366,7 +364,7 @@ public class RemoteServiceAdminCoreTest {
         expect(bc.getService(sref)).andReturn(svcObject).anyTimes();
         return sref;
     }
-    
+
     private EndpointDescription createEndpointDesc(String configType) {
         Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
@@ -382,7 +380,7 @@ public class RemoteServiceAdminCoreTest {
     }
 
     class DummyProvider implements DistributionProvider {
-        
+
         Endpoint endpoint;
         RuntimeException ex;
 

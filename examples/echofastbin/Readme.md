@@ -1,7 +1,7 @@
 # Example echo fastbin
 
 Implements a simple echo service and exposes it using the Aries RSA fastbin provider.
-The echo services shows 
+The echo services shows
 
  * simple invocations
  * InputStreams as parameters and return values
@@ -47,7 +47,7 @@ bundle:install -s mvn:org.apache.aries.rsa.examples.echofastbin/org.apache.aries
 
 ```
 The consumer should start and show:
-karaf@root()> Sending to echo service: echo                                                                                                                                                                 
+karaf@root()> Sending to echo service: echo
 Good morning
 Sending to echo service: async
 Sending to echo service: stream

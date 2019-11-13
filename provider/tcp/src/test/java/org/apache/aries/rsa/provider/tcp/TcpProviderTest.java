@@ -63,7 +63,7 @@ public class TcpProviderTest {
     private static final int NUM_CALLS = 100;
     private static MyService myServiceProxy;
     private static Endpoint ep;
-    
+
     @BeforeClass
     public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
@@ -78,12 +78,12 @@ public class TcpProviderTest {
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
         System.out.println(ep.description());
-        myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(), 
+        myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(),
                                                             bc,
-                                                            exportedInterfaces, 
+                                                            exportedInterfaces,
                                                             ep.description());
     }
-    
+
     @Test
     public void testCallTimeout() {
         try {
@@ -102,22 +102,22 @@ public class TcpProviderTest {
         String result = myServiceProxy.echo(msg);
         Assert.assertEquals(msg, result);
     }
-    
+
     @Test(expected=ExpectedTestException.class)
     public void testCallException() {
         myServiceProxy.callException();
     }
-    
+
     @Test
     public void testCall() {
         myServiceProxy.echo("test");
     }
-    
+
     @Test
     public void testCallOneway() {
         myServiceProxy.callOneWay("test");
     }
-    
+
     /**
      * Test for ARIES-1515
      */
@@ -133,7 +133,7 @@ public class TcpProviderTest {
         String answer = result.get(1, TimeUnit.SECONDS);
         assertEquals("Finished", answer);
     }
-    
+
     @Test(expected = ExpectedTestException.class)
     public void testAsyncFutureException() throws Throwable {
         Future<String> result = myServiceProxy.callAsyncFuture(-1);
@@ -143,7 +143,7 @@ public class TcpProviderTest {
             throw e.getCause();
         }
     }
-    
+
     @Test
     public void testAsyncCompletionStage() throws Exception {
         CompletionStage<String> result = myServiceProxy.callAsyncCompletionStage(100);
@@ -151,7 +151,7 @@ public class TcpProviderTest {
         String answer = fresult.get(1, TimeUnit.SECONDS);
         assertEquals("Finished", answer);
     }
-    
+
     @Test(expected = ExpectedTestException.class)
     public void testAsyncCompletionStageException() throws Throwable {
         CompletionStage<String> result = myServiceProxy.callAsyncCompletionStage(-1);
@@ -162,7 +162,7 @@ public class TcpProviderTest {
             throw e.getCause();
         }
     }
-    
+
     @Test
     public void testAsyncPromise() throws Exception {
         final Semaphore s = new Semaphore(0);
@@ -183,7 +183,7 @@ public class TcpProviderTest {
         assertFalse(s.tryAcquire());
         assertTrue(s.tryAcquire(1, TimeUnit.SECONDS));
     }
-    
+
     @Test(expected = ExpectedTestException.class)
     public void testAsyncPromiseException() throws Throwable {
         Promise<String> result = myServiceProxy.callAsyncPromise(-1);
@@ -207,7 +207,7 @@ public class TcpProviderTest {
         final String msg2 = msg.toString();
         ExecutorService executor = Executors.newFixedThreadPool(10);
         Runnable task = new Runnable() {
-            
+
             @Override
             public void run() {
                 String result = myServiceProxy2.echo(msg2);
@@ -223,5 +223,5 @@ public class TcpProviderTest {
         long tps = NUM_CALLS * 1000 / (System.currentTimeMillis() - start);
         System.out.println(tps + " tps");
     }
-    
+
 }

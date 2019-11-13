@@ -23,16 +23,15 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 
 /**
  * Represents an abstract connection.  It can be a client side or server side connection.
- * 
+ *
  */
 public interface Transport extends Service, Dispatched {
-
 
     boolean full();
 
     /**
      * A one way asynchronous send of a command.  Only sent if the the transport is not full.
-     * 
+     *
      * @param command
      * @return true if the command was accepted.
      */
@@ -78,12 +77,12 @@ public interface Transport extends Service, Dispatched {
      * @return true if the transport is disposed
      */
     boolean isDisposed();
-    
+
     /**
      * @return true if the transport is connected
      */
     boolean isConnected();
-    
+
     /**
      * @return The protocol codec for the transport.
      */

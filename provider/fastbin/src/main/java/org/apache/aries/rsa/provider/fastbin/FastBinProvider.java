@@ -47,8 +47,8 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("rawtypes")
 public class FastBinProvider implements DistributionProvider {
 
-	private static final Logger LOG = LoggerFactory.getLogger(FastBinProvider.class);
-	
+    private static final Logger LOG = LoggerFactory.getLogger(FastBinProvider.class);
+
     public static final String FASTBIN_CONFIG_TYPE = "aries.fastbin";
 
     public static final String FASTBIN_ADDRESS = FASTBIN_CONFIG_TYPE + ".address";
@@ -75,17 +75,17 @@ public class FastBinProvider implements DistributionProvider {
     }
 
     public void close() {
-    	client.stop();
-    	final Semaphore counter = new Semaphore(0);
-    	server.stop(() -> {
-    		counter.release(1);
-    	});
+        client.stop();
+        final Semaphore counter = new Semaphore(0);
+        server.stop(() -> {
+            counter.release(1);
+        });
         try {
-        	if(!counter.tryAcquire(1, 30, TimeUnit.SECONDS)) {
-        		LOG.warn("Server/Client failed to shut down in time. Proceeding shutdown anyway...");
-        	}
+            if(!counter.tryAcquire(1, 30, TimeUnit.SECONDS)) {
+                LOG.warn("Server/Client failed to shut down in time. Proceeding shutdown anyway...");
+            }
         } catch(InterruptedException e) {
-        	LOG.warn("Interrupted while waiting for Server/Client shutdown");
+            LOG.warn("Interrupted while waiting for Server/Client shutdown");
         }
     }
 

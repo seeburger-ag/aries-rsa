@@ -25,10 +25,10 @@ import java.util.List;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 public interface EndpointDescriptionParser {
-    
+
     List<EndpointDescription> readEndpoints(InputStream is);
-    
+
     EndpointDescription readEndpoint(InputStream is);
-    
+
     void writeEndpoint(EndpointDescription epd, OutputStream os);
 }

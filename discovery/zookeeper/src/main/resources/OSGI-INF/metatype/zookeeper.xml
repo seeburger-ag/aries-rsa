@@ -18,26 +18,26 @@
   under the License.
 -->
 <MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0"
-	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="
-		 http://www.osgi.org/xmlns/metatype/v1.0.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd
-	 ">
-	 <OCD description="" name="Zookeeper server config" id="zookeeper.server">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.osgi.org/xmlns/metatype/v1.0.0 http://www.osgi.org/xmlns/metatype/v1.1.0/metatype.xsd
+    ">
+    <OCD description="" name="Zookeeper server config" id="zookeeper.server">
         <AD id="clientPort" required="false" type="String" default="2181" description=""/>
-	 	<AD id="tickTime" required="false" type="String" default="2000" description=""/>
+        <AD id="tickTime" required="false" type="String" default="2000" description=""/>
         <AD id="initLimit" required="false" type="String" default="10" description=""/>
         <AD id="syncLimit" required="false" type="String" default="5" description=""/>
-	 </OCD>
-	 <Designate pid="org.apache.aries.rsa.discovery.zookeeper.server">
-	 	<Object ocdref="zookeeper.server"/>
-	 </Designate>
-     
-     <OCD description="" name="Zookeeper discovery config" id="zookeeper.discovery">
+    </OCD>
+    <Designate pid="org.apache.aries.rsa.discovery.zookeeper.server">
+        <Object ocdref="zookeeper.server"/>
+    </Designate>
+
+    <OCD description="" name="Zookeeper discovery config" id="zookeeper.discovery">
         <AD id="zookeeper.host" required="false" type="String" default="localhost" description=""/>
         <AD id="zookeeper.port" required="false" type="String" default="2181" description=""/>
         <AD id="zookeeper.timeout" required="false" type="String" default="3000" description=""/>
-     </OCD>
-     <Designate pid="org.apache.aries.rsa.discovery.zookeeper">
+    </OCD>
+    <Designate pid="org.apache.aries.rsa.discovery.zookeeper">
         <Object ocdref="zookeeper.discovery"/>
-     </Designate>
+    </Designate>
 </MetaData>

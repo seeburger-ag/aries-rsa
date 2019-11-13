@@ -74,9 +74,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-        	<groupId>org.ops4j.pax.logging</groupId>
-        	<artifactId>pax-logging-service</artifactId>
-        	<version>1.8.5</version>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-service</artifactId>
+            <version>1.8.5</version>
         </dependency>
     </dependencies>
 </project>

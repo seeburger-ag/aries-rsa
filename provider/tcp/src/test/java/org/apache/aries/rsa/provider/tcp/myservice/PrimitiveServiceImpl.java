@@ -36,7 +36,6 @@ public class PrimitiveServiceImpl implements PrimitiveService {
         return num;
     }
 
-    
     @Override
     public int callInt(int num) {
         return num;
@@ -56,7 +55,7 @@ public class PrimitiveServiceImpl implements PrimitiveService {
     public double callDouble(double num) {
         return num;
     }
-    
+
     @Override
     public boolean callBoolean(boolean bool) {
         return bool;
@@ -71,7 +70,7 @@ public class PrimitiveServiceImpl implements PrimitiveService {
     public Version callVersion(Version version) {
         return version;
     }
-    
+
     @Override
     public Version[] callVersionAr(Version[] version) {
         return version;
@@ -86,13 +85,12 @@ public class PrimitiveServiceImpl implements PrimitiveService {
     public Map<Version, Version> callVersionMap(Map<Version, Version> map) {
         return map;
     }
-    
+
     @Override
     public Set<Version> callVersionSet(Set<Version> set) {
         return set;
     }
-    
-    
+
     @Override
     public DTOType callDTO(DTOType dto) {
         return dto;

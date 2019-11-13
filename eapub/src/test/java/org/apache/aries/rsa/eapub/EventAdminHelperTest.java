@@ -40,7 +40,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class EventAdminHelperTest {
-    
+
     @Test
     public void testPublishNotification() throws Exception {
         final EndpointDescription epd = EasyMock.createNiceMock(EndpointDescription.class);
@@ -183,7 +183,6 @@ public class EventAdminHelperTest {
             .andReturn(new ServiceReference[] {eaSref}).anyTimes();
         EasyMock.expect(bc.getService(eaSref)).andReturn(ea).anyTimes();
         EasyMock.replay(bc);
-
 
         RemoteServiceAdminEvent event = new RemoteServiceAdminEvent(
                 RemoteServiceAdminEvent.EXPORT_ERROR,

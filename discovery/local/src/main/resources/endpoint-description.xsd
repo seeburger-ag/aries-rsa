@@ -21,7 +21,7 @@
     <element name="endpoint-descriptions"
         type="tns:EndpointDescriptionsType">
     </element>
-    
+
     <complexType name="EndpointDescriptionsType">
         <sequence>
             <element maxOccurs="unbounded" minOccurs="0"

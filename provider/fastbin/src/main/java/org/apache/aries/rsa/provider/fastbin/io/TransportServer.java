@@ -25,7 +25,7 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 /**
  * A TransportServer asynchronously accepts @see Transport objects and then
  * delivers those objects to a @see TransportAcceptListener.
- * 
+ *
  * @version $Revision: 1.4 $
  */
 public interface TransportServer extends Service {
@@ -33,7 +33,7 @@ public interface TransportServer extends Service {
     /**
      * Registers an @see TransportAcceptListener which is notified of accepted
      * channels.
-     * 
+     *
      * @param acceptListener
      */
     void setAcceptListener(TransportAcceptListener acceptListener);

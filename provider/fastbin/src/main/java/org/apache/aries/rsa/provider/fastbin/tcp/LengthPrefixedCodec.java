@@ -118,7 +118,6 @@ public class LengthPrefixedCodec implements ProtocolCodec {
     ReadableByteChannel read_channel = null;
     ByteBuffer read_buffer = ByteBuffer.allocate(4);
 
-
     public void setReadableByteChannel(ReadableByteChannel channel) {
         read_channel = channel;
         if (channel instanceof SocketChannel) {

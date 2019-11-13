@@ -40,26 +40,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens to endpoint changes in Zookeeper and forwards changes in Endpoints to InterestManager. 
+ * Listens to endpoint changes in Zookeeper and forwards changes in Endpoints to InterestManager.
  */
 public class ZookeeperEndpointListener implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperEndpointListener.class);
-    
+
     private Map<String, EndpointDescription> endpoints = new ConcurrentHashMap<>();
-    
+
     private ZooKeeper zk;
-    
+
     private EndpointDescriptionParser parser;
-    
+
     private EndpointEventListener listener;
-    
+
     ZookeeperEndpointListener(ZooKeeper zk, EndpointDescriptionParser parser, EndpointEventListener listener) {
         this.zk = zk;
         this.parser = parser;
         this.listener = listener;
         watchRecursive(ZookeeperEndpointRepository.PATH_PREFIX);
     }
-    
+
     public void sendExistingEndpoints(Interest interest) {
         endpoints.values().stream()
             .map(endpoint -> new EndpointEvent(EndpointEvent.ADDED, endpoint))
@@ -111,7 +111,7 @@ public class ZookeeperEndpointListener implements Closeable {
             LOG.info(e.getMessage(), e);
         }
     }
-    
+
     private void onChanged(String path, EndpointDescription endpoint) {
         EndpointDescription old = endpoints.put(path, endpoint);
         int type = old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED;

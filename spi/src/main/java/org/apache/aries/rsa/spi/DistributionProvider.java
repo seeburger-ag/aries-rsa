@@ -30,17 +30,17 @@ public interface DistributionProvider {
 
     /**
      * Called by RemoteServiceAdmin to export a service.
-     * 
+     *
      * The Distribution provider will be called if no config type was set or
      * if it supports the config type.
-     * 
+     *
      * @param serviceO service instance to be exported
      * @param serviceContext bundle context of the bundle exporting the service
      * @param effectiveProperties combined properties of the service and additional properties from rsa
      * @param exportedInterfaces name of the interface to be exported
      * @return Endpoint that represents the service that is exposed to the outside world
      */
-    Endpoint exportService(Object serviceO, 
+    Endpoint exportService(Object serviceO,
                            BundleContext serviceContext,
                            Map<String, Object> effectiveProperties,
                            Class[] exportedInterfaces);
@@ -53,7 +53,7 @@ public interface DistributionProvider {
      * @return service proxy to be given to the requesting bundle
      */
     Object importEndpoint(ClassLoader cl,
-                          BundleContext consumerContext, 
-                          Class[] interfaces, 
+                          BundleContext consumerContext,
+                          Class[] interfaces,
                           EndpointDescription endpoint);
 }

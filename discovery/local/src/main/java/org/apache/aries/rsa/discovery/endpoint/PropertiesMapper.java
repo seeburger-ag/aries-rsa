@@ -148,7 +148,7 @@ class PropertiesMapper {
         }
         return value;
     }
-    
+
     private Object getValue(ValueType value, String type) {
         if (value.getContent().size() == 1 && value.getContent().get(0) instanceof String) {
             return handleValue((String)value.getContent().get(0), type);
@@ -229,7 +229,7 @@ class PropertiesMapper {
             return null;
         }
     }
-    
+
     public List<PropertyType> fromProps(Map<String, Object> m) {
         List<PropertyType> props = new ArrayList<>();
         for (Map.Entry<String, Object> entry : m.entrySet()) {

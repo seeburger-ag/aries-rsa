@@ -38,9 +38,9 @@ final class EndpointEventListenerTracker extends ServiceTracker {
         super(context, getFilter(), null);
         this.tmExport = tmExport;
     }
-    
+
     private static Filter getFilter() {
-        String filterSt = String.format("(|(objectClass=%s)(objectClass=%s))", EndpointEventListener.class.getName(), 
+        String filterSt = String.format("(|(objectClass=%s)(objectClass=%s))", EndpointEventListener.class.getName(),
                 EndpointListener.class.getName());
         try {
             return FrameworkUtil.createFilter(filterSt);
@@ -58,7 +58,7 @@ final class EndpointEventListenerTracker extends ServiceTracker {
     }
 
     private EndpointEventListener getListener(Object listener) {
-        return (listener instanceof EndpointEventListener) 
+        return (listener instanceof EndpointEventListener)
                 ? (EndpointEventListener) listener
                 : new EndpointListenerAdapter((EndpointListener) listener);
     }
@@ -75,5 +75,5 @@ final class EndpointEventListenerTracker extends ServiceTracker {
         this.tmExport.removeEPListener((EndpointEventListener) listener);
         super.removedService(reference, listener);
     }
-    
+
 }

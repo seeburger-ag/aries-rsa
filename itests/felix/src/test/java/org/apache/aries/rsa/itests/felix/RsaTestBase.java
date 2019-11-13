@@ -65,7 +65,7 @@ public class RsaTestBase {
     public void testInstalled() throws Exception {
         for (Bundle bundle : bundleContext.getBundles()) {
             System.out.println(bundle.getBundleId() + " " + bundle.getSymbolicName() + " " + bundle.getState()
-                               + " " + bundle.getVersion());
+                + " " + bundle.getVersion());
         }
     }
 
@@ -92,7 +92,7 @@ public class RsaTestBase {
     protected static Option echoTcpAPI() {
         return mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.api");
     }
-    
+
     protected static Option echoTcpConsumer() {
         return CoreOptions.composite(
         echoTcpAPI(),
@@ -107,9 +107,9 @@ public class RsaTestBase {
         mvn("org.apache.aries.rsa.examples.echotcp", "org.apache.aries.rsa.examples.echotcp.service")
         );
     }
-    
+
     /**
-     * We create our own junit option to also provide hamcrest and Awaitility support 
+     * We create our own junit option to also provide hamcrest and Awaitility support
      */
     protected static Option junit() {
         return composite(systemProperty("pax.exam.invoker").value("junit"),
@@ -119,9 +119,9 @@ public class RsaTestBase {
                         .artifactId("org.apache.servicemix.bundles.hamcrest").version("1.3_1"),
                 mavenBundle().groupId("org.awaitility").artifactId("awaitility").version("3.1.0"));
     }
-    
+
     protected static Option rsaCore() {
-        return composite(junit(), 
+        return composite(junit(),
                          localRepo(),
                          logback(),
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
@@ -138,29 +138,25 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
         );
     }
-    
+
     public static Option logback() {
         return composite(systemProperty("logback.configurationFile").value("src/test/resources/logback.xml"),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.6"),
                 mavenBundle().groupId("ch.qos.logback").artifactId("logback-core").version("1.0.13"),
                 mavenBundle().groupId("ch.qos.logback").artifactId("logback-classic").version("1.0.13"));
     }
-    
+
     protected static Option debug() {
         return CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
     }
-    
+
     protected static Option rsaDiscoveryConfig() {
-        return composite(
-                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.config")
-                         );
+        return composite(mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.config"));
     }
-    
+
     protected static Option rsaDiscoveryZookeeper() {
-        return composite(
-                         mvn("org.apache.zookeeper", "zookeeper"),
-                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper")
-                         );
+        return composite(mvn("org.apache.zookeeper", "zookeeper"),
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper"));
     }
 
     protected static Option rsaProviderTcp() {

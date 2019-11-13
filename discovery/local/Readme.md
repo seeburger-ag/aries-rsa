@@ -1,11 +1,11 @@
 # Local Discovery
 
 Scans bundles for endpoint descriptions in the path `OSGI-INF/remote-service/*.xml`. The descriptions must
-use the namespace http://www.osgi.org/xmlns/rsa/v1.0.0 defined in the Remote Service Admin Spec.  
-Each endpoint-description record in the file represents a remote endpoint. 
+use the namespace http://www.osgi.org/xmlns/rsa/v1.0.0 defined in the Remote Service Admin Spec.
+Each endpoint-description record in the file represents a remote endpoint.
 
-The local discovery module will notify all interested EndpointListeners of each described endpoint. 
-This will cause the TopologyManager to let the RemoteServiceAdmin create local proxy services for 
+The local discovery module will notify all interested EndpointListeners of each described endpoint.
+This will cause the TopologyManager to let the RemoteServiceAdmin create local proxy services for
 the remote endpoints.
 
 ## Example

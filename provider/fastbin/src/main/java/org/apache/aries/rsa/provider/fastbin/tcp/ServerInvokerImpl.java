@@ -112,7 +112,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 }
                 Method method = clazz.getMethod(name, params);
 
-
                 Serialization annotation = method.getAnnotation(Serialization.class);
                 SerializationStrategy serializationStrategy;
                 if( annotation!=null ) {
@@ -123,7 +122,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 } else {
                     serializationStrategy = ObjectSerializationStrategy.INSTANCE;
                 }
-
 
                 final InvocationStrategy invocationStrategy = InvocationType.forMethod(method);
 
@@ -148,7 +146,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     }
 
-
     public ServerInvokerImpl(String address, DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies) throws Exception {
         this.queue = queue;
         this.serializationStrategies = serializationStrategies;
@@ -160,7 +157,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public InetSocketAddress getSocketAddress() {
         return this.server.getSocketAddress();
     }
-
 
     public DispatchQueue queue() {
         return queue;
@@ -231,7 +227,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             }
         });
     }
-
 
     protected void onCommand(final Transport transport, Object data) {
         try {
@@ -328,7 +323,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private long correlation;
         private MethodData methodData;
         private Transport transport;
-
 
         private SendTask(Object svc, DataByteArrayInputStream bais, ServiceFactoryHolder holder, long correlation, MethodData methodData, Transport transport) {
             this.svc = svc;

@@ -37,7 +37,7 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 /**
- * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener} 
+ * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener}
  * and publishes changes to the {@link ZooKeeperEndpointRepository}
  */
 @SuppressWarnings("deprecation")
@@ -45,7 +45,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 public class PublishingEndpointListener implements EndpointEventListener, EndpointListener {
 
     private ServiceRegistration<?> listenerReg;
-    
+
     @Reference
     private ZookeeperEndpointRepository repository;
 
@@ -66,7 +66,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     public void endpointChanged(EndpointEvent event, String filter) {
         repository.endpointChanged(event);
     }
-    
+
     @Override
     public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
         endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), matchedFilter);
@@ -78,13 +78,12 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     }
 
     private Dictionary<String, String> serviceProperties(String uuid) {
-        String scope = String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS, 
+        String scope = String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS,
                         RemoteConstants.ENDPOINT_FRAMEWORK_UUID, uuid);
         Dictionary<String, String> props = new Hashtable<>();
         props.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, scope);
         props.put(ClientManager.DISCOVERY_ZOOKEEPER_ID, "true");
         return props;
     }
-
 
 }

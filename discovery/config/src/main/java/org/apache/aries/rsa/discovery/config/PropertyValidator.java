@@ -53,7 +53,7 @@ class PropertyValidator {
 
     static String[] convertToStringArray(Object o) {
         String[] result;
-        
+
         if (o == null) {
             result = new String[0];
         } else if (o instanceof List) {

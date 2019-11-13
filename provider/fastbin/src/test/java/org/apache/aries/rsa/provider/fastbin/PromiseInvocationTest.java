@@ -46,18 +46,14 @@ import org.junit.Test;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
-
-public class PromiseInvocationTest
-{
+public class PromiseInvocationTest {
 
     private ServerInvokerImpl server;
     private ClientInvokerImpl client;
     private TestService testService;
 
-
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         DispatchQueue queue = Dispatch.createQueue();
         HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -66,31 +62,24 @@ public class PromiseInvocationTest
         client = new ClientInvokerImpl(queue, map);
         client.start();
 //        server.stop();
-        server.registerService("service-id", new ServerInvoker.ServiceFactory()
-        {
-            public Object get()
-            {
+        server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+            public Object get() {
                 return new TestServiceImpl();
             }
 
-
-            public void unget()
-            {}
+            public void unget() {
+            }
         }, TestServiceImpl.class.getClassLoader());
 
         InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader());
         testService = (TestService)Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{TestService.class}, handler);
     }
 
-
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         server.stop();
         client.stop();
     }
-
-
 
     @Test
     public void testInvoke() throws Exception {
@@ -109,8 +98,7 @@ public class PromiseInvocationTest
             results.add(executor.submit(single));
         }
         assertEquals(threadCount, results.size());
-        for (Future<String> future : results)
-        {
+        for (Future<String> future : results) {
             assertEquals("Hello", future.get());
         }
     }
@@ -129,9 +117,7 @@ public class PromiseInvocationTest
         }
     }
 
-
-    public interface TestService
-    {
+    public interface TestService {
         Promise<String> helloPromise();
 
         Promise<String> exceptionPromise() throws IOException;
@@ -153,7 +139,7 @@ public class PromiseInvocationTest
                 sleep(500);
                 deferred.fail(new IOException("test"));
             }).start();
-             return deferred.getPromise();
+            return deferred.getPromise();
         }
 
         private void sleep(long time) {

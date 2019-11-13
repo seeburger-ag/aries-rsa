@@ -108,7 +108,7 @@ public class ZookeeperStarter {
      * Remove entries whose values are empty from the given dictionary.
      *
      * @param dict a dictionary
-     * @return 
+     * @return
      */
     private static Properties copyWithoutEmptyValues(Map<String, ?> dict) {
         Properties props = new Properties();

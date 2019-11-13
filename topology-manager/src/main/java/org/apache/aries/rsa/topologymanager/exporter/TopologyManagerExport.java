@@ -67,7 +67,7 @@ public class TopologyManagerExport implements ServiceListener {
 
     public TopologyManagerExport(
             EndpointListenerNotifier notifier,
-            Executor executor, 
+            Executor executor,
             ExportPolicy policy) {
         this.notifier = notifier;
         this.execService = executor;
@@ -102,7 +102,7 @@ public class TopologyManagerExport implements ServiceListener {
         case ServiceEvent.MODIFIED:
             modified(sref);
             break;
-            
+
         case ServiceEvent.MODIFIED_ENDMATCH:
             remove(sref);
             break;
@@ -127,7 +127,7 @@ public class TopologyManagerExport implements ServiceListener {
             repo.removeService(sref);
         }
     }
-    
+
     public String getTypeName(ServiceEvent event) {
         return typeNames.get(event.getType());
     }
@@ -170,7 +170,7 @@ public class TopologyManagerExport implements ServiceListener {
             repo.addService(sref, regs);
         }
     }
-    
+
     private Collection<ExportRegistration> exportService(
             final RemoteServiceAdmin rsa,
             final ServiceReference<?> sref) {
@@ -204,7 +204,7 @@ public class TopologyManagerExport implements ServiceListener {
                 reg.close();
             }
         }
-        
+
         return exportRegs;
     }
 

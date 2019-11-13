@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.osgi.framework.Constants;
 
 public class OverlayPropertiesTest {
-    
+
     @Test
     public void testOverlayProperties() {
         Map<String, Object> sProps = new HashMap<>();
@@ -62,7 +62,7 @@ public class OverlayPropertiesTest {
         assertEquals("Should not be possible to override the service.id property",
                 17L, sProps.get(Constants.SERVICE_ID));
     }
-    
+
     @Test
     public void testOverlayProperties2() {
         Map<String, Object> original = new HashMap<>();

@@ -45,12 +45,10 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         init();
     }
 
-
     private final void init() {
         buffer = new byte[StreamProviderImpl.CHUNK_SIZE];
         chunkCounter = new AtomicInteger(-1);
     }
-
 
     @Override
     public void close() throws IOException {
@@ -77,7 +75,6 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
     protected void setStreamProvider(StreamProvider streamProvider) {
         this.streamProvider = streamProvider;
     }
-
 
     @Override
     public void write(int b) throws IOException {
@@ -147,6 +144,3 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         position = 0;
     }
 }
-
-
-

@@ -32,21 +32,21 @@ public class EndpointPropertiesParser {
     private Map<String, Object> ep;
 
     public EndpointPropertiesParser(EndpointDescription ep) {
-	this.ep = ep.getProperties();
+        this.ep = ep.getProperties();
     }
-    
+
     public EndpointPropertiesParser(Map<String, Object> ep) {
-	this.ep = ep;
+        this.ep = ep;
     }
 
     public int getTimeoutMillis() {
-      return getInt(TIMEOUT_KEY, DEFAULT_TIMEOUT_MILLIS);
+        return getInt(TIMEOUT_KEY, DEFAULT_TIMEOUT_MILLIS);
     }
-    
+
     int getInt(String key, String defaultValue) {
         return Integer.parseInt(getString(key, defaultValue));
     }
-    
+
     String getString(String key, String defaultValue) {
         Object value = ep.get(key);
         return value != null ? value.toString() : defaultValue;
@@ -55,7 +55,7 @@ public class EndpointPropertiesParser {
     public int getPort() {
         return getInt(PORT_KEY, DYNAMIC_PORT);
     }
-    
+
     public String getHostname() {
         String hostName =  getString(HOSTNAME_KEY, System.getProperty(HOSTNAME_KEY));
         if (hostName == null) {

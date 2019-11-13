@@ -52,7 +52,7 @@ public class TcpProviderPrimitiveTest {
 
     private static PrimitiveService myServiceProxy;
     private static Endpoint ep;
-    
+
     @BeforeClass
     public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {PrimitiveService.class};
@@ -66,9 +66,9 @@ public class TcpProviderPrimitiveTest {
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
         System.out.println(ep.description());
-        myServiceProxy = (PrimitiveService)provider.importEndpoint(PrimitiveService.class.getClassLoader(), 
+        myServiceProxy = (PrimitiveService)provider.importEndpoint(PrimitiveService.class.getClassLoader(),
                                                             bc,
-                                                            exportedInterfaces, 
+                                                            exportedInterfaces,
                                                             ep.description());
     }
 
@@ -76,17 +76,17 @@ public class TcpProviderPrimitiveTest {
     public void testByte() {
         Assert.assertEquals((byte)1, myServiceProxy.callByte((byte) 1));
     }
-    
+
     @Test
     public void testShort() {
         Assert.assertEquals((short)1, myServiceProxy.callShort((short) 1));
     }
-    
+
     @Test
     public void testInteger() {
         Assert.assertEquals(1, myServiceProxy.callInt(1));
     }
-    
+
     @Test
     public void testLong() {
         Assert.assertEquals(1L, myServiceProxy.callLong(1L));
@@ -96,43 +96,43 @@ public class TcpProviderPrimitiveTest {
     public void testFloat() {
         Assert.assertEquals(1f, myServiceProxy.callFloat(1f), 0.001);
     }
-    
+
     @Test
     public void testDouble() {
         Assert.assertEquals(1d, myServiceProxy.callDouble(1d), 0.001);
     }
-    
+
     @Test
     public void testBoolean() {
         Assert.assertEquals(true, myServiceProxy.callBoolean(true));
     }
-    
+
     @Test
     public void testByteAr() {
         Assert.assertArrayEquals(new byte[]{1}, myServiceProxy.callByteAr(new byte[]{1}));
     }
-    
+
     @Test
     public void testVersion() {
         assertThat(myServiceProxy.callVersion(parseVersion("1.0.0")), equalTo(parseVersion("1.0.0")));
     }
-    
+
     @Test
     public void testVersionAr() {
         assertThat(myServiceProxy.callVersionAr(new Version[] {parseVersion("1.0.0")}), equalTo(new Version[] {parseVersion("1.0.0")}));
     }
-    
+
     @Test
     public void testVersionList() {
         assertThat(myServiceProxy.callVersionList(Arrays.asList(parseVersion("1.0.0"))), equalTo(Arrays.asList(parseVersion("1.0.0"))));
     }
-    
+
     @Test
     public void testVersionSet() {
         Set<Version> set = new HashSet<>(asList(parseVersion("1.0.0")));
         assertThat(myServiceProxy.callVersionSet(set), everyItem(isIn(set)));
     }
-    
+
     @Test
     public void testVersionMap() {
         HashMap<Version, Version> map = new HashMap<>();
@@ -151,7 +151,7 @@ public class TcpProviderPrimitiveTest {
         dto.value = "Test";
         assertThat(myServiceProxy.callDTO(dto), samePropertyValuesAs(dto));
     }
-    
+
     @Ignore
     @Test
     public void testDTOAr() {
@@ -161,7 +161,7 @@ public class TcpProviderPrimitiveTest {
         DTOType[] result = myServiceProxy.callDTOAr(dtoAr);
         assertThat(result[0], samePropertyValuesAs(dtoAr[0]));
     }
-    
+
     @AfterClass
     public static void close() throws IOException {
         ep.close();

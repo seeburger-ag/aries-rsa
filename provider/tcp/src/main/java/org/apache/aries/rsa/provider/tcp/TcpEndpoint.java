@@ -29,7 +29,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 public class TcpEndpoint implements Endpoint {
     private EndpointDescription epd;
     private TCPServer tcpServer;
-    
+
     public TcpEndpoint(Object service, Map<String, Object> effectiveProperties) {
         if (service == null) {
             throw new NullPointerException("Service must not be null");
@@ -46,7 +46,7 @@ public class TcpEndpoint implements Endpoint {
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
         effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic", "osgi.async"));
-        
+
         // tck tests for one such property ... so we provide it
         effectiveProperties.put(TCPProvider.TCP_CONFIG_TYPE + ".id", endpointId);
         this.epd = new EndpointDescription(effectiveProperties);
@@ -56,7 +56,6 @@ public class TcpEndpoint implements Endpoint {
     public EndpointDescription description() {
         return this.epd;
     }
-
 
     @Override
     public void close() throws IOException {

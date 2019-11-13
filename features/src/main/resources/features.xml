@@ -28,7 +28,7 @@
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.command/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa/org.apache.aries.rsa.eapub/${project.version}</bundle>
     </feature>
-    
+
     <feature name="aries-rsa-provider-tcp" version="${project.version}">
         <feature>aries-rsa-core</feature>
         <bundle>mvn:org.apache.aries.rsa.provider/org.apache.aries.rsa.provider.tcp/${project.version}</bundle>
@@ -56,20 +56,19 @@
         <bundle>mvn:org.apache.zookeeper/zookeeper/${zookeeper.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.local/${project.version}</bundle>
         <bundle>mvn:org.apache.aries.rsa.discovery/org.apache.aries.rsa.discovery.zookeeper/${project.version}</bundle>
-        
+
         <!-- Create config with defaults from metatype -->
         <config name="org.apache.aries.rsa.discovery.zookeeper">
         </config>
     </feature>
-    
+
     <feature name="aries-rsa-discovery-zookeeper-server" version="${project.version}">
         <feature>aries-rsa-discovery-zookeeper</feature>
 
         <!-- Create config with defaults from metatype -->
         <config name="org.apache.aries.rsa.discovery.zookeeper.server">
         </config>
-        
+
     </feature>
-    
 
 </features>

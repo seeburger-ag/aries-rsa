@@ -54,7 +54,7 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
         EasyMock.replay(b);
         return b;
     }
-    
+
     @Test
     public void testNoRemoteServicesXMLFiles() {
         Bundle b = EasyMock.createNiceMock(Bundle.class);
@@ -149,7 +149,7 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
 
         List<?> l = (List<?>) props.get("other2");
         assertEquals(1, l.size());
-        assertEquals(EndpointDescriptionBundleParserTest.normXML("<other:t2 xmlns:other='http://www.acme.org/xmlns/other/v1.0.0' " 
+        assertEquals(EndpointDescriptionBundleParserTest.normXML("<other:t2 xmlns:other='http://www.acme.org/xmlns/other/v1.0.0' "
                                    + "xmlns='http://www.osgi.org/xmlns/rsa/v1.0.0'/>"),
                                    EndpointDescriptionBundleParserTest.normXML((String) l.get(0)));
     }

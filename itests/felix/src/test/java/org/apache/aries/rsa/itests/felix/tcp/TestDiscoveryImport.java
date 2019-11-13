@@ -49,14 +49,14 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 public class TestDiscoveryImport extends RsaTestBase {
     @Inject
     ZookeeperEndpointRepository publisher;
-    
+
     @Inject
     BundleContext context;
 
     private Semaphore sem = new Semaphore(0);
 
     private List<EndpointEvent> events = new ArrayList<>();
-    
+
     @Configuration
     public static Option[] configure() throws Exception {
         return new Option[] {

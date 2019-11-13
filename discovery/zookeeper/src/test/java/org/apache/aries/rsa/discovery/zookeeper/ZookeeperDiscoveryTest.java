@@ -73,7 +73,7 @@ public class ZookeeperDiscoveryTest {
     private ServerCnxnFactory factory;
     private List<EndpointEvent> events = new ArrayList<>();
     private EndpointDescriptionParserImpl parser = new EndpointDescriptionParserImpl();
-    
+
     @Mock
     private ServiceReference<EndpointEventListener> sref;
 
@@ -83,10 +83,10 @@ public class ZookeeperDiscoveryTest {
         zk = new ZooKeeper("localhost:" + server.getClientPort(), 1000, this::process);
         printNodes("/");
     }
-    
+
     @After
     public void after() throws InterruptedException {
-        //zk.close(); // Seems to cause SessionTimeout error 
+        //zk.close(); // Seems to cause SessionTimeout error
         factory.shutdown();
     }
 
@@ -96,24 +96,24 @@ public class ZookeeperDiscoveryTest {
         repository.activate();
         InterestManager im = new InterestManager();
         im.bindARepository(repository);
-        
+
         String scope = "("+ Constants.OBJECTCLASS +"=*)";
         Mockito.when(sref.getProperty(Mockito.eq(EndpointEventListener.ENDPOINT_LISTENER_SCOPE))).thenReturn(scope);
         im.bindEndpointEventListener(sref, this::onEndpointChanged);
-        
+
         assertThat(semConnected.tryAcquire(1, SECONDS), equalTo(true));
-        
+
         EndpointDescription endpoint = createEndpoint();
         repository.endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint));
-        
+
         assertThat(sem.tryAcquire(100, SECONDS), equalTo(true));
-    
+
         String path = "/osgi/service_registry/http:##test.de#service1";
         EndpointDescription ep2 = read(path);
         assertNotNull(ep2);
 
         repository.endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint));
-    
+
         assertThat(sem.tryAcquire(1000, TimeUnit.SECONDS), equalTo(true));
         assertThat(events.get(0).getType(), equalTo(EndpointEvent.ADDED));
         assertThat(events.get(1).getType(), equalTo(EndpointEvent.REMOVED));
@@ -121,7 +121,7 @@ public class ZookeeperDiscoveryTest {
         assertThat(events.get(1).getEndpoint(), equalTo(endpoint));
         im.deactivate();
     }
-    
+
     private EndpointDescription read(String path) throws KeeperException, InterruptedException {
         Stat stat = new Stat();
         byte[] data = zk.getData(path, this::process, stat);
@@ -148,7 +148,7 @@ public class ZookeeperDiscoveryTest {
         factory.configure(new InetSocketAddress(clientPort), 10);
         factory.startup(server);
     }
-    
+
     private int getClientPort() throws IOException {
         try (ServerSocket serverSocket = new ServerSocket(0)) {
             return serverSocket.getLocalPort();

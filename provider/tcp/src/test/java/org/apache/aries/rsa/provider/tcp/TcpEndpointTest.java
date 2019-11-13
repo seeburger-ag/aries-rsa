@@ -34,10 +34,10 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 public class TcpEndpointTest {
     private static final String HOSTNAME = "myhost";
     private static final String PORT = "45346";
-    
+
     private Map<String, Object> props;
     private Object service;
-    
+
     @Before
     public void defaultProps() {
         props = new HashMap<>();
@@ -55,7 +55,7 @@ public class TcpEndpointTest {
         Assert.assertEquals("tcp://" + HOSTNAME + ":" + PORT, epd.getId());
         tcpEndpoint.close();
     }
-    
+
     @Test
     public void testEndpointPropertiesDefault() throws IOException {
         TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
@@ -63,6 +63,5 @@ public class TcpEndpointTest {
         Assert.assertNotNull(epd.getId());
         tcpEndpoint.close();
     }
-
 
 }

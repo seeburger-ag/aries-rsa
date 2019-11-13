@@ -66,13 +66,11 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
         }
     }
 
-
     public void encodeResponse(ClassLoader loader, Class<?> type, Object value, Throwable error, DataByteArrayOutputStream target) throws IOException, ClassNotFoundException {
         ObjectOutputStream oos = new ObjectOutputStream(target);
         oos.writeObject(error);
         oos.writeObject(value);
         oos.flush();
     }
-
 
 }

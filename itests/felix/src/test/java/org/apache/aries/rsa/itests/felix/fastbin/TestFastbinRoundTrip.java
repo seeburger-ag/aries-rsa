@@ -37,34 +37,32 @@ import org.ops4j.pax.exam.Option;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
-    
+
     @Inject
     EchoService echoService;
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryZookeeper(), //
-         rsaProviderFastBin(), //
-         echoTcpService(), //
-         configZKServer(), //
-         configZKDiscovery(), //
-         configFastBinFreePort()
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryZookeeper(), //
+            rsaProviderFastBin(), //
+            echoTcpService(), //
+            configZKServer(), //
+            configZKDiscovery(), //
+            configFastBinFreePort()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryZookeeper(), //
-         rsaProviderFastBin(), //
-         echoTcpConsumer(), //
-         configZKDiscovery(), //
-         configFastBinFreePort()
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryZookeeper(), //
+            rsaProviderFastBin(), //
+            echoTcpConsumer(), //
+            configZKDiscovery(), //
+            configFastBinFreePort()
         };
     }
 

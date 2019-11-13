@@ -41,7 +41,7 @@ public class TcpProviderIntentTest {
     private BundleContext bc;
     private TCPProvider provider;
     private MyService myService;
-    
+
     @Before
     public void before() {
         exportedInterfaces = new Class[] {MyService.class};
@@ -49,7 +49,7 @@ public class TcpProviderIntentTest {
         provider = new TCPProvider();
         myService = new MyServiceImpl();
     }
-    
+
     @Test
     public void basicAndAsyncIntents() {
         Map<String, Object> props = new HashMap<>();
@@ -59,7 +59,7 @@ public class TcpProviderIntentTest {
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat("Service should be exported as the intents: " + Arrays.toString(standardIntents) + " must be supported", ep, notNullValue());
     }
-    
+
     @Test
     public void unknownIntent() {
         Map<String, Object> props = new HashMap<>();
@@ -68,7 +68,7 @@ public class TcpProviderIntentTest {
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat("Service should not be exported as intent is not supported", ep, nullValue());
     }
-    
+
     @Test
     public void unknownIntentExtra() {
         Map<String, Object> props = new HashMap<>();
@@ -77,6 +77,5 @@ public class TcpProviderIntentTest {
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
         Assert.assertThat("Service should not be exported as intent is not supported", ep, nullValue());
     }
-
 
 }

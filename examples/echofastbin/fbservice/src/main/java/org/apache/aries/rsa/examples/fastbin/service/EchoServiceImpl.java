@@ -40,32 +40,32 @@ public class EchoServiceImpl implements EchoService {
         return msg;
     }
 
-	@Override
-	public CompletableFuture<String> echoAsync(final String msg) {
-	 	return CompletableFuture.supplyAsync(() -> {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-			return msg;
-		});
-	}
+    @Override
+    public CompletableFuture<String> echoAsync(final String msg) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return msg;
+        });
+    }
 
-	@Override
-	public InputStream echoStream(String msg) {
-		return new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
-	}
+    @Override
+    public InputStream echoStream(String msg) {
+        return new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
+    }
 
-	@Override
-	public String echoStream2(InputStream msg) throws IOException {
-		ByteArrayOutputStream result = new ByteArrayOutputStream();
-		byte[] buffer = new byte[1024];
-		int length;
-		while ((length = msg.read(buffer)) != -1) {
-		    result.write(buffer, 0, length);
-		}
-		return result.toString("UTF-8");
-	}
+    @Override
+    public String echoStream2(InputStream msg) throws IOException {
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = msg.read(buffer)) != -1) {
+            result.write(buffer, 0, length);
+        }
+        return result.toString("UTF-8");
+    }
 
 }

@@ -41,7 +41,7 @@ public final class FilterHelper {
         }
         return null;
     }
-    
+
     private static final Set<String> SYSTEM_PACKAGES;
     static {
         SYSTEM_PACKAGES = new HashSet<>();
@@ -53,14 +53,14 @@ public final class FilterHelper {
         SYSTEM_PACKAGES.add("org.springframework.osgi.context.event.OsgiBundleApplicationContextListener");
         SYSTEM_PACKAGES.add("java.net.ContentHandler");
     }
-    
+
     public static boolean isClassExcluded(String className) {
         if (className == null) {
             return true;
         }
-        
+
         if (className.startsWith("org.osgi.service.clusterinfo")) {
-        	return false;
+            return false;
         }
 
         for (String p : SYSTEM_PACKAGES) {
@@ -70,12 +70,12 @@ public final class FilterHelper {
         }
         return false;
     }
-    
+
     public static String getFullFilter(String objectClass, String filter) {
         if (objectClass == null) {
             return filter;
         }
-        String nameFilter = String.format("(objectClass=%s)", objectClass); 
+        String nameFilter = String.format("(objectClass=%s)", objectClass);
         return (filter == null) ? nameFilter : String.format("(&%s%s)", nameFilter, filter);
     }
 }

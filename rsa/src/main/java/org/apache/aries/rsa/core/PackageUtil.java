@@ -35,7 +35,7 @@ public class PackageUtil {
     public PackageUtil(BundleContext bc) {
         this.bc = bc;
     }
-    
+
     /**
      * Tries to retrieve the version of iClass via the PackageAdmin.
      *
@@ -80,7 +80,7 @@ public class PackageUtil {
         }
 
         LOG.info("Unable to find interface version for interface " + iClass.getName()
-                 + ". Falling back to 0.0.0");
+            + ". Falling back to 0.0.0");
         return "0.0.0";
     }
 }

@@ -51,7 +51,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class EventProducerTest {
-    
+
     private IMocksControl c;
     private Capture<RemoteServiceAdminEvent> capturedEvent;
     private Bundle bundle;
@@ -66,7 +66,7 @@ public class EventProducerTest {
         bc = bundleContextWithRsal(bundle);
         closeHandler = c.createMock(CloseHandler.class);
     }
-    
+
     @Test
     public void testPublishNotification() throws Exception {
         final EndpointDescription epd = dummyEndpoint();
@@ -123,11 +123,11 @@ public class EventProducerTest {
 
     private BundleContext bundleContextWithRsal(Bundle bundle)
             throws InvalidSyntaxException {
-        
+
         RemoteServiceAdminListener rsal = c.createMock(RemoteServiceAdminListener.class);
         rsal.remoteAdminEvent(EasyMock.capture(capturedEvent));
         expectLastCall().atLeastOnce();
-        
+
         ServiceReference rsalSref = c.createMock(ServiceReference.class);
         expect(rsalSref.getBundle()).andReturn(bundle).anyTimes();
 

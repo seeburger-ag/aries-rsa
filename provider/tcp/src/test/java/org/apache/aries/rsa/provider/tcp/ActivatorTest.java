@@ -31,16 +31,14 @@ import org.osgi.framework.ServiceRegistration;
 
 public class ActivatorTest {
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test
     public void testStartStop() throws Exception {
         IMocksControl c = EasyMock.createControl();
         BundleContext context = c.createMock(BundleContext.class);
         ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
         expect(context.registerService(EasyMock.eq(DistributionProvider.class), EasyMock.anyObject(DistributionProvider.class), EasyMock.anyObject(Dictionary.class))).andReturn(sreg );
-        
+
         c.replay();
         Activator activator = new Activator();
         activator.start(context);

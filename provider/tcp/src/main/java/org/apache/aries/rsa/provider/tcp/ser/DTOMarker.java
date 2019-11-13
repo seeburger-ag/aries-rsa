@@ -29,14 +29,14 @@ public class DTOMarker implements Serializable {
 
     private String className;
     private Map<String, Object> content;
-    
+
     @SuppressWarnings("unchecked")
     public DTOMarker(Object dto) {
         Converter converter = Converters.standardConverter();
         className = dto.getClass().getName();
         content = converter.convert(dto).sourceAsDTO().to(Map.class);
     }
-    
+
     public Object getDTO(ClassLoader classLoader) {
         try {
             Class<?> clazz = classLoader.loadClass(className);
@@ -44,9 +44,9 @@ public class DTOMarker implements Serializable {
             return converter.convert(content).targetAsDTO().to(clazz);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Exception deserializing DTO " + className, e);
-        } 
+        }
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof DTOMarker)) {

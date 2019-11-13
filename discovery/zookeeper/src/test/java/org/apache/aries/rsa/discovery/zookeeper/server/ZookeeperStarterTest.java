@@ -69,7 +69,7 @@ public class ZookeeperStarterTest {
     public void testUpdateConfig() throws Exception {
         final File tempDir = new File("target");
         when(bc.getDataFile("")).thenReturn(tempDir);
-        
+
         Map<String, String> props = new HashMap<>();
         props.put("clientPort", "1234");
         starter.activate(bc, props);
@@ -78,7 +78,7 @@ public class ZookeeperStarterTest {
         verifyConfig(tempDir);
 
         starter.deactivate();
-        
+
         verify(server).shutdown();
     }
 

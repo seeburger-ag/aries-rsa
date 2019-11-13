@@ -24,8 +24,7 @@ import java.util.concurrent.Future;
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
 import org.osgi.util.promise.Promise;
 
-public enum InvocationType
-{
+public enum InvocationType {
     ASYNC_FUTURE(new AsyncFutureInvocationStrategy()){
 
         @Override
@@ -77,7 +76,6 @@ public enum InvocationType
         this.strategy = strategy;
     }
 
-
     public static InvocationStrategy forMethod(Method method) {
         InvocationType[] values = values();
         for (InvocationType invocationType : values) {
@@ -87,7 +85,6 @@ public enum InvocationType
         }
         return null;
     }
-
 
     protected abstract boolean applies(Method method);
 
@@ -101,6 +98,3 @@ public enum InvocationType
         }
     }
 }
-
-
-

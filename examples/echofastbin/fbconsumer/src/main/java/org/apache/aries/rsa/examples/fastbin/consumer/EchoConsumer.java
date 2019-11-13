@@ -32,33 +32,30 @@ import org.osgi.service.component.annotations.Reference;
 
 @Component(immediate=true)
 public class EchoConsumer {
-    
+
     EchoService echoService;
 
     @Activate
     public void activate() throws IOException {
         System.out.println("Sending to echo service: echo");
         System.out.println(echoService.echo("Good morning"));
-        
 
         System.out.println("Sending to echo service: async");
         echoService.echoAsync("Async Good morning").thenRun(() -> System.out.println("Good morning Async"));
-        
+
         System.out.println("Sending to echo service: stream");
         InputStream inputStream = echoService.echoStream("Good morning received as a stream");
         try (BufferedReader r = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-        	System.out.println(r.readLine());
+            System.out.println(r.readLine());
         }
-        
+
         System.out.println("Sending to echo service: stream2");
-        System.out.println(echoService.echoStream2(new ByteArrayInputStream("Good morning send as a stream".getBytes(StandardCharsets.UTF_8))));   
-     
+        System.out.println(echoService.echoStream2(new ByteArrayInputStream("Good morning send as a stream".getBytes(StandardCharsets.UTF_8))));
     }
-    
 
     @Reference
     public void setEchoService(EchoService echoService) throws IOException {
         this.echoService = echoService;
     }
-    
+
 }

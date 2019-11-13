@@ -86,9 +86,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         notifyEventAdmins(topic, event);
     }
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void notifyEventAdmins(String topic, Event event) {
         ServiceReference[] refs = null;
         try {

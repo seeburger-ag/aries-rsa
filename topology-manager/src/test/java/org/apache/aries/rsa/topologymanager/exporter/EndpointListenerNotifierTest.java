@@ -56,11 +56,9 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import com.shazam.shazamcrest.MatcherAssert;
 import com.shazam.shazamcrest.matcher.Matchers;
 
-@SuppressWarnings({
-    "rawtypes", "unchecked",
-   })
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class EndpointListenerNotifierTest {
-    
+
     @Before
     public void before() {
     }
@@ -73,12 +71,12 @@ public class EndpointListenerNotifierTest {
         Capture<String> capturedFilters = newCapture(CaptureType.ALL);
         epl.endpointChanged(capture(capturedEvents), capture(capturedFilters));
         expectLastCall().anyTimes();
-        
+
         EndpointDescription endpoint1 = createEndpoint("myClass");
         EndpointDescription endpoint2 = createEndpoint("notMyClass");
 
         c.replay();
-        
+
         EndpointListenerNotifier notifier = new EndpointListenerNotifier();
         Filter filter = FrameworkUtil.createFilter("(objectClass=myClass)");
         notifier.add(epl, new HashSet(asList(filter)), Collections.emptyList());
@@ -88,12 +86,12 @@ public class EndpointListenerNotifierTest {
         notifier.sendEvent(new EndpointEvent(EndpointEvent.REMOVED, endpoint2));
         c.verify();
 
-        // Expect listener to be called for endpoint1 but not for endpoint2 
+        // Expect listener to be called for endpoint1 but not for endpoint2
         List<EndpointEvent> expected = Arrays.asList(
                 new EndpointEvent(EndpointEvent.ADDED, endpoint1),
                 new EndpointEvent(EndpointEvent.REMOVED, endpoint1)
                 );
-                
+
         MatcherAssert.assertThat(capturedEvents.getValues(), Matchers.sameBeanAs(expected));
     }
 
@@ -117,7 +115,7 @@ public class EndpointListenerNotifierTest {
     @Test
     public void testNormalizeScopeForStringArray() {
         String[] filters = {"(myProp=A)", "(otherProp=B)"};
-        ServiceReference sr = createListenerServiceWithFilter(filters); 
+        ServiceReference sr = createListenerServiceWithFilter(filters);
         Set<Filter> res = EndpointListenerNotifier.filtersFromEL(sr);
         assertEquals(filters.length, res.size());
         Iterator<Filter> it = res.iterator();
@@ -140,7 +138,7 @@ public class EndpointListenerNotifierTest {
         props.put("myProp", "A");
         Assert.assertThat(filter1.match(props) || filter2.match(props), is(true));
     }
-    
+
     private void filterMatches(Filter filter) {
         Dictionary<String, String> props = new Hashtable();
         props.put("myProp", "A");
@@ -153,5 +151,5 @@ public class EndpointListenerNotifierTest {
         EasyMock.replay(sr);
         return sr;
     }
-    
+
 }

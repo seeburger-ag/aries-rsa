@@ -63,13 +63,13 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
      * List of already imported Endpoints by their matched filter
      */
     private final MultiMap<String, ImportRegistration> importedServices = new MultiMap<>();
-    
+
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new CopyOnWriteArraySet<>();
         bctx = bc;
         execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory(getClass()));
     }
-    
+
     public void start() {
         stopped = false;
         bctx.registerService(RemoteServiceAdminListener.class, this, null);
@@ -100,7 +100,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
             triggerSynchronizeImports(filter);
         }
     }
-    
+
     public void remove(RemoteServiceAdmin rsa) {
         rsaSet.remove(rsa);
     }
@@ -122,7 +122,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
             });
         }
     }
-    
+
     private void synchronizeImports(final String filter) {
         try {
             unImportForGoneEndpoints(filter);
@@ -236,17 +236,17 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         EndpointDescription endpoint = event.getEndpoint();
         LOG.debug("Endpoint event received type {}, filter {}, endpoint {}", event.getType(), filter, endpoint);
         switch (event.getType()) {
-            case EndpointEvent.ADDED :
+            case EndpointEvent.ADDED:
                 importPossibilities.put(filter, endpoint);
                 break;
-            case EndpointEvent.REMOVED : 
+            case EndpointEvent.REMOVED:
                 importPossibilities.remove(filter, endpoint);
                 break;
-            case EndpointEvent.MODIFIED :
+            case EndpointEvent.MODIFIED:
                 importPossibilities.remove(filter, endpoint);
                 importPossibilities.put(filter, endpoint);
                 break;
-            case EndpointEvent.MODIFIED_ENDMATCH :
+            case EndpointEvent.MODIFIED_ENDMATCH:
                 importPossibilities.remove(filter, endpoint);
                 break;
         }

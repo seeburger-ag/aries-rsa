@@ -48,7 +48,7 @@ public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
 
         private final ClassLoader loader;
         private final Method method;
-        
+
         private final AsyncCallback callback;
         private final SerializationStrategy serializationStrategy;
         private final DispatchQueue queue;
@@ -140,6 +140,4 @@ public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
         }
 
     }
-
-
 }

@@ -143,7 +143,6 @@ public class TcpTransportServer implements TransportServer {
         }
     }
 
-
     protected String resolveHostName() {
         String result;
         if (bindAddress.getAddress().isAnyLocalAddress()) {

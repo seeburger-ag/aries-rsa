@@ -51,7 +51,7 @@ public class ActivatorTest {
         Activator activator = new Activator();
         activator.doStart(context, new DefaultExportPolicy());
         c.verify();
-        
+
         c.reset();
         c.replay();
         activator.doStop(context);

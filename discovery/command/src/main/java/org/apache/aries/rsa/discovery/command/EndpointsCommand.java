@@ -37,17 +37,16 @@ import org.osgi.service.remoteserviceadmin.EndpointEventListener;
                 "osgi.command.function=endpoints",
                 "osgi.command.function=endpoint",
                 "endpoint.listener.scope=(endpoint.framework.uuid=*)"
-                
     })
 public class EndpointsCommand implements EndpointEventListener {
     Set<EndpointDescription> endpoints = new HashSet<>();
     private String frameworkId;
-    
+
     @Activate
     public void activate(BundleContext context) {
         this.frameworkId = context.getProperty(Constants.FRAMEWORK_UUID);
     }
-    
+
     public void endpoint(String id) {
         EndpointDescription epd = getEndpoint(id);
         ShellTable table = new ShellTable();
@@ -114,12 +113,12 @@ public class EndpointsCommand implements EndpointEventListener {
         case EndpointEvent.REMOVED:
             endpoints.remove(endpoint);
             break;
-        
+
         case EndpointEvent.MODIFIED:
             endpoints.remove(endpoint);
             endpoints.add(endpoint);
             break;
-            
+
         case EndpointEvent.MODIFIED_ENDMATCH:
             endpoints.remove(endpoint);
             break;

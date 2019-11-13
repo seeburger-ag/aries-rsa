@@ -81,7 +81,7 @@
             <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>

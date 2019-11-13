@@ -44,10 +44,10 @@ import org.osgi.service.remoteserviceadmin.EndpointDescription;
 public class TestDiscoveryExport extends RsaTestBase {
     @Inject
     DistributionProvider tcpProvider;
-    
+
     @Inject
     EndpointDescriptionParser parser;
-    
+
     @Inject
     ZooKeeper zookeeper;
 
@@ -68,7 +68,7 @@ public class TestDiscoveryExport extends RsaTestBase {
     public void testDiscoveryExport() throws Exception {
         EndpointDescription epd = getEndpoint();
         EchoService service = (EchoService)tcpProvider
-            .importEndpoint(EchoService.class.getClassLoader(), 
+            .importEndpoint(EchoService.class.getClassLoader(),
                             bundleContext, new Class[]{EchoService.class}, epd);
         Assert.assertEquals("test", service.echo("test"));
     }

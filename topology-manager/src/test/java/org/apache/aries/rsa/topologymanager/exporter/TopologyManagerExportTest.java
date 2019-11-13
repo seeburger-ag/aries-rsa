@@ -51,7 +51,7 @@ import com.shazam.shazamcrest.MatcherAssert;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class TopologyManagerExportTest {
-    
+
     private IMocksControl c;
     private RemoteServiceAdmin rsa;
     private EndpointListenerNotifier notifier;
@@ -67,7 +67,7 @@ public class TopologyManagerExportTest {
         events = EasyMock.newCapture(CaptureType.ALL);
         notifier.sendEvent(EasyMock.capture(events));
         EasyMock.expectLastCall().anyTimes();
-        
+
         Executor executor = syncExecutor();
         ExportPolicy policy = new DefaultExportPolicy();
         exportManager = new TopologyManagerExport(notifier, executor, policy);

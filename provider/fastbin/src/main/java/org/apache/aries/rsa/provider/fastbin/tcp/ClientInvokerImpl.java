@@ -246,7 +246,6 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         // array copy.
         final Buffer command = baos.toBuffer();
 
-
         // Update the field size.
         BufferEditor editor = command.buffer().bigEndianEditor();
         editor.writeInt(command.length);

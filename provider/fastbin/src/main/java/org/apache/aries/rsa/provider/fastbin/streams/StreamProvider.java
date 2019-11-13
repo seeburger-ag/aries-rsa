@@ -70,6 +70,3 @@ public interface StreamProvider {
     int registerStream(OutputStream out);
 
 }
-
-
-

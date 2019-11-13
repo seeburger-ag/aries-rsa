@@ -27,7 +27,7 @@
         <version>1.15.0-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>org.apache.aries.rsa.topology-manager</artifactId>
     <packaging>jar</packaging>
     <name>Aries Remote Service Admin Topology Manager</name>
@@ -42,11 +42,11 @@
             <artifactId>org.apache.aries.rsa.spi</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
-             <groupId>com.shazam</groupId>
-             <artifactId>shazamcrest</artifactId>
-             <scope>test</scope>
+            <groupId>com.shazam</groupId>
+            <artifactId>shazamcrest</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

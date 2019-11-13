@@ -36,9 +36,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages the endpoint listener for the import of external services.
- * The endpoint listener scope reflects the combined filters of all services 
- * that are asked for (by listeners and service lookups) in the current system. 
- * 
+ * The endpoint listener scope reflects the combined filters of all services
+ * that are asked for (by listeners and service lookups) in the current system.
+ *
  * Discovery will then send callbacks when external endpoints are added / removed that match
  * the interest in the local system.
  */
@@ -68,12 +68,12 @@ public class EndpointListenerManager implements ServiceInterestListener{
 
     private final BundleContext bctx;
     private volatile ServiceRegistration<?> serviceRegistration;
-    
+
     private final List<String> filters = new ArrayList<>();
     private final EndpointEventListener endpointListener;
     private final ListenerHookImpl listenerHook;
     private RSFindHook findHook;
-    
+
     /**
      * Count service interest by filter. This allows to modify the scope of the EndpointListener as seldom as possible
      */
@@ -89,8 +89,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
     public void start() {
         EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
         String[] ifAr = new String[] {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
-        serviceRegistration = bctx.registerService(ifAr, endpointListenerAdapter,
-                                                   getEELProperties());
+        serviceRegistration = bctx.registerService(ifAr, endpointListenerAdapter, getEELProperties());
 
         bctx.registerService(ListenerHook.class, listenerHook, null);
         bctx.registerService(FindHook.class, findHook, null);
@@ -129,7 +128,7 @@ public class EndpointListenerManager implements ServiceInterestListener{
         p.put(EndpointEventListener.ENDPOINT_LISTENER_SCOPE, copyFilters());
         return p;
     }
-    
+
     public List<String> copyFilters() {
         synchronized (filters) {
             return new ArrayList<>(filters);

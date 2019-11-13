@@ -45,7 +45,6 @@ public class Chunk implements Serializable {
         this.last = last;
     }
 
-
     public byte[] getData() {
         return data;
     }
@@ -62,6 +61,3 @@ public class Chunk implements Serializable {
         return last;
     }
 }
-
-
-

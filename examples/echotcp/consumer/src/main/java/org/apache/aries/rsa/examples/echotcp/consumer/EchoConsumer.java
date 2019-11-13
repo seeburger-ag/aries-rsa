@@ -25,7 +25,7 @@ import org.osgi.service.component.annotations.Reference;
 
 @Component(immediate=true)
 public class EchoConsumer {
-    
+
     EchoService echoService;
 
     @Activate

@@ -18,7 +18,6 @@
  */
 package org.apache.aries.rsa.provider.fastbin;
 
-
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -48,17 +47,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class FutureInvocationTest
-{
+public class FutureInvocationTest {
 
     private ServerInvokerImpl server;
     private ClientInvokerImpl client;
     private TestService testService;
 
-
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         DispatchQueue queue = Dispatch.createQueue();
         HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -67,31 +63,24 @@ public class FutureInvocationTest
         client = new ClientInvokerImpl(queue, map);
         client.start();
 //        server.stop();
-        server.registerService("service-id", new ServerInvoker.ServiceFactory()
-        {
-            public Object get()
-            {
+        server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+            public Object get() {
                 return new TestServiceImpl();
             }
 
-
-            public void unget()
-            {}
+            public void unget() {
+            }
         }, TestServiceImpl.class.getClassLoader());
 
         InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader());
         testService = (TestService)Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{TestService.class}, handler);
     }
 
-
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         server.stop();
         client.stop();
     }
-
-
 
     @Test
     public void testInvokeCompletableFuture() throws Exception {
@@ -110,13 +99,10 @@ public class FutureInvocationTest
             results.add(executor.submit(single));
         }
         assertEquals(threadCount, results.size());
-        for (Future<String> future : results)
-        {
+        for (Future<String> future : results) {
             assertEquals("Hello", future.get());
         }
     }
-
-
 
     @Test
     public void testInvokeFuture() throws Exception {
@@ -131,13 +117,11 @@ public class FutureInvocationTest
         List<Callable<String>> tasks = new ArrayList<>();
         tasks.addAll(Collections.nCopies(threadCount, task));
         List<Future<String>> results = new ArrayList<>();
-        for (Callable<String> single : tasks)
-        {
+        for (Callable<String> single : tasks) {
             results.add(executor.submit(single));
         }
         assertEquals(threadCount, results.size());
-        for (Future<String> future : results)
-        {
+        for (Future<String> future : results) {
             assertEquals("Hello", future.get());
         }
     }
@@ -154,9 +138,7 @@ public class FutureInvocationTest
         }
     }
 
-
-    public interface TestService
-    {
+    public interface TestService {
         CompletableFuture<String> helloAsync();
 
         Future<String> helloAsyncStandardFuture();
@@ -173,12 +155,12 @@ public class FutureInvocationTest
 
         @Override
         public CompletableFuture<String> exceptionAsync() throws IOException {
-             CompletableFuture f = CompletableFuture.supplyAsync(() -> {
-                 sleep(500);
-                 return  "Hello";
-             });
-             f.completeExceptionally(new IOException("test"));
-             return f;
+            CompletableFuture f = CompletableFuture.supplyAsync(() -> {
+                sleep(500);
+                return  "Hello";
+            });
+            f.completeExceptionally(new IOException("test"));
+            return f;
         }
 
         private void sleep(long time) {

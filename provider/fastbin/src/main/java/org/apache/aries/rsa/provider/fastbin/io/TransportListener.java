@@ -20,13 +20,12 @@ package org.apache.aries.rsa.provider.fastbin.io;
 
 import java.io.IOException;
 
-
 /**
  * An asynchronous listener of commands
  *
  */
 public interface TransportListener {
-    
+
     /**
      * called to process a command
      * @param command
@@ -34,7 +33,7 @@ public interface TransportListener {
     void onTransportCommand(Transport transport, Object command);
 
     /**
-     * transport can now accept more commands for transmission. 
+     * transport can now accept more commands for transmission.
      */
     void onRefill(Transport transport);
 
@@ -43,7 +42,7 @@ public interface TransportListener {
      * @param error
      */
     void onTransportFailure(Transport transport, IOException error);
-    
+
     /**
      * The transport has been connected.
      */

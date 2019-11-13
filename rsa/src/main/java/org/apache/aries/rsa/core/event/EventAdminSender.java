@@ -35,7 +35,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 public class EventAdminSender {
     private HashMap<Integer, String> typeToTopic;
     private BundleContext context;
-    
+
     public EventAdminSender(BundleContext context) {
         this.context = context;
         typeToTopic = new HashMap<>();
@@ -52,18 +52,18 @@ public class EventAdminSender {
     }
 
     public void send(RemoteServiceAdminEvent rsaEvent) {
-       final Event event = toEvent(rsaEvent);
-       ServiceReference<EventAdmin> sref = this.context.getServiceReference(EventAdmin.class);
-       if (sref != null) {
-           final EventAdmin eventAdmin = this.context.getService(sref);
-           AccessController.doPrivileged(new PrivilegedAction<Void>() {
-               public Void run() {
-                   eventAdmin.postEvent(event);
-                   return null;
-               }
-           });
-           this.context.ungetService(sref);           
-       }
+        final Event event = toEvent(rsaEvent);
+        ServiceReference<EventAdmin> sref = this.context.getServiceReference(EventAdmin.class);
+        if (sref != null) {
+            final EventAdmin eventAdmin = this.context.getService(sref);
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                public Void run() {
+                    eventAdmin.postEvent(event);
+                    return null;
+                }
+            });
+            this.context.ungetService(sref);
+        }
     }
 
     private Event toEvent(RemoteServiceAdminEvent rsaEvent) {

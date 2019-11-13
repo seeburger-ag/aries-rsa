@@ -28,9 +28,8 @@ import org.junit.Test;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-
 public class EndpointParserTest {
-    
+
     private Map<String, Object> props;
 
     @Before
@@ -53,32 +52,31 @@ public class EndpointParserTest {
         props.put(EndpointPropertiesParser.TIMEOUT_KEY, "100");
         Assert.assertEquals(100, getParser().getTimeoutMillis());
     }
-    
+
     @Test
     public void testTimeoutInt() {
         props.put(EndpointPropertiesParser.TIMEOUT_KEY, 100);
         Assert.assertEquals(100, getParser().getTimeoutMillis());
     }
 
-    
     @Test
     public void testPortString() {
         props.put(EndpointPropertiesParser.PORT_KEY, "11111");
         Assert.assertEquals(11111, getParser().getPort());
     }
-    
+
     @Test
     public void testPortInt() {
         props.put(EndpointPropertiesParser.PORT_KEY, 11111);
         Assert.assertEquals(11111, getParser().getPort());
     }
-    
+
     @Test(expected=IllegalArgumentException.class)
     public void testTimeoutInvalid() {
         props.put(EndpointPropertiesParser.TIMEOUT_KEY, new Date());
         getParser().getTimeoutMillis();
     }
-    
+
     private EndpointPropertiesParser getParser() {
         return new EndpointPropertiesParser(new EndpointDescription(props));
     }

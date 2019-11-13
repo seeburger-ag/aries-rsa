@@ -33,11 +33,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class MultiMap<K, V> {
 
     private Map<K, Set<V>> map;
-    
+
     public MultiMap() {
         map = new ConcurrentHashMap<>();
     }
-    
+
     public void put(K key, V value) {
         map.compute(key, (k, v) -> {
             if (v == null) {

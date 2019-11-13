@@ -59,14 +59,14 @@ public class LocalDiscovery implements BundleListener {
     public LocalDiscovery() {
         this.bundleParser = new EndpointDescriptionBundleParser();
     }
-    
+
     @Activate
     public void activate(BundleContext context) {
         Bundle[] bundles = context.getBundles();
         processExistingBundles(bundles);
         context.addBundleListener(this);
     }
-    
+
     @Deactivate
     public void deactivate(BundleContext context) {
         context.removeBundleListener(this);
@@ -209,7 +209,7 @@ public class LocalDiscovery implements BundleListener {
         if (filter == null) {
             return false;
         }
-    
+
         try {
             Filter f = FrameworkUtil.createFilter(filter);
             Dictionary<String, Object> dict = new Hashtable<>(endpoint.getProperties());

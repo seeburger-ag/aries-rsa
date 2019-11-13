@@ -75,7 +75,7 @@ public class Activator implements BundleActivator {
     EndpointListenerNotifier notifier;
     private ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> rsaTracker;
     private ThreadPoolExecutor exportExecutor;
-    
+
     private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
     private EndpointListenerManager endpointListenerManager;
     private EndpointEventListenerTracker epeListenerTracker;
@@ -160,7 +160,7 @@ public class Activator implements BundleActivator {
             LOG.error("Error in filter {}. This should not occur!", DOSGI_SERVICES);
         }
     }
-    
+
     private final class RSATracker extends ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> {
         private RSATracker(BundleContext context, Class<RemoteServiceAdmin> clazz,
                            ServiceTrackerCustomizer<RemoteServiceAdmin, RemoteServiceAdmin> customizer) {

@@ -56,8 +56,8 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         BundleContext apiContext = getAPIContext();
         PackageUtil packageUtil = new PackageUtil(context);
         EventProducer eventProducer = new EventProducer(context);
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context, 
-                                                                    apiContext, 
+        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context,
+                                                                    apiContext,
                                                                     eventProducer,
                                                                     provider,
                                                                     packageUtil);
@@ -84,7 +84,7 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         BundleContext apiContext = apiBundle.getBundleContext();
         return apiContext;
     }
-    
+
     @Override
     public void removedService(ServiceReference<DistributionProvider> reference,
                                ServiceRegistration reg) {

@@ -64,7 +64,7 @@ public class EndpointDescriptionParserImpl implements EndpointDescriptionParser 
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
-    
+
     public List<EndpointDescription> readEndpoints(InputStream is) {
         List<EndpointDescriptionType> epdts = readEpdts(is);
         List<EndpointDescription> epds = new ArrayList<>();
@@ -73,7 +73,7 @@ public class EndpointDescriptionParserImpl implements EndpointDescriptionParser 
         }
         return epds;
     }
-    
+
     public EndpointDescription readEndpoint(InputStream is) {
         List<EndpointDescription> endpoints = readEndpoints(is);
         if (endpoints.isEmpty()) {
@@ -85,7 +85,7 @@ public class EndpointDescriptionParserImpl implements EndpointDescriptionParser 
     public void writeEndpoint(EndpointDescription epd, OutputStream os) {
         writeEpdt(convert(epd), os);
     }
-    
+
     private void writeEpdt(EndpointDescriptionType endpointDescription, OutputStream os) {
         try {
             Marshaller marshaller = jaxbContext.createMarshaller();
@@ -119,8 +119,6 @@ public class EndpointDescriptionParserImpl implements EndpointDescriptionParser 
     private EndpointDescription convert(EndpointDescriptionType epdt) {
         Map<String, Object> props = new PropertiesMapper().toProps(epdt.getProperty());
         return new EndpointDescription(props);
-        
     }
-    
 
 }

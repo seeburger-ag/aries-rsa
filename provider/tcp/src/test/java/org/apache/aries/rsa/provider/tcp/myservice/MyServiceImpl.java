@@ -37,7 +37,7 @@ public class MyServiceImpl implements MyService {
 
     @Override
     public void callSlow(int delay) {
-        sleep(delay); 
+        sleep(delay);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class MyServiceImpl implements MyService {
 
     @Override
     public void callWithList(List<String> msg) {
-        
+
     }
 
     @Override
@@ -64,10 +64,10 @@ public class MyServiceImpl implements MyService {
                 sleep(delay);
                 return "Finished";
             }
-            
+
         });
     }
-    
+
     @Override
     public CompletionStage<String> callAsyncCompletionStage(final int delay) {
         return supplyAsync(new Supplier<String>() {
@@ -78,15 +78,15 @@ public class MyServiceImpl implements MyService {
                 sleep(delay);
                 return "Finished";
             }
-            
+
         });
     }
-    
+
     @Override
     public Promise<String> callAsyncPromise(final int delay) {
         final Deferred<String> deferred = new Deferred<>();
         new Thread(new Runnable() {
-            
+
             @Override
             public void run() {
                 if (delay == -1) {
@@ -97,7 +97,7 @@ public class MyServiceImpl implements MyService {
                 deferred.resolve("Finished");
             }
         }).start();
-        
+
         return deferred.getPromise();
     }
 

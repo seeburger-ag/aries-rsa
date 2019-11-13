@@ -50,12 +50,12 @@ public class EndpointListenerNotifier {
     public EndpointListenerNotifier() {
         this.listeners = new ConcurrentHashMap<>();
     }
-   
+
     public static Set<Filter> filtersFromEL(ServiceReference<EndpointListener> sref) {
         List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
         return getFilterSet(scopes);
     }
-    
+
     public static Set<Filter> filtersFromEEL(ServiceReference<EndpointEventListener> sref) {
         List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         return getFilterSet(scopes);
@@ -72,7 +72,7 @@ public class EndpointListenerNotifier {
         }
         return filters;
     }
-    
+
     public void add(EndpointEventListener ep, Set<Filter> filters, Collection<EndpointDescription> endpoints) {
         LOG.debug("EndpointListener added");
         listeners.put(ep, filters);
@@ -81,12 +81,12 @@ public class EndpointListenerNotifier {
             notifyListener(event, ep, filters);
         }
     }
-    
+
     public void remove(EndpointEventListener ep) {
         LOG.debug("EndpointListener removed");
         listeners.remove(ep);
     }
-    
+
     public void sendEvent(EndpointEvent event) {
         for (EndpointEventListener listener : listeners.keySet()) {
             Set<Filter> filters = listeners.get(listener);
@@ -107,7 +107,7 @@ public class EndpointListenerNotifier {
             listener.endpointChanged(event, filter.toString());
         }
     }
-    
+
     private static Set<Filter> getMatchingFilters(Set<Filter> filters, EndpointDescription endpoint) {
         Set<Filter> matchingFilters = new HashSet<>();
         if (endpoint == null) {

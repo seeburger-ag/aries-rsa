@@ -42,21 +42,20 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
     private static final int EVENT_TIMEOUT = 2000;
     private RemoteServiceAdminEvent lastEvent;
     private Bundle serviceBundle;
-    
+
     @Inject
     EchoService echoService;
-    
+
     @Inject
     RemoteServiceAdmin rsa;
-    
+
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaProviderTcp(), //
-         echoTcpService(), //
-         configFastBinFreePort()
+        return new Option[] {
+            rsaCore(), //
+            rsaProviderTcp(), //
+            echoTcpService(), //
+            configFastBinFreePort()
         };
     }
 
@@ -66,12 +65,12 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
 
         serviceBundle.stop();
         ServiceRegistration<RemoteServiceAdminListener> sreg = bundleContext.registerService(RemoteServiceAdminListener.class, this, null);
-        
+
         serviceBundle.start();
         assertEvent(RemoteServiceAdminEvent.EXPORT_REGISTRATION);
-        
+
         Thread.sleep(1000);
-        
+
         serviceBundle.stop();
         assertEvent(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION);
 

@@ -31,10 +31,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class IntrospectionSupport {
-	
+
     private IntrospectionSupport() {
     }
 
@@ -162,7 +161,7 @@ public final class IntrospectionSupport {
         }
         return setter.getParameterTypes()[0];
     }
-    
+
     public static boolean setProperty(Object target, String name, Object value) {
         try {
             Class<?> clazz = target.getClass();
@@ -232,20 +231,20 @@ public final class IntrospectionSupport {
         if (PropertyEditorManager.findEditor(clazz) != null) {
             return true;
         }
-        	
+
         return false;
     }
 
     public static String toString(Object target) {
         return toString(target, Object.class, null, (String[])null);
     }
-    
+
     public static String toString(Object target, String...fields) {
         return toString(target, Object.class, null, fields);
     }
-    
+
     public static String toString(Object target, Class<?> stopClass) {
-    	return toString(target, stopClass, null, (String[])null);
+        return toString(target, stopClass, null, (String[])null);
     }
 
     public static String toString(Object target, Map<String, Object> overrideFields, String...fields) {
@@ -257,16 +256,16 @@ public final class IntrospectionSupport {
             LinkedHashMap<String, Object> map = new LinkedHashMap<>();
             addFields(target, target.getClass(), stopClass, map);
             if (overrideFields != null) {
-            	for(String key : overrideFields.keySet()) {
-            	    Object value = overrideFields.get(key);
-            	    map.put(key, value);
-            	}
+                for(String key : overrideFields.keySet()) {
+                    Object value = overrideFields.get(key);
+                    map.put(key, value);
+                }
             }
-            
+
             if( fields!=null ) {
                 map.keySet().retainAll(Arrays.asList(fields));
             }
-           
+
             boolean useMultiLine=false;
             LinkedHashMap<String, String> props = new LinkedHashMap<>();
             for (Entry<String, Object> entry : map.entrySet()) {
@@ -280,7 +279,7 @@ public final class IntrospectionSupport {
                 }
                 props.put(key, value);
             }
-            
+
             StringBuilder buffer = new StringBuilder();
             if( useMultiLine) {
                 buffer.append("{\n");
@@ -319,7 +318,6 @@ public final class IntrospectionSupport {
             return "Could not toString: "+e.toString();
         }
     }
-
 
     public static String simpleName(Class<?> clazz) {
         String name = clazz.getName();

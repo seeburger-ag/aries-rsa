@@ -33,13 +33,13 @@ import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InterestManagerTest {
-    
+
     @Mock
     private ZookeeperEndpointRepository repository;
-    
+
     @Mock
     private EndpointEventListener epListener1;
-    
+
     @Mock
     private EndpointEventListener epListener2;
 
@@ -47,7 +47,7 @@ public class InterestManagerTest {
     private ZookeeperEndpointListener listener;
 
     private InterestManager im;
-    
+
     @Test
     public void testEndpointListenerTrackerCustomizer() {
         when(repository.createListener(Mockito.any())).thenReturn(listener);

@@ -30,7 +30,6 @@ import org.apache.aries.rsa.provider.fastbin.util.URISupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  */
 @SuppressWarnings("rawtypes")
@@ -49,7 +48,6 @@ public class TcpTransportFactory {
         server.setTransportOption(transportOptions);
         return server;
     }
-
 
     public TcpTransport connect(String location) throws Exception {
         URI uri = new URI(location);

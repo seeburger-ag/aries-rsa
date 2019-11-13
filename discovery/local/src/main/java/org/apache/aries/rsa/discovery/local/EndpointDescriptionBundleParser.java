@@ -56,10 +56,10 @@ public final class EndpointDescriptionBundleParser {
         }
         return elements;
     }
-    
+
     private Enumeration<URL> getEndpointDescriptionURLs(Bundle b) {
         String origDir = getRemoteServicesDir(b);
-        
+
         // Split origDir into dir and file pattern
         String filePattern = "*.xml";
         String dir;
