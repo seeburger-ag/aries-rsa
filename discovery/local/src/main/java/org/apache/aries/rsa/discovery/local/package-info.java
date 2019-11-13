@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -16,5 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-@org.apache.aries.rsa.annotations.RSADiscoveryProvider(protocols = "zookeeper")
-package org.apache.aries.rsa.discovery.zookeeper;
+
+@org.apache.aries.rsa.annotations.RSADiscoveryProvider(protocols = "local")
+@org.osgi.annotation.bundle.Capability(
+        namespace = "osgi.extender",
+        attribute = "osgi.extender='osgi.remoteserviceadmin'",
+        version = "1.1.0",
+        uses = org.osgi.service.remoteserviceadmin.EndpointDescription.class)
+package org.apache.aries.rsa.discovery.local;

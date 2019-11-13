@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -16,5 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-@org.apache.aries.rsa.annotations.RSADiscoveryProvider(protocols = "zookeeper")
-package org.apache.aries.rsa.discovery.zookeeper;
+
+@org.osgi.annotation.bundle.Export
+@org.osgi.annotation.versioning.Version("1.0.0")
+package org.apache.aries.rsa.annotations;

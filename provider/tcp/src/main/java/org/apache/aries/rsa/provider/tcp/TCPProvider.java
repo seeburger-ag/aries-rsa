@@ -27,17 +27,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.aries.rsa.annotations.RSADistributionProvider;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.spi.IntentUnsatisfiedException;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
+@RSADistributionProvider(configs="aries.tcp")
+@Component(property = { //
+        RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.basic,osgi.async",
+        RemoteConstants.REMOTE_CONFIGS_SUPPORTED + "=" + TCPProvider.TCP_CONFIG_TYPE //
+})
 public class TCPProvider implements DistributionProvider {
     static final String TCP_CONFIG_TYPE = "aries.tcp";
     private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.async"};
@@ -93,6 +100,5 @@ public class TCPProvider implements DistributionProvider {
             throw new RuntimeException(e);
         }
     }
-
 
 }
