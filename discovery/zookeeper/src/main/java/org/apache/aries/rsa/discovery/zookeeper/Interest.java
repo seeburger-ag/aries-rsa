@@ -78,13 +78,15 @@ public class Interest {
 
     private void notifyEEListener(EndpointEvent event, String currentScope, EndpointEventListener listener) {
         EndpointDescription endpoint = event.getEndpoint();
-        LOG.info("Calling endpointchanged on class {} for filter {}, type {}, endpoint {} ", listener, currentScope, endpoint);
+        LOG.info("Calling endpointchanged on class {} for filter {}, type {}, endpoint {} ",
+            listener, currentScope, event.getType(), endpoint);
         listener.endpointChanged(event, currentScope);
     }
     
     private void notifyEListener(EndpointEvent event, String currentScope, EndpointListener listener) {
         EndpointDescription endpoint = event.getEndpoint();
-        LOG.info("Calling old listener on class {} for filter {}, type {}, endpoint {} ", listener, currentScope, endpoint);
+        LOG.info("Calling old listener on class {} for filter {}, type {}, endpoint {} ",
+            listener, currentScope, event.getType(), endpoint);
         switch (event.getType()) {
         case EndpointEvent.ADDED:
             listener.endpointAdded(endpoint, currentScope);
