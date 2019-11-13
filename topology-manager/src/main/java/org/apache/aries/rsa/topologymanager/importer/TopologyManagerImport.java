@@ -67,7 +67,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new CopyOnWriteArraySet<>();
         bctx = bc;
-        execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(), new NamedThreadFactory(getClass()));
+        execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory(getClass()));
     }
     
     public void start() {

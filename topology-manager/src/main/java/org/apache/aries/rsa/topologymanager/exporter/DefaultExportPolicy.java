@@ -31,7 +31,7 @@ public class DefaultExportPolicy implements ExportPolicy {
 
     @Override
     public Map<String, ?> additionalParameters(ServiceReference<?> sref) {
-        return new HashMap<String, Object>();
+        return new HashMap<>();
     }
 
 }

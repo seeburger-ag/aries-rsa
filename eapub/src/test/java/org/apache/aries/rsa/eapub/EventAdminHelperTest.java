@@ -138,7 +138,7 @@ public class EventAdminHelperTest {
         final Bundle bundle = EasyMock.createNiceMock(Bundle.class);
         EasyMock.expect(bundle.getBundleId()).andReturn(42L).anyTimes();
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test.bundle").anyTimes();
-        EasyMock.expect(bundle.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
+        EasyMock.expect(bundle.getHeaders()).andReturn(new Hashtable<>()).anyTimes();
         EasyMock.replay(bundle);
 
         final Exception exportException = new Exception();

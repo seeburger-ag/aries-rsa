@@ -231,7 +231,7 @@ class PropertiesMapper {
     }
     
     public List<PropertyType> fromProps(Map<String, Object> m) {
-        List<PropertyType> props = new ArrayList<PropertyType>();
+        List<PropertyType> props = new ArrayList<>();
         for (Map.Entry<String, Object> entry : m.entrySet()) {
             String key = entry.getKey();
             Object val = entry.getValue();

@@ -77,7 +77,7 @@ public final class EndpointDescriptionBundleParser {
         }
 
         Enumeration<URL> urls = b.findEntries(dir, filePattern, false);
-        return (urls == null) ? Collections.enumeration(new ArrayList<URL>()) : urls;
+        return (urls == null) ? Collections.enumeration(new ArrayList<>()) : urls;
     }
 
     private static String getRemoteServicesDir(Bundle b) {

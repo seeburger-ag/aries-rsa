@@ -342,7 +342,7 @@ public class RemoteServiceAdminCoreTest {
         expect(b.getSymbolicName()).andReturn("rsabundle").anyTimes();
         expect(b.getBundleId()).andReturn(10L).anyTimes();
         expect(b.getVersion()).andReturn(new Version("1.0.0")).anyTimes();
-        expect(b.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
+        expect(b.getHeaders()).andReturn(new Hashtable<>()).anyTimes();
         return b;
     }
 

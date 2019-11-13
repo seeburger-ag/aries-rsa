@@ -102,7 +102,7 @@ public class InvocationTest {
 
             assertEquals("Hello Hiram!", hello.protobuf(stringValue("Hiram")).getValue());
 
-            AsyncCallbackFuture<StringValue.Getter> future2 = new AsyncCallbackFuture<StringValue.Getter>();
+            AsyncCallbackFuture<StringValue.Getter> future2 = new AsyncCallbackFuture<>();
             hello.protobuf(stringValue("Hiram Async"), future2);
             assertEquals("Hello Hiram Async!", future2.get(2, TimeUnit.SECONDS).getValue());
 
