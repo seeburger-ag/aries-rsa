@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 
 @Capability( //
         namespace = "osgi.remoteserviceadmin.topology", //
-        attribute = {"policy:List<String>=promiscous"}, //
+        attribute = {"policy:List<String>=promiscuous"}, //
         version = "1.1.0"
 )
 @Requirements({
