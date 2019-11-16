@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.aries.rsa.spi.EndpointDescriptionParser;
 import org.apache.zookeeper.CreateMode;
@@ -38,7 +39,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
-import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,7 @@ public class ZookeeperEndpointRepository {
         }
     }
 
-    public ZookeeperEndpointListener createListener(EndpointEventListener listener) {
+    public ZookeeperEndpointListener createListener(Consumer<EndpointEvent> listener) {
         return new ZookeeperEndpointListener(zk, parser, listener);
     }
 

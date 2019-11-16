@@ -20,11 +20,13 @@ package org.apache.aries.rsa.discovery.zookeeper.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-import org.apache.aries.rsa.discovery.zookeeper.Interest;
 import org.apache.aries.rsa.spi.EndpointDescriptionParser;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.ConnectionLossException;
@@ -35,7 +37,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
-import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,19 +52,17 @@ public class ZookeeperEndpointListener implements Closeable {
 
     private EndpointDescriptionParser parser;
 
-    private EndpointEventListener listener;
+    private Consumer<EndpointEvent> listener;
 
-    ZookeeperEndpointListener(ZooKeeper zk, EndpointDescriptionParser parser, EndpointEventListener listener) {
+    ZookeeperEndpointListener(ZooKeeper zk, EndpointDescriptionParser parser, Consumer<EndpointEvent> listener) {
         this.zk = zk;
         this.parser = parser;
         this.listener = listener;
         watchRecursive(ZookeeperEndpointRepository.PATH_PREFIX);
     }
 
-    public void sendExistingEndpoints(Interest interest) {
-        endpoints.values().stream()
-            .map(endpoint -> new EndpointEvent(EndpointEvent.ADDED, endpoint))
-            .forEach(interest::notifyListener);
+    public Collection<EndpointDescription> getEndpoints() {
+        return endpoints.values();
     }
 
     @Override
@@ -116,14 +115,14 @@ public class ZookeeperEndpointListener implements Closeable {
         EndpointDescription old = endpoints.put(path, endpoint);
         int type = old == null ? EndpointEvent.ADDED : EndpointEvent.MODIFIED;
         EndpointEvent event = new EndpointEvent(type, endpoint);
-        listener.endpointChanged(event, null);
+        listener.accept(event);
     }
 
     private void onRemoved(String path) {
         EndpointDescription endpoint = endpoints.remove(path);
         if (endpoint != null) {
             EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
-            listener.endpointChanged(event, null);
+            listener.accept(event);
         }
     }
 

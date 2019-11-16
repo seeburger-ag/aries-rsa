@@ -56,7 +56,7 @@ public class InterestManager {
     // Using ARepository name to make sure it is injected first
     @Reference
     public void bindARepository(ZookeeperEndpointRepository repository) {
-        this.listener = repository.createListener(this::onEndpointChanged);
+        this.listener = repository.createListener(this::onEndpointEvent);
     }
 
     @Deactivate
@@ -65,7 +65,7 @@ public class InterestManager {
         interests.clear();
     }
 
-    private void onEndpointChanged(EndpointEvent event, String filter) {
+    private void onEndpointEvent(EndpointEvent event) {
         interests.forEach(interest -> interest.notifyListener(event));
     }
 
@@ -103,7 +103,9 @@ public class InterestManager {
         Interest interest = new Interest(sref, epListener);
         update(interest);
         if (listener != null) {
-            listener.sendExistingEndpoints(interest);
+            listener.getEndpoints().stream()
+                .map(endpoint -> new EndpointEvent(EndpointEvent.ADDED, endpoint))
+                .forEach(interest::notifyListener);
         }
     }
 
