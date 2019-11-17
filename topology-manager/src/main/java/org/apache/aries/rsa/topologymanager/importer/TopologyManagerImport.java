@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.apache.aries.rsa.topologymanager.NamedThreadFactory;
 import org.osgi.framework.BundleContext;
@@ -114,17 +115,20 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
      * Synchronizes the actual imports with the possible imports for the given filter,
      * i.e. unimports previously imported endpoints that are no longer possible,
      * and imports new possible endpoints that are not already imported.
+     * 
+     * TODO but optional: if the service is already imported and the endpoint is still
+     * in the list of possible imports check if a "better" endpoint is now in the list
      *
      * @param filter the filter whose endpoints are synchronized
      */
     private void synchronizeImports(final String filter) {
         try {
-            // unimport endpoints that are no longer possible
-            unimportRemovedServices(filter);
-            // import new endpoints
-            importAddedServices(filter);
-            // TODO but optional: if the service is already imported and the endpoint is still
-            // in the list of possible imports check if a "better" endpoint is now in the list
+            ImportDiff diff = new ImportDiff(importPossibilities.get(filter), importedServices.get(filter));
+            diff.getRemoved()
+                .forEach(this::unimportService);
+            diff.getAdded()
+                .flatMap(this::importService)
+                .forEach(ir -> importedServices.put(filter, ir));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -132,54 +136,25 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     }
 
     /**
-     * Checks if an endpoint is included in a set of import registrations.
-     *
-     * @param imported the import registrations that may include the endpoint
-     * @param endpoint the endpoint to check
-     * @return whether the given endpoint is imported
-     */
-    private boolean isImported(Set<ImportRegistration> imported, EndpointDescription endpoint) {
-        return imported.stream()
-            .map(ImportRegistration::getImportReference)
-            .anyMatch(ir -> ir != null && endpoint.equals(ir.getImportedEndpoint()));
-    }
-
-    private void importAddedServices(String filter) {
-        Set<EndpointDescription> possible = importPossibilities.get(filter);
-        Set<ImportRegistration> imported = importedServices.get(filter);
-        possible.stream()
-            .filter(endpoint -> !isImported(imported, endpoint)) // filter out already imported
-            .forEach(endpoint -> importService(filter, endpoint)); // import the new endpoints
-    }
-
-    private void unimportRemovedServices(String filter) {
-        Set<EndpointDescription> possible = importPossibilities.get(filter);
-        Set<ImportRegistration> imported = importedServices.get(filter);
-        imported.stream()
-            .map(ImportRegistration::getImportReference)
-            .filter(ir -> ir != null && !possible.contains(ir.getImportedEndpoint())) // filter out possibles
-            .forEach(this::unimportService); // unimport the non-possibles
-    }
-
-    /**
      * Tries to import the service with each rsa until one import is successful.
      *
      * @param filter the filter that matched the endpoint
      * @param endpoint endpoint to import
+     * @return 
      */
-    private void importService(String filter, EndpointDescription endpoint) {
+    private Stream<ImportRegistration> importService(EndpointDescription endpoint) {
         for (RemoteServiceAdmin rsa : rsaSet) {
             ImportRegistration ir = rsa.importService(endpoint);
             if (ir != null) {
                 if (ir.getException() == null) {
                     LOG.debug("Service import was successful {}", ir);
-                    importedServices.put(filter, ir);
-                    return;
+                    return Stream.of(ir);
                 } else {
                     LOG.info("Error importing service " + endpoint, ir.getException());
                 }
             }
         }
+        return Stream.empty();
     }
 
     private void unimportService(ImportReference ref) {
