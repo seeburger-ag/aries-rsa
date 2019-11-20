@@ -28,6 +28,7 @@ import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
+import org.apache.aries.rsa.topologymanager.importer.NamedThreadFactory;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
 import org.apache.aries.rsa.topologymanager.importer.local.EndpointListenerManager;
 import org.osgi.annotation.bundle.Capability;
