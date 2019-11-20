@@ -37,19 +37,28 @@ public class ImportDiff {
         this.imported = imported;
     }
 
-    public Stream<ImportReference> getRemoved() {
+    public Stream<ImportRegistration> getRemoved() {
         return imported.stream()
-                .map(ImportRegistration::getImportReference)
-                .filter(Objects::nonNull)
-                .filter(ir -> !possible.contains(ir.getImportedEndpoint()));
+                .filter(this::toRemove);
     }
-    
+
     public Stream<EndpointDescription> getAdded() {
         Set<EndpointDescription> importedEndpoints = importedEndpoints();
         return possible.stream()
                 .filter(not(importedEndpoints::contains));
     }
     
+    /**
+     * Checks if the import registration is not possible anymore or closed
+     * 
+     * @param ireg registration to check
+     * @return
+     */
+    private boolean toRemove(ImportRegistration ireg) {
+        ImportReference iref = ireg != null ? ireg.getImportReference() : null;
+        return iref == null || !possible.contains(iref.getImportedEndpoint()); 
+    }
+
     private Set<EndpointDescription> importedEndpoints() {
         return imported.stream()
             .map(ImportRegistration::getImportReference).filter(Objects::nonNull)

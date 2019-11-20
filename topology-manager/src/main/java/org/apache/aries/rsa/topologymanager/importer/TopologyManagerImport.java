@@ -85,7 +85,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         }
         // close all imports
         importPossibilities.clear();
-        importedServices.allValues().forEach(ir -> unimportService(ir.getImportReference()));
+        importedServices.allValues().forEach(this::unimportRegistration);
     }
 
     public void add(RemoteServiceAdmin rsa) {
@@ -99,8 +99,11 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
 
     @Override
     public void remoteAdminEvent(RemoteServiceAdminEvent event) {
-        if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION) {
-            unimportService(event.getImportReference());
+        ImportReference ref = event.getImportReference();
+        if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION && ref != null) {
+            importedServices.allValues().stream()
+                .filter(ir -> ref.equals(ir.getImportReference()))
+                .forEach(this::unimportRegistration);
         }
     }
 
@@ -125,7 +128,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         try {
             ImportDiff diff = new ImportDiff(importPossibilities.get(filter), importedServices.get(filter));
             diff.getRemoved()
-                .forEach(this::unimportService);
+                .forEach(this::unimportRegistration);
             diff.getAdded()
                 .flatMap(this::importService)
                 .forEach(ir -> importedServices.put(filter, ir));
@@ -156,16 +159,12 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         }
         return Stream.empty();
     }
-
-    private void unimportService(ImportReference ref) {
-        importedServices.allValues().stream()
-            .filter(ir -> ref != null && ref.equals(ir.getImportReference()))
-            .forEach(ir -> {
-                importedServices.remove(ir);
-                ir.close();
-            });
+    
+    private void unimportRegistration(ImportRegistration reg) {
+        importedServices.remove(reg);
+        reg.close();
     }
-
+    
     @Override
     public void endpointChanged(EndpointEvent event, String filter) {
         if (stopped) {
