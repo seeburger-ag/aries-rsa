@@ -110,7 +110,7 @@ public class ZookeeperEndpointRepository {
         LOG.error(msg, ex);
     }
 
-    private void add(EndpointDescription endpoint) throws KeeperException, InterruptedException  {
+    private void add(EndpointDescription endpoint) throws KeeperException, InterruptedException {
         String path = getZooKeeperPath(endpoint.getId());
         LOG.info("Exporting path: {}, Endpoint: {}", path, endpoint);
         createBasePath();

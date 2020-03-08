@@ -107,7 +107,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 String[] parts = data.utf8().toString().split(",");
                 String name = parts[0];
                 Class[] params = new Class[parts.length-1];
-                for( int  i=0; i < params.length; i++) {
+                for( int i=0; i < params.length; i++) {
                     params[i] = decodeClass(parts[i+1]);
                 }
                 Method method = clazz.getMethod(name, params);

@@ -157,7 +157,7 @@ public class FutureInvocationTest {
         public CompletableFuture<String> exceptionAsync() throws IOException {
             CompletableFuture f = CompletableFuture.supplyAsync(() -> {
                 sleep(500);
-                return  "Hello";
+                return "Hello";
             });
             f.completeExceptionally(new IOException("test"));
             return f;
@@ -176,7 +176,7 @@ public class FutureInvocationTest {
         public Future<String> helloAsyncStandardFuture() {
             return Executors.newSingleThreadExecutor().submit(() -> {
                 sleep(500);
-                return  "Hello";
+                return "Hello";
             });
         }
     }

@@ -80,7 +80,7 @@ public class InvocationTest {
             }, HelloImpl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             assertEquals("Hello Fabric!", hello.hello("Fabric"));
             assertEquals("Hello World!", hello.helloworld());
@@ -138,7 +138,7 @@ public class InvocationTest {
             }, Hello2Impl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id-broken", HelloImpl.class.getClassLoader());
-            Hello2 hello  = (Hello2) Proxy.newProxyInstance(Hello2Impl.class.getClassLoader(), new Class[] { Hello2.class }, handler);
+            Hello2 hello = (Hello2) Proxy.newProxyInstance(Hello2Impl.class.getClassLoader(), new Class[] { Hello2.class }, handler);
 
             try{
                 hello.hello("Fabric");
@@ -183,7 +183,7 @@ public class InvocationTest {
             }, HelloImpl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
             assertNotEquals("Hashcode should be handled by the proxy and not be a remote call", -7, hello.hashCode());
             assertFalse("equals should be handled by the proxy and not be a remote call", hello.equals(serviceImpl));
             assertTrue("the proxy must equal itself", hello.equals(hello));
@@ -219,7 +219,7 @@ public class InvocationTest {
             }, HelloImpl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             char[] chars = new char[65*1024];
             String payload = new String(chars);
@@ -268,7 +268,7 @@ public class InvocationTest {
             }, HelloImpl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-            final Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             final AtomicInteger requests = new AtomicInteger(0);
             final AtomicInteger responses = new AtomicInteger(0);
@@ -336,7 +336,7 @@ public class InvocationTest {
             }, HelloImpl.class.getClassLoader());
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
-            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             char[] chars = new char[65*1024];
             String payload = new String(chars);
@@ -373,7 +373,7 @@ public class InvocationTest {
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
 
-            final Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             assertEquals("Hello World!", hello.helloworld());
 
@@ -525,7 +525,7 @@ public class InvocationTest {
 
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
 
-            final Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+            final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             final AtomicInteger requests = new AtomicInteger(0);
             final AtomicInteger failures = new AtomicInteger(0);

@@ -6,7 +6,7 @@
 The [Aries Remote Service Admin (RSA)](http://aries.apache.org/modules/rsa.html) project is the reference implementation of [Remote Services](https://osgi.org/specification/osgi.cmpn/7.0.0/service.remoteservices.html
 ) and [Remote Service Admin](https://osgi.org/specification/osgi.cmpn/7.0.0/service.remoteserviceadmin.html) from the OSGi R7 specs.
 
-It allows to transparently use OSGi services for remote communication. OSGi services can be marked for export by adding a service property service.exported.interfaces=*. Various other  properties can be used to customize how the service is to be exposed.
+It allows to transparently use OSGi services for remote communication. OSGi services can be marked for export by adding a service property service.exported.interfaces=*. Various other properties can be used to customize how the service is to be exposed.
 
 ## Distribution Provider
 
@@ -42,4 +42,4 @@ The source zip needs to be copied to the [Apache release svn](https://dist.apach
 
 ### Add checksum
 
-    gpg --print-md SHA512  <filename> >  <filename>.sha512
+    gpg --print-md SHA512 <filename> > <filename>.sha512
