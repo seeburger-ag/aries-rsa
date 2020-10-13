@@ -38,7 +38,7 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 /**
  * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener}
- * and publishes changes to the {@link ZooKeeperEndpointRepository}
+ * and publishes changes to the {@link ZookeeperEndpointRepository}
  */
 @SuppressWarnings("deprecation")
 @Component(service = {}, immediate = true)
