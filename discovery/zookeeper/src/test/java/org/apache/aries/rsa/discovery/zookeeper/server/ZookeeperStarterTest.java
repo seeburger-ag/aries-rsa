@@ -84,7 +84,7 @@ public class ZookeeperStarterTest {
 
     private void verifyConfig(final File tempDir) {
         assertEquals(1234, config.getClientPortAddress().getPort());
-        assertTrue(config.getDataDir().contains(tempDir + File.separator + "zkdata"));
+        assertTrue(config.getDataDir().toString().contains(tempDir + File.separator + "zkdata"));
         assertEquals(2000, config.getTickTime());
         assertEquals(10, config.getInitLimit());
         assertEquals(5, config.getSyncLimit());

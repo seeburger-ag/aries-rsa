@@ -18,8 +18,6 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.server;
 
-import java.io.IOException;
-
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.apache.zookeeper.server.quorum.QuorumPeerMain;
 
@@ -31,7 +29,7 @@ class MyQuorumPeerMain extends QuorumPeerMain implements ZookeeperServer {
         this.config = config;
     }
 
-    public void startup() throws IOException {
+    public void startup() throws Exception {
         runFromConfig(config);
     }
 

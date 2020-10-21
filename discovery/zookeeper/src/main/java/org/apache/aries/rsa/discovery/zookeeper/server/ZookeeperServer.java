@@ -18,9 +18,7 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.server;
 
-import java.io.IOException;
-
 interface ZookeeperServer {
-    void startup() throws IOException;
+    void startup() throws Exception;
     void shutdown();
 }
