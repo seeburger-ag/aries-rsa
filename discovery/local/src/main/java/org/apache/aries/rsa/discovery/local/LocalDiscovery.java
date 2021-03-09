@@ -62,9 +62,8 @@ public class LocalDiscovery implements BundleListener {
 
     @Activate
     public void activate(BundleContext context) {
-        Bundle[] bundles = context.getBundles();
-        processExistingBundles(bundles);
         context.addBundleListener(this);
+        processExistingBundles(context.getBundles());
     }
 
     @Deactivate
@@ -72,14 +71,14 @@ public class LocalDiscovery implements BundleListener {
         context.removeBundleListener(this);
     }
 
-    public void processExistingBundles(Bundle[] bundles) {
+    protected void processExistingBundles(Bundle[] bundles) {
         if (bundles == null) {
             return;
         }
 
         for (Bundle b : bundles) {
             if (b.getState() == Bundle.ACTIVE) {
-                findDeclaredRemoteServices(b);
+                addDeclaredRemoteServices(b);
             }
         }
     }
@@ -94,8 +93,7 @@ public class LocalDiscovery implements BundleListener {
         synchronized (listenerToFilters) {
             listenerToFilters.put(endpointListener, filters);
             for (String filter : filters) {
-                Collection<EndpointEventListener> listeners = filterToListeners.computeIfAbsent(filter, k -> new ArrayList<>());
-                listeners.add(endpointListener);
+                filterToListeners.computeIfAbsent(filter, k -> new ArrayList<>()).add(endpointListener);
             }
         }
 
@@ -142,19 +140,20 @@ public class LocalDiscovery implements BundleListener {
     }
 
     // BundleListener method
+    @Override
     public void bundleChanged(BundleEvent be) {
         switch (be.getType()) {
         case BundleEvent.STARTED:
-            findDeclaredRemoteServices(be.getBundle());
+            addDeclaredRemoteServices(be.getBundle());
             break;
         case BundleEvent.STOPPED:
-            removeServicesDeclaredInBundle(be.getBundle());
+            removeDeclaredRemoteServices(be.getBundle());
             break;
         default:
         }
     }
 
-    private void findDeclaredRemoteServices(Bundle bundle) {
+    private void addDeclaredRemoteServices(Bundle bundle) {
         List<EndpointDescription> endpoints = bundleParser.getAllEndpointDescriptions(bundle);
         for (EndpointDescription endpoint : endpoints) {
             endpointDescriptions.put(endpoint, bundle);
@@ -163,7 +162,7 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    private void removeServicesDeclaredInBundle(Bundle bundle) {
+    private void removeDeclaredRemoteServices(Bundle bundle) {
         for (Iterator<Entry<EndpointDescription, Bundle>> i = endpointDescriptions.entrySet().iterator();
             i.hasNext();) {
             Entry<EndpointDescription, Bundle> entry = i.next();
@@ -176,20 +175,12 @@ public class LocalDiscovery implements BundleListener {
     }
 
     private void triggerCallbacks(EndpointEvent event) {
-        EndpointDescription endpoint = event.getEndpoint();
-        for (Map.Entry<String, Collection<EndpointEventListener>> entry : getMatchingListeners(endpoint).entrySet()) {
-            String filter = entry.getKey();
+        Map<String, Collection<EndpointEventListener>> matched = getMatchingListeners(event.getEndpoint());
+        for (Map.Entry<String, Collection<EndpointEventListener>> entry : matched.entrySet()) {
             for (EndpointEventListener listener : entry.getValue()) {
-                triggerCallbacks(listener, filter, event);
+                triggerCallbacks(listener, entry.getKey(), event);
             }
         }
-    }
-
-    private void triggerCallbacks(EndpointEventListener endpointListener, String filter, EndpointEvent event) {
-        if (!LocalDiscovery.matchFilter(filter, event.getEndpoint())) {
-            return;
-        }
-        endpointListener.endpointChanged(event, filter);
     }
 
     private void triggerCallbacks(Collection<String> filters, EndpointEventListener endpointListener) {
@@ -198,6 +189,12 @@ public class LocalDiscovery implements BundleListener {
                 EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
                 triggerCallbacks(endpointListener, filter, event);
             }
+        }
+    }
+
+    private void triggerCallbacks(EndpointEventListener endpointListener, String filter, EndpointEvent event) {
+        if (LocalDiscovery.matchFilter(filter, event.getEndpoint())) {
+            endpointListener.endpointChanged(event, filter);
         }
     }
 
