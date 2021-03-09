@@ -50,6 +50,11 @@
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
+            <artifactId>org.apache.aries.rsa.discovery.local</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.rsa.discovery</groupId>
             <artifactId>org.apache.aries.rsa.discovery.zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
