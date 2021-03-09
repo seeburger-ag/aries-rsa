@@ -125,6 +125,15 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
+    void updatedListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
+        // if service properties have been updated, the filter (scope)
+        // might have changed so we remove and re-add the listener
+        synchronized (listenerToFilters) {
+            unbindListener(endpointListener);
+            bindListener(endpointListenerRef, endpointListener);
+        }
+    }
+
     private Map<String, Collection<EndpointEventListener>> getMatchingListeners(EndpointDescription endpoint) {
         // return a copy of matched filters/listeners so that caller doesn't need to hold locks while triggering events
         Map<String, Collection<EndpointEventListener>> matched = new HashMap<>();

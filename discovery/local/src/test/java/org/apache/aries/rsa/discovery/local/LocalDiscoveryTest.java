@@ -132,36 +132,38 @@ public class LocalDiscoveryTest {
     public void testEndpointListenerService() throws Exception {
         LocalDiscovery ld = new LocalDiscovery();
 
-        Bundle bundle = createBundle();
+        Bundle bundle = createBundle(); // created with two endpoint descriptions, ClassA and ClassB
         BundleEvent event = new BundleEvent(BundleEvent.STARTED, bundle);
         ld.bundleChanged(event);
         assertEquals(2, ld.endpointDescriptions.size());
 
-        ServiceReference<EndpointEventListener> sr = epListenerWithScope("(objectClass=org.example.ClassA)");
+        assertEquals("Precondition failed", 0, ld.listenerToFilters.size());
+        assertEquals("Precondition failed", 0, ld.filterToListeners.size());
 
         EndpointEventListener el = EasyMock.createMock(EndpointEventListener.class);
+
+        ServiceReference<EndpointEventListener> sr = epListenerWithScope("(objectClass=org.example.ClassA)");
         el.endpointChanged(EasyMock.anyObject(EndpointEvent.class),
                 EasyMock.eq("(objectClass=org.example.ClassA)"));
         EasyMock.expectLastCall();
+
         EasyMock.replay(el);
 
-        // Add the EndpointListener Service
-        assertEquals("Precondition failed", 0, ld.listenerToFilters.size());
-        assertEquals("Precondition failed", 0, ld.filterToListeners.size());
+        // add the EndpointListener service
         ld.bindListener(sr, el);
+
+        EasyMock.verify(el);
 
         assertEquals(1, ld.listenerToFilters.size());
         assertEquals(Collections.singletonList("(objectClass=org.example.ClassA)"), ld.listenerToFilters.get(el));
         assertEquals(1, ld.filterToListeners.size());
         assertEquals(Collections.singletonList(el), ld.filterToListeners.get("(objectClass=org.example.ClassA)"));
 
-        EasyMock.verify(el);
-
-        // Modify the EndpointListener Service
-        // no need to reset the mock for this...
-        ServiceReference<EndpointEventListener> sr2 = epListenerWithScope("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))");
+        // unbind the listener, modify its scope, and bind again
 
         EasyMock.reset(el);
+
+        ServiceReference<EndpointEventListener> sr2 = epListenerWithScope("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))");
         final Set<String> actualEndpoints = new HashSet<>();
         el.endpointChanged(EasyMock.anyObject(EndpointEvent.class),
                 EasyMock.eq("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"));
@@ -173,22 +175,45 @@ public class LocalDiscoveryTest {
                 return null;
             }
         }).times(2);
+
         EasyMock.replay(el);
 
         ld.unbindListener(el);
         ld.bindListener(sr2, el);
+
+        EasyMock.verify(el);
+
         assertEquals(1, ld.listenerToFilters.size());
-        assertEquals(Arrays.asList("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"),
+        assertEquals(Collections.singletonList("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"),
             ld.listenerToFilters.get(el));
         assertEquals(1, ld.filterToListeners.size());
         assertEquals(Collections.singletonList(el),
             ld.filterToListeners.get("(|(objectClass=org.example.ClassA)(objectClass=org.example.ClassB))"));
-
-        EasyMock.verify(el);
         Set<String> expectedEndpoints = new HashSet<>(Arrays.asList("org.example.ClassA", "org.example.ClassB"));
         assertEquals(expectedEndpoints, actualEndpoints);
 
-        // Remove the EndpointListener Service
+        // now change the scope via updated service properties on a registered service
+
+        EasyMock.reset(el);
+
+        ServiceReference<EndpointEventListener> sr3 = epListenerWithScope("(objectClass=org.example.ClassC)");
+        actualEndpoints.clear();
+        el.endpointChanged(EasyMock.anyObject(EndpointEvent.class),
+            EasyMock.eq("(objectClass=org.example.ClassC)"));
+        EasyMock.expectLastCall().andThrow(new AssertionError()).anyTimes();
+
+        EasyMock.replay(el);
+
+        ld.updatedListener(sr3, el);
+
+        EasyMock.verify(el);
+
+        assertEquals(1, ld.listenerToFilters.size());
+        assertEquals(Collections.singletonList("(objectClass=org.example.ClassC)"), ld.listenerToFilters.get(el));
+        assertEquals(1, ld.filterToListeners.size());
+        assertEquals(Collections.singletonList(el), ld.filterToListeners.get("(objectClass=org.example.ClassC)"));
+
+        // remove the EndpointListener service
         ld.unbindListener(el);
         assertEquals(0, ld.listenerToFilters.size());
         assertEquals(0, ld.filterToListeners.size());
