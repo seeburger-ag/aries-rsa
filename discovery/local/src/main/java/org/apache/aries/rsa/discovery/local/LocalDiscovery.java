@@ -41,6 +41,8 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
@@ -83,7 +85,7 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    @Reference
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
     void bindListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
         List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         if (filters.isEmpty()) {
@@ -128,6 +130,10 @@ public class LocalDiscovery implements BundleListener {
     void updatedListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
         // if service properties have been updated, the filter (scope)
         // might have changed so we remove and re-add the listener
+    	// TODO fix this so that we don't:
+    	// 1. remove and add when there is no change
+    	// 2. remove and add instead of modifying
+    	// 3. remove instead of modified end match
         synchronized (listenerToFilters) {
             unbindListener(endpointListener);
             bindListener(endpointListenerRef, endpointListener);
