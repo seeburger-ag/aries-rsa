@@ -36,5 +36,6 @@
       <module>zookeeper</module>
       <module>config</module>
       <module>command</module>
+      <module>mdns</module>
     </modules>
 </project>
