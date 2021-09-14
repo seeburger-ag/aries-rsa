@@ -42,7 +42,8 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("rawtypes")
 @RSADistributionProvider(configs="aries.tcp")
 @Component(property = { //
-        RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.basic,osgi.async",
+        RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.basic",
+        RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.async",
         RemoteConstants.REMOTE_CONFIGS_SUPPORTED + "=" + TCPProvider.TCP_CONFIG_TYPE //
 })
 public class TCPProvider implements DistributionProvider {
