@@ -501,8 +501,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         synchronized (exportedServices) {
             for (Collection<ExportRegistration> value : exportedServices.values()) {
                 for (ExportRegistration er : value) {
-                    if (er.getException() != null &&
-                            er.getExportReference() != null &&
+                    if (er.getException() != null ||
+                            er.getExportReference() == null ||
                             er.getExportReference().getExportedService().equals(sref)) {
                         regs.add(er);
                     }
