@@ -76,7 +76,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
             setIfNotNull(props, "service.remote.id", endpoint.getServiceId());
             setIfNotNull(props, "service.remote.uuid", endpoint.getFrameworkUUID());
             setIfNotNull(props, "service.remote.uri", endpoint.getId());
-            setIfNotNull(props, "objectClass", endpoint.getInterfaces().toArray());
+            setIfNotNull(props, "objectClass", endpoint.getInterfaces().toArray(new String[0]));
             setIfNotNull(props, "service.imported.configs", endpoint.getConfigurationTypes());
         }
         props.put("timestamp", System.currentTimeMillis());
