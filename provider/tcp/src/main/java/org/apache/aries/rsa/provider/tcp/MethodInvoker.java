@@ -19,10 +19,8 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class MethodInvoker {
 
@@ -81,16 +79,15 @@ public class MethodInvoker {
         if (type.isPrimitive()) {
             return paramType == primTypes.get(type);
         }
-        return type.isAssignableFrom(paramType);
+        return paramType == null || type.isAssignableFrom(paramType);
     }
 
     private Class<?>[] getTypes(Object[] args) {
-        List<Class<?>> parameterTypes = new ArrayList<>();
-        if (args != null) {
-            for (Object arg : args) {
-                parameterTypes.add(arg.getClass());
-            }
+        int len = args == null ? 0 : args.length;
+        Class<?>[] types = new Class<?>[len];
+        for (int i = 0; i < len; i++) {
+            types[i] = args[i] == null ? null : args[i].getClass();
         }
-        return parameterTypes.toArray(new Class[]{});
+        return types;
     }
 }

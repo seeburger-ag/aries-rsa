@@ -56,6 +56,15 @@ public class MethodInvokerTest {
     }
 
     @Test
+    public void testNullParam() throws Exception {
+        class Tester {
+            public int f(String s) { return s == null ? 0 : s.length(); }
+        }
+        MethodInvoker invoker = new MethodInvoker(new Tester());
+        assertEquals(0, invoker.invoke("f", new Object[]{ null }));
+    }
+
+    @Test
     public void testOverloadedNumberOfParams() throws Exception {
         class Tester {
             public int sum() { return 0; }
