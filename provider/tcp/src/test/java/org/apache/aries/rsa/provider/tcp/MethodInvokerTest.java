@@ -55,4 +55,52 @@ public class MethodInvokerTest {
         assertEquals(UnsupportedOperationException.class, invoker.invoke("returnSomething", null).getClass());
     }
 
+    @Test
+    public void testOverloadedNumberOfParams() throws Exception {
+        class Tester {
+            public int sum() { return 0; }
+            public int sum(int i) { return i; }
+            public int sum(int i, int j) { return i + j; }
+        }
+
+        Tester tester = new Tester();
+        tester.sum((short)1);
+        tester.sum(Short.valueOf((short)1));
+
+        MethodInvoker invoker = new MethodInvoker(tester);
+        assertEquals(0, invoker.invoke("sum", null));
+        assertEquals(0, invoker.invoke("sum", new Object[] {}));
+        assertEquals(1, invoker.invoke("sum", new Object[] { 1 }));
+        assertEquals(3, invoker.invoke("sum", new Object[] { 1, 2 }));
+    }
+
+    @Test
+    public void testNoParams() throws Exception {
+        class Tester {
+            public int f() { return 0; }
+        }
+        Tester service = new Tester();
+        MethodInvoker invoker = new MethodInvoker(service);
+        assertEquals(0, invoker.invoke("f", new Object[] {}));
+        assertEquals(0, invoker.invoke("f", null));
+    }
+
+    @Test
+    public void testTooFewParams() {
+        class Tester {
+            public int f(int i) { return i; }
+        }
+        MethodInvoker invoker = new MethodInvoker(new Tester());
+        assertThrows(NoSuchMethodException.class, () -> invoker.invoke("f", new Object[] {}));
+    }
+
+    @Test
+    public void testTooManyParams() {
+        class Tester {
+            public int f(int i) { return i; }
+        }
+        MethodInvoker invoker = new MethodInvoker(new Tester());
+        assertThrows(NoSuchMethodException.class, () -> invoker.invoke("f", new Object[] { 1, 2 }));
+    }
+
 }

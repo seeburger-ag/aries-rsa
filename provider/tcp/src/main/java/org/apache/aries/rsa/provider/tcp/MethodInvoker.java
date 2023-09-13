@@ -48,7 +48,7 @@ public class MethodInvoker {
         return method.invoke(service, args);
     }
 
-    private Method getMethod(String methodName, Class<?>[] parameterTypesAr) {
+    private Method getMethod(String methodName, Class<?>[] parameterTypesAr) throws NoSuchMethodException {
         try {
             return service.getClass().getMethod(methodName, parameterTypesAr);
         } catch (NoSuchMethodException e) {
@@ -61,18 +61,18 @@ public class MethodInvoker {
                     return method;
                 }
             }
-            throw new IllegalArgumentException(String.format("No method found that matches name %s, types %s",
+            throw new NoSuchMethodException(String.format("No method found that matches name %s, types %s",
                                                              methodName, Arrays.toString(parameterTypesAr)));
         }
     }
 
     private boolean allParamsMatch(Class<?>[] methodParamTypes, Class<?>[] parameterTypesAr) {
-        int c = 0;
-        for (Class<?> type : methodParamTypes) {
-            if (!matches(type, parameterTypesAr[c])) {
+        if (parameterTypesAr.length != methodParamTypes.length)
+            return false;
+        for (int i = 0; i < methodParamTypes.length; i++) {
+            if (!matches(methodParamTypes[i], parameterTypesAr[i])) {
                 return false;
             }
-            c++;
         }
         return true;
     }
