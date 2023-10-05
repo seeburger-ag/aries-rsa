@@ -50,9 +50,10 @@ public class TcpEndpointTest {
     public void testEndpointProperties() throws IOException {
         props.put("aries.rsa.port", PORT);
         props.put("aries.rsa.hostname", HOSTNAME);
+        props.put("aries.rsa.id", "testme");
         TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
         EndpointDescription epd = tcpEndpoint.description();
-        Assert.assertEquals("tcp://" + HOSTNAME + ":" + PORT, epd.getId());
+        Assert.assertEquals("tcp://" + HOSTNAME + ":" + PORT + "/testme", epd.getId());
         tcpEndpoint.close();
     }
 

@@ -19,12 +19,14 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
 public class EndpointPropertiesParser {
     static final String PORT_KEY = "aries.rsa.port";
     static final String HOSTNAME_KEY = "aries.rsa.hostname";
+    static final String ID_KEY = "aries.rsa.id";
     static final String THREADS_KEY = "aries.rsa.numThreads";
     static final String TIMEOUT_KEY = "osgi.basic.timeout";
 
@@ -33,6 +35,7 @@ public class EndpointPropertiesParser {
     static final int DEFAULT_NUM_THREADS = 10;
 
     private Map<String, Object> ep;
+    private String uuid = UUID.randomUUID().toString(); // fallback id
 
     public EndpointPropertiesParser(EndpointDescription ep) {
         this.ep = ep.getProperties();
@@ -66,6 +69,10 @@ public class EndpointPropertiesParser {
             hostName = LocalHostUtil.getLocalIp();
         }
         return hostName;
+    }
+
+    public String getId() {
+        return getString(ID_KEY, uuid);
     }
 
     public int getNumThreads() {

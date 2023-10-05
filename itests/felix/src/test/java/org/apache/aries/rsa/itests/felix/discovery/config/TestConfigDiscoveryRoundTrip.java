@@ -64,7 +64,7 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
-            .put("endpoint.id", "tcp://localhost:8201")
+            .put("endpoint.id", "tcp://localhost:8201/echo")
             .put("aries.tcp.hostname", "localhost")
             .put("aries.tcp.port", "8201")
             .asOption();
