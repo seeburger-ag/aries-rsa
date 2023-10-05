@@ -19,7 +19,6 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -45,14 +44,16 @@ import org.osgi.util.promise.Promise;
 public class TcpInvocationHandler implements InvocationHandler {
     private String host;
     private int port;
+    private String endpointId;
     private ClassLoader cl;
     private int timeoutMillis;
 
-    public TcpInvocationHandler(ClassLoader cl, String host, int port, int timeoutMillis)
+    public TcpInvocationHandler(ClassLoader cl, String host, int port, String endpointId, int timeoutMillis)
         throws UnknownHostException, IOException {
         this.cl = cl;
         this.host = host;
         this.port = port;
+        this.endpointId = endpointId;
         this.timeoutMillis = timeoutMillis;
     }
 
@@ -106,11 +107,13 @@ public class TcpInvocationHandler implements InvocationHandler {
                 ObjectOutputStream out = new BasicObjectOutputStream(socket.getOutputStream())
             ) {
             socket.setSoTimeout(timeoutMillis);
+            out.writeUTF(endpointId);
             out.writeObject(method.getName());
             out.writeObject(args);
             out.flush();
 
-            try (ObjectInputStream in = new BasicObjectInputStream(socket.getInputStream(), cl)) {
+            try (BasicObjectInputStream in = new BasicObjectInputStream(socket.getInputStream())) {
+                in.addClassLoader(cl);
                 error = (Throwable) in.readObject();
                 result = readReplaceVersion(in.readObject());
             }

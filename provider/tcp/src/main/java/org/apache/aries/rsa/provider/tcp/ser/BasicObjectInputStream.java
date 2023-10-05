@@ -36,7 +36,7 @@ public class BasicObjectInputStream extends ObjectInputStream {
 
     private final Set<ClassLoader> loaders = new LinkedHashSet<>(); // retains insertion order
 
-    public BasicObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
+    public BasicObjectInputStream(InputStream in) throws IOException {
         super(in);
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {
@@ -44,6 +44,9 @@ public class BasicObjectInputStream extends ObjectInputStream {
                 return null;
             }
         });
+    }
+
+    public void addClassLoader(ClassLoader loader) {
         loaders.add(loader); // the original classloader goes first
     }
 

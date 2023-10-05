@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import org.apache.aries.rsa.provider.tcp.ser.BasicObjectOutputStream;
@@ -37,14 +38,11 @@ import org.slf4j.LoggerFactory;
 public class TCPServer implements Closeable, Runnable {
     private Logger log = LoggerFactory.getLogger(TCPServer.class);
     private ServerSocket serverSocket;
-    private Object service;
+    private Map<String, MethodInvoker> invokers = new ConcurrentHashMap<>();
     private volatile boolean running;
-    private ExecutorService executor;
-    private MethodInvoker invoker;
+    private ThreadPoolExecutor executor;
 
-    public TCPServer(Object service, String localip, Integer port, int numThreads) {
-        this.service = service;
-        this.invoker = new MethodInvoker(service);
+    public TCPServer(String localip, int port, int numThreads) {
         try {
             this.serverSocket = new ServerSocket(port);
             this.serverSocket.setReuseAddress(true);
@@ -62,6 +60,28 @@ public class TCPServer implements Closeable, Runnable {
         return this.serverSocket.getLocalPort();
     }
 
+    public void addService(String endpointId, Object service) {
+        invokers.put(endpointId, new MethodInvoker(service));
+    }
+
+    public void removeService(String endpointId) {
+        invokers.remove(endpointId);
+    }
+
+    public boolean isEmpty() {
+        return invokers.isEmpty();
+    }
+
+    public void setNumThreads(int numThreads) {
+        numThreads++; // plus one for server socket accepting thread
+        executor.setCorePoolSize(numThreads);
+        executor.setMaximumPoolSize(numThreads);
+    }
+
+    public int getNumThreads() {
+        return executor.getMaximumPoolSize() - 1; // excluding socket accepting thread
+    }
+
     public void run() {
         while (running) {
             try {
@@ -76,11 +96,15 @@ public class TCPServer implements Closeable, Runnable {
     }
 
     private void handleConnection(Socket socket) {
-        ClassLoader serviceCL = service.getClass().getClassLoader();
         try (Socket sock = socket;
-             ObjectInputStream in = new BasicObjectInputStream(socket.getInputStream(), serviceCL);
+             BasicObjectInputStream in = new BasicObjectInputStream(socket.getInputStream());
              ObjectOutputStream out = new BasicObjectOutputStream(socket.getOutputStream())) {
-            handleCall(in, out);
+            String endpointId = in.readUTF();
+            MethodInvoker invoker = invokers.get(endpointId);
+            if (invoker == null)
+                throw new IllegalArgumentException("invalid endpoint: " + endpointId);
+            in.addClassLoader(invoker.getService().getClass().getClassLoader());
+            handleCall(invoker, in, out);
         } catch (SocketException se) {
             return; // e.g. connection closed by client
         } catch (Exception e) {
@@ -88,7 +112,7 @@ public class TCPServer implements Closeable, Runnable {
         }
     }
 
-    private void handleCall(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+    private void handleCall(MethodInvoker invoker, ObjectInputStream in, ObjectOutputStream out) throws Exception {
         String methodName = (String)in.readObject();
         Object[] args = (Object[])in.readObject();
         Throwable error = null;

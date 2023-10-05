@@ -43,7 +43,7 @@ public class TcpEndpointTest {
         props = new HashMap<>();
         props.put(Constants.OBJECTCLASS, new String[]{MyService.class.getName()});
         props.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "");
-        service = new MyServiceImpl();
+        service = new MyServiceImpl(null);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class TcpEndpointTest {
         props.put("aries.rsa.port", PORT);
         props.put("aries.rsa.hostname", HOSTNAME);
         props.put("aries.rsa.id", "testme");
-        TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
+        TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props, null);
         EndpointDescription epd = tcpEndpoint.description();
         Assert.assertEquals("tcp://" + HOSTNAME + ":" + PORT + "/testme", epd.getId());
         tcpEndpoint.close();
@@ -59,7 +59,7 @@ public class TcpEndpointTest {
 
     @Test
     public void testEndpointPropertiesDefault() throws IOException {
-        TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props);
+        TcpEndpoint tcpEndpoint = new TcpEndpoint(service, props, null);
         EndpointDescription epd = tcpEndpoint.description();
         Assert.assertNotNull(epd.getId());
         tcpEndpoint.close();

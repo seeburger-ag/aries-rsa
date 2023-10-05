@@ -18,11 +18,13 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +54,8 @@ public class TCPProvider implements DistributionProvider {
 
     private Logger logger = LoggerFactory.getLogger(TCPProvider.class);
 
+    private Map<Integer, TCPServer> servers = new HashMap<>();
+
     @Override
     public String[] getSupportedTypes() {
         return new String[] {TCP_CONFIG_TYPE};
@@ -79,7 +83,38 @@ public class TCPProvider implements DistributionProvider {
             logger.warn("Unsupported intents found: {}. Not exporting service", intents);
             return null;
         }
-        return new TcpEndpoint(serviceO, effectiveProperties);
+        TcpEndpoint endpoint = new TcpEndpoint(serviceO, effectiveProperties, this::removeServer);
+        addServer(serviceO, endpoint);
+        return endpoint;
+    }
+
+    private synchronized void addServer(Object serviceO, TcpEndpoint endpoint) {
+        // port 0 means dynamically allocated free port
+        int port = endpoint.getPort();
+        TCPServer server = servers.get(port);
+        if (server == null || port == 0) {
+            server = new TCPServer(endpoint.getHostname(), port, endpoint.getNumThreads());
+            port = server.getPort(); // get the real port
+            endpoint.setPort(port);
+            servers.put(port, server);
+        }
+        // different services may configure different number of threads - we pick the max
+        if (endpoint.getNumThreads() > server.getNumThreads()) {
+            server.setNumThreads(endpoint.getNumThreads());
+        }
+        server.addService(endpoint.description().getId(), serviceO);
+    }
+
+    private synchronized void removeServer(TcpEndpoint endpoint) {
+        TCPServer server = servers.get(endpoint.getPort());
+        server.removeService(endpoint.description().getId());
+        if (server.isEmpty()) {
+            try {
+                servers.remove(endpoint.getPort()).close();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+        }
     }
 
     @Override
@@ -89,9 +124,10 @@ public class TCPProvider implements DistributionProvider {
                                  EndpointDescription endpoint)
         throws IntentUnsatisfiedException {
         try {
-            URI address = new URI(endpoint.getId());
+            String endpointId = endpoint.getId();
+            URI address = new URI(endpointId);
             int timeout = new EndpointPropertiesParser(endpoint).getTimeoutMillis();
-            InvocationHandler handler = new TcpInvocationHandler(cl, address.getHost(), address.getPort(), timeout);
+            InvocationHandler handler = new TcpInvocationHandler(cl, address.getHost(), address.getPort(), endpointId, timeout);
             return Proxy.newProxyInstance(cl, interfaces, handler);
         } catch (Exception e) {
             throw new RuntimeException(e);

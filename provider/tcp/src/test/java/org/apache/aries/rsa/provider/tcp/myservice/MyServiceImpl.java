@@ -30,6 +30,17 @@ import org.osgi.util.promise.Promise;
 
 public class MyServiceImpl implements MyService {
 
+    String id;
+
+    public MyServiceImpl(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
     @Override
     public String echo(String msg) {
         return msg;

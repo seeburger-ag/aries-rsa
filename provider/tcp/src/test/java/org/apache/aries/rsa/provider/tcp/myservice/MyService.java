@@ -27,6 +27,9 @@ import javax.jws.Oneway;
 import org.osgi.util.promise.Promise;
 
 public interface MyService {
+
+    String getId();
+
     String echo(String msg);
 
     void callSlow(int delay);

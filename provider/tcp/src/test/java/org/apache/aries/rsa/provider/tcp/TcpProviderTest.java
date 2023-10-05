@@ -27,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,26 +64,45 @@ public class TcpProviderTest {
     private static final int TIMEOUT = 200;
     private static final int NUM_CALLS = 100;
     private static MyService myServiceProxy;
+    private static MyService myServiceProxy2;
     private static Endpoint ep;
+    private static Endpoint ep2;
+
+    protected static int getFreePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.setReuseAddress(true); // enables quickly reopening socket on same port
+            socket.bind(new InetSocketAddress(0)); // zero finds a free port
+            return socket.getLocalPort();
+        }
+    }
 
     @BeforeClass
-    public static void createServerAndProxy() {
+    public static void createServerAndProxy() throws IOException {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
         TCPProvider provider = new TCPProvider();
         Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
+        int port = getFreePort();
         props.put("aries.rsa.hostname", "localhost");
+        props.put("aries.rsa.port", port);
         props.put("aries.rsa.numThreads", "10");
         props.put("osgi.basic.timeout", TIMEOUT);
-        MyService myService = new MyServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
-        ep = provider.exportService(myService, bc, props, exportedInterfaces);
+        props.put("aries.rsa.id", "service1");
+        ep = provider.exportService(new MyServiceImpl("service1"), bc, props, exportedInterfaces);
+        props.put("aries.rsa.id", "service2");
+        ep2 = provider.exportService(new MyServiceImpl("service2"), bc, props, exportedInterfaces);
         Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
-        System.out.println(ep.description());
-        myServiceProxy = (MyService)provider.importEndpoint(MyService.class.getClassLoader(),
-                                                            bc,
-                                                            exportedInterfaces,
-                                                            ep.description());
+        myServiceProxy = (MyService)provider.importEndpoint(
+            MyService.class.getClassLoader(),
+            bc,
+            exportedInterfaces,
+            ep.description());
+        myServiceProxy2 = (MyService)provider.importEndpoint(
+            MyService.class.getClassLoader(),
+            bc,
+            exportedInterfaces,
+            ep2.description());
     }
 
     @Test
@@ -111,6 +132,15 @@ public class TcpProviderTest {
     @Test
     public void testCall() {
         myServiceProxy.echo("test");
+    }
+
+    @Test
+    public void testCallSharedPort() {
+        Object port1 = ep.description().getProperties().get("aries.rsa.port");
+        Object port2 = ep2.description().getProperties().get("aries.rsa.port");
+        assertEquals(port1, port2);
+        assertEquals("service1", myServiceProxy.getId());
+        assertEquals("service2", myServiceProxy2.getId());
     }
 
     @Test

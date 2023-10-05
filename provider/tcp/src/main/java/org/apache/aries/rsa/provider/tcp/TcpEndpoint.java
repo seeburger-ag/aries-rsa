@@ -20,29 +20,42 @@ package org.apache.aries.rsa.provider.tcp;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 public class TcpEndpoint implements Endpoint {
-    private EndpointDescription epd;
-    private TCPServer tcpServer;
 
-    public TcpEndpoint(Object service, Map<String, Object> effectiveProperties) {
+    private String hostname;
+    private int port;
+    private int numThreads;
+    private Consumer<TcpEndpoint> closeCallback;
+
+    private EndpointDescription epd;
+
+    public TcpEndpoint(Object service, Map<String, Object> effectiveProperties, Consumer<TcpEndpoint> closeCallback) {
         if (service == null) {
             throw new NullPointerException("Service must not be null");
         }
         if (effectiveProperties.get(TCPProvider.TCP_CONFIG_TYPE + ".id") != null) {
             throw new IllegalArgumentException("For the tck .. Just to please you!");
         }
+        this.closeCallback = closeCallback;
         EndpointPropertiesParser parser = new EndpointPropertiesParser(effectiveProperties);
-        Integer port = parser.getPort();
-        String hostName = parser.getHostname();
-        int numThreads =  parser.getNumThreads();
-        tcpServer = new TCPServer(service, hostName, port, numThreads);
-        String endpointId = String.format("tcp://%s:%s/%s", hostName, tcpServer.getPort(), parser.getId());
+        port = parser.getPort(); // this may initially be 0 for dynamic port
+        hostname = parser.getHostname();
+        numThreads =  parser.getNumThreads();
+        updateEndpointDescription(effectiveProperties);
+    }
+
+    private void updateEndpointDescription(Map<String, Object> effectiveProperties) {
+        effectiveProperties = new HashMap<>(effectiveProperties);
+        EndpointPropertiesParser parser = new EndpointPropertiesParser(effectiveProperties);
+        String endpointId = String.format("tcp://%s:%s/%s", hostname, port, parser.getId());
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
         effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic", "osgi.async"));
@@ -52,6 +65,25 @@ public class TcpEndpoint implements Endpoint {
         this.epd = new EndpointDescription(effectiveProperties);
     }
 
+    public String getHostname() {
+        return hostname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        if (this.port == port)
+            return;
+        this.port = port;
+        updateEndpointDescription(epd.getProperties());
+    }
+
+    public int getNumThreads() {
+        return numThreads;
+    }
+
     @Override
     public EndpointDescription description() {
         return this.epd;
@@ -59,6 +91,7 @@ public class TcpEndpoint implements Endpoint {
 
     @Override
     public void close() throws IOException {
-        tcpServer.close();
+        if (closeCallback != null)
+            closeCallback.accept(this);
     }
 }
