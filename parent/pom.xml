@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8' ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor
     license agreements. See the NOTICE file distributed with this work for additional
     information regarding copyright ownership. The ASF licenses this file to
@@ -27,15 +27,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <baseline>1.9.0</baseline>
         <baseline.skip>true</baseline.skip>
-        <zookeeper.version>3.4.10</zookeeper.version>
+        <zookeeper.version>3.7.2</zookeeper.version>
         <rsa.version>1.0.0</rsa.version>
         <slf4j.version>1.7.14</slf4j.version>
         <log4j.version>1.2.6</log4j.version>
         <hawtdispatch.version>1.21</hawtdispatch.version>
         <hawtbuf.version>1.11</hawtbuf.version>
         <exam.version>4.10.0</exam.version>
-        <cxf.resources.base.path />
-        <cxf.checkstyle.extension />
+        <cxf.resources.base.path/>
+        <cxf.checkstyle.extension/>
     </properties>
 
     <scm>
