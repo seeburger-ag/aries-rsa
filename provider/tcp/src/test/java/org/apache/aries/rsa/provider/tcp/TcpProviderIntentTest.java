@@ -39,14 +39,14 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 public class TcpProviderIntentTest {
     Class<?>[] exportedInterfaces;
     private BundleContext bc;
-    private TCPProvider provider;
+    private TcpProvider provider;
     private MyService myService;
 
     @Before
     public void before() {
         exportedInterfaces = new Class[] {MyService.class};
         bc = EasyMock.mock(BundleContext.class);
-        provider = new TCPProvider();
+        provider = new TcpProvider();
         myService = new MyServiceImpl(null);
     }
 

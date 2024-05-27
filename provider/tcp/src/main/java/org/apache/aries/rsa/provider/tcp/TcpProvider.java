@@ -46,15 +46,15 @@ import org.slf4j.LoggerFactory;
 @Component(property = { //
         RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.basic",
         RemoteConstants.REMOTE_INTENTS_SUPPORTED + "=osgi.async",
-        RemoteConstants.REMOTE_CONFIGS_SUPPORTED + "=" + TCPProvider.TCP_CONFIG_TYPE //
+        RemoteConstants.REMOTE_CONFIGS_SUPPORTED + "=" + TcpProvider.TCP_CONFIG_TYPE //
 })
-public class TCPProvider implements DistributionProvider {
+public class TcpProvider implements DistributionProvider {
     static final String TCP_CONFIG_TYPE = "aries.tcp";
     private static final String[] SUPPORTED_INTENTS = { "osgi.basic", "osgi.async"};
 
-    private Logger logger = LoggerFactory.getLogger(TCPProvider.class);
+    private Logger logger = LoggerFactory.getLogger(TcpProvider.class);
 
-    private Map<Integer, TCPServer> servers = new HashMap<>();
+    private Map<Integer, TcpServer> servers = new HashMap<>();
 
     @Override
     public String[] getSupportedTypes() {
@@ -91,9 +91,9 @@ public class TCPProvider implements DistributionProvider {
     private synchronized void addServer(Object serviceO, TcpEndpoint endpoint) {
         // port 0 means dynamically allocated free port
         int port = endpoint.getPort();
-        TCPServer server = servers.get(port);
+        TcpServer server = servers.get(port);
         if (server == null || port == 0) {
-            server = new TCPServer(endpoint.getHostname(), port, endpoint.getNumThreads());
+            server = new TcpServer(endpoint.getHostname(), port, endpoint.getNumThreads());
             port = server.getPort(); // get the real port
             endpoint.setPort(port);
             servers.put(port, server);
@@ -106,7 +106,7 @@ public class TCPProvider implements DistributionProvider {
     }
 
     private synchronized void removeServer(TcpEndpoint endpoint) {
-        TCPServer server = servers.get(endpoint.getPort());
+        TcpServer server = servers.get(endpoint.getPort());
         server.removeService(endpoint.description().getId());
         if (server.isEmpty()) {
             try {

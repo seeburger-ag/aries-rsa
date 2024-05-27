@@ -35,14 +35,14 @@ import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TCPServer implements Closeable, Runnable {
-    private Logger log = LoggerFactory.getLogger(TCPServer.class);
+public class TcpServer implements Closeable, Runnable {
+    private Logger log = LoggerFactory.getLogger(TcpServer.class);
     private ServerSocket serverSocket;
     private Map<String, MethodInvoker> invokers = new ConcurrentHashMap<>();
     private volatile boolean running;
     private ThreadPoolExecutor executor;
 
-    public TCPServer(String localip, int port, int numThreads) {
+    public TcpServer(String localip, int port, int numThreads) {
         try {
             this.serverSocket = new ServerSocket(port);
             this.serverSocket.setReuseAddress(true);

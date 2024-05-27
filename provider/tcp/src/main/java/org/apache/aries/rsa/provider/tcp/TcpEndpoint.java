@@ -41,7 +41,7 @@ public class TcpEndpoint implements Endpoint {
         if (service == null) {
             throw new NullPointerException("Service must not be null");
         }
-        if (effectiveProperties.get(TCPProvider.TCP_CONFIG_TYPE + ".id") != null) {
+        if (effectiveProperties.get(TcpProvider.TCP_CONFIG_TYPE + ".id") != null) {
             throw new IllegalArgumentException("For the tck .. Just to please you!");
         }
         this.closeCallback = closeCallback;
@@ -61,7 +61,7 @@ public class TcpEndpoint implements Endpoint {
         effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic", "osgi.async"));
 
         // tck tests for one such property ... so we provide it
-        effectiveProperties.put(TCPProvider.TCP_CONFIG_TYPE + ".id", endpointId);
+        effectiveProperties.put(TcpProvider.TCP_CONFIG_TYPE + ".id", endpointId);
         this.epd = new EndpointDescription(effectiveProperties);
     }
 

@@ -79,7 +79,7 @@ public class TcpProviderTest {
     @BeforeClass
     public static void createServerAndProxy() throws IOException {
         Class<?>[] exportedInterfaces = new Class[] {MyService.class};
-        TCPProvider provider = new TCPProvider();
+        TcpProvider provider = new TcpProvider();
         Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         int port = getFreePort();

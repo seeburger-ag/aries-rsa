@@ -56,7 +56,7 @@ public class TcpProviderPrimitiveTest {
     @BeforeClass
     public static void createServerAndProxy() {
         Class<?>[] exportedInterfaces = new Class[] {PrimitiveService.class};
-        TCPProvider provider = new TCPProvider();
+        TcpProvider provider = new TcpProvider();
         Map<String, Object> props = new HashMap<>();
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put("aries.rsa.hostname", "localhost");
