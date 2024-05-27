@@ -41,6 +41,13 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The main TCP distribution provider class, which can import remote endpoints
+ * (by creating a local proxy that sends method invocations to the remote
+ * services via a TcpInvocationHandler) and export local services (by adding the
+ * service to a TcpServer that can handle client connections and dispatch the
+ * method invocations to the service instance.)
+ */
 @SuppressWarnings("rawtypes")
 @RSADistributionProvider(configs="aries.tcp")
 @Component(property = { //

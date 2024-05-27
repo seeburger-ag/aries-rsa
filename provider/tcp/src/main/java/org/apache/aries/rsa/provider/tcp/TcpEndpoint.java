@@ -28,6 +28,9 @@ import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
+/**
+ * Contains the details of a TcpProvider's Endpoint (exported service).
+ */
 public class TcpEndpoint implements Endpoint {
 
     private String hostname;

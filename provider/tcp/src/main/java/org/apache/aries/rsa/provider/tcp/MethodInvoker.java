@@ -22,6 +22,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * Reflectively invokes the methods of a service object
+ * given the method name and parameter values.
+ */
 public class MethodInvoker {
 
     private HashMap<Object, Object> primTypes;

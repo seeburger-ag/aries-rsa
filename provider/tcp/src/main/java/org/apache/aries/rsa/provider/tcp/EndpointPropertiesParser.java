@@ -23,6 +23,10 @@ import java.util.UUID;
 
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
+/**
+ * A convenience class for extracting endpoint configuration properties
+ * and defaults.
+ */
 public class EndpointPropertiesParser {
     static final String PORT_KEY = "aries.rsa.port";
     static final String HOSTNAME_KEY = "aries.rsa.hostname";

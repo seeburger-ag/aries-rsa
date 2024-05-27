@@ -35,6 +35,11 @@ import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A server listening on a single TCP port, which accepts connections
+ * and dispatches method invocation requests to one or more MethodInovkers
+ * (according to the target endpoint ID).
+ */
 public class TcpServer implements Closeable, Runnable {
     private Logger log = LoggerFactory.getLogger(TcpServer.class);
     private ServerSocket serverSocket;

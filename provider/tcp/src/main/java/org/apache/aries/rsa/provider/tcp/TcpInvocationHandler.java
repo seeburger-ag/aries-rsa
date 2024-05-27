@@ -41,6 +41,11 @@ import org.osgi.framework.Version;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
+/**
+ * The InvocationHandler backing the client-side service proxy,
+ * which sends the details of the method invocations
+ * over a TCP connection, to be executed by the remote service.
+ */
 public class TcpInvocationHandler implements InvocationHandler {
     private String host;
     private int port;
