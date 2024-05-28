@@ -89,7 +89,7 @@ public class ServiceExportsRepository implements Closeable {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         LOG.debug("Closing registry for RemoteServiceAdmin {}", rsa.getClass().getName());
         for (ServiceReference<?> sref : exportsMap.keySet()) {
             removeService(sref);
@@ -126,7 +126,7 @@ public class ServiceExportsRepository implements Closeable {
         }
     }
 
-    public List<EndpointDescription> getAllEndpoints() {
+    public synchronized List<EndpointDescription> getAllEndpoints() {
         List<EndpointDescription> endpoints = new ArrayList<>();
         for (Collection<ExportRegistrationHolder> exports : exportsMap.values()) {
             for (ExportRegistrationHolder reg : exports) {
