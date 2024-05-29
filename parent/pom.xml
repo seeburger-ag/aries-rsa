@@ -35,14 +35,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <bnd.version>6.4.0</bnd.version>
         <zookeeper.version>3.4.14</zookeeper.version>
-        <rsa.version>1.0.0</rsa.version>
         <slf4j.version>1.7.14</slf4j.version>
-        <log4j.version>1.2.6</log4j.version>
         <hawtdispatch.version>1.22</hawtdispatch.version>
         <hawtbuf.version>1.11</hawtbuf.version>
         <exam.version>4.13.5</exam.version>
-        <cxf.resources.base.path />
-        <cxf.checkstyle.extension />
     </properties>
 
     <dependencies>
