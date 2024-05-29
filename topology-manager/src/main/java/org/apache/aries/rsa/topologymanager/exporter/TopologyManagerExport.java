@@ -21,11 +21,10 @@ package org.apache.aries.rsa.topologymanager.exporter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
@@ -68,8 +67,8 @@ public class TopologyManagerExport implements ServiceListener {
         this.notifier = notifier;
         this.executor = executor;
         this.policy = policy;
-        this.endpointRepo = new HashMap<>();
-        this.toBeExported = new HashSet<>();
+        this.endpointRepo = new ConcurrentHashMap<>();
+        this.toBeExported = Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
     private String getTypeName(ServiceEvent event) {
