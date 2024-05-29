@@ -145,8 +145,8 @@ public class RsaTestBase {
     public static Option logback() {
         return composite(systemProperty("logback.configurationFile").value("src/test/resources/logback.xml"),
                 mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.36"),
-                mavenBundle().groupId("ch.qos.logback").artifactId("logback-core").version("1.0.13"),
-                mavenBundle().groupId("ch.qos.logback").artifactId("logback-classic").version("1.0.13"));
+                mavenBundle().groupId("ch.qos.logback").artifactId("logback-core").version("1.2.13"),
+                mavenBundle().groupId("ch.qos.logback").artifactId("logback-classic").version("1.2.13"));
     }
 
     protected static Option debug() {
