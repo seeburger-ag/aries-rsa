@@ -129,6 +129,7 @@ public class RsaTestBase {
                          systemProperty("aries.rsa.hostname").value("localhost"),
                          mvn("org.osgi", "org.osgi.util.function"),
                          mvn("org.osgi", "org.osgi.util.promise"),
+                         mvn("org.osgi", "org.osgi.service.component"),
                          mvn("org.apache.servicemix.bundles", "org.apache.servicemix.bundles.hamcrest"),
                          mvn("org.awaitility", "awaitility"),
                          mvn("org.apache.felix", "org.apache.felix.eventadmin"),
