@@ -4,7 +4,7 @@ Implements a simple echo service and exposes it using the Aries RSA TCP provider
 
 # Install
 
-Download Apache Karaf 4.0.5
+Download Apache Karaf 4.4.6
 
 ## Service
 Extract to container_a and start. In the shell execute the commands below:
