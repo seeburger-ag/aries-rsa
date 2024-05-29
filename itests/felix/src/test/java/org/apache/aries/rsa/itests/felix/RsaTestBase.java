@@ -112,12 +112,13 @@ public class RsaTestBase {
      * We create our own junit option to also provide hamcrest and Awaitility support
      */
     protected static Option junit() {
-        return composite(systemProperty("pax.exam.invoker").value("junit"),
+        // based on CoreOptions.junitBundles()
+        return composite(
+                systemProperty("pax.exam.invoker").value("junit"),
                 bundle("link:classpath:META-INF/links/org.ops4j.pax.tipi.junit.link"),
                 bundle("link:classpath:META-INF/links/org.ops4j.pax.exam.invoker.junit.link"),
-                mavenBundle().groupId("org.apache.servicemix.bundles")
-                        .artifactId("org.apache.servicemix.bundles.hamcrest").version("1.3_1"),
-                mavenBundle().groupId("org.awaitility").artifactId("awaitility").version("3.1.0"));
+                mvn("org.apache.servicemix.bundles", "org.apache.servicemix.bundles.hamcrest"),
+                mvn("org.awaitility", "awaitility"));
     }
 
     protected static Option rsaCore() {
@@ -130,8 +131,6 @@ public class RsaTestBase {
                          mvn("org.osgi", "org.osgi.util.function"),
                          mvn("org.osgi", "org.osgi.util.promise"),
                          mvn("org.osgi", "org.osgi.service.component"),
-                         mvn("org.apache.servicemix.bundles", "org.apache.servicemix.bundles.hamcrest"),
-                         mvn("org.awaitility", "awaitility"),
                          mvn("org.apache.felix", "org.apache.felix.eventadmin"),
                          mvn("org.apache.felix", "org.apache.felix.configadmin"),
                          mvn("org.apache.felix", "org.apache.felix.scr"),
@@ -144,9 +143,9 @@ public class RsaTestBase {
 
     public static Option logback() {
         return composite(systemProperty("logback.configurationFile").value("src/test/resources/logback.xml"),
-                mavenBundle().groupId("org.slf4j").artifactId("slf4j-api").version("1.7.36"),
-                mavenBundle().groupId("ch.qos.logback").artifactId("logback-core").version("1.2.13"),
-                mavenBundle().groupId("ch.qos.logback").artifactId("logback-classic").version("1.2.13"));
+                mvn("org.slf4j", "slf4j-api"),
+                mvn("ch.qos.logback", "logback-core"),
+                mvn("ch.qos.logback", "logback-classic"));
     }
 
     protected static Option debug() {
