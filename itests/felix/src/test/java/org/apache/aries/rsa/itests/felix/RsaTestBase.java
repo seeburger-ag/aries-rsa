@@ -163,7 +163,16 @@ public class RsaTestBase {
     }
 
     protected static Option rsaDiscoveryZookeeper() {
-        return composite(mvn("org.apache.zookeeper", "zookeeper"),
+        return composite(mvn("io.netty", "netty-handler"),
+                         mvn("io.netty", "netty-buffer"),
+                         mvn("io.netty", "netty-transport"),
+                         mvn("io.netty", "netty-common"),
+                         mvn("io.netty", "netty-resolver"),
+                         mvn("io.netty", "netty-transport-native-unix-common"),
+                         mvn("io.netty", "netty-codec"),
+                         mvn("io.dropwizard.metrics", "metrics-core"),
+                         mvn("org.xerial.snappy", "snappy-java"),
+                         mvn("org.apache.servicemix.bundles", "org.apache.servicemix.bundles.zookeeper"),
                          mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.zookeeper"));
     }
 
@@ -184,9 +193,11 @@ public class RsaTestBase {
     }
 
     protected static Option configZKServer() {
-        return newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server") //
-            .put("clientPort", ZK_PORT) //
-            .asOption();
+        return composite(
+                newConfiguration("org.apache.aries.rsa.discovery.zookeeper.server") //
+                    .put("clientPort", ZK_PORT) //
+                    .asOption(),
+                systemProperty("zookeeper.admin.enableServer").value("false"));
     }
 
     protected static Option configFastBinPort(int port) {

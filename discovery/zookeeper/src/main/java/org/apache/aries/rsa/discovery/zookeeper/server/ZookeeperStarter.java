@@ -82,6 +82,7 @@ public class ZookeeperStarter {
         zkMainThread = new Thread(new Runnable() {
             public void run() {
                 try {
+                    Thread.currentThread().setContextClassLoader(ZookeeperStarter.class.getClassLoader());
                     server.startup();
                 } catch (Throwable e) {
                     LOG.error("Problem running ZooKeeper server.", e);

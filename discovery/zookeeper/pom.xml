@@ -43,8 +43,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.zookeeper</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun.jdmk</groupId>
@@ -75,6 +75,14 @@
                     <artifactId>netty</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.aries.rsa.discovery</groupId>
