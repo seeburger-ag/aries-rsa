@@ -28,8 +28,10 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.server.ZooTrace;
+import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.namespace.service.ServiceNamespace;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -48,6 +50,10 @@ import org.slf4j.LoggerFactory;
         configurationPid = ClientManager.DISCOVERY_ZOOKEEPER_ID, //
         configurationPolicy = ConfigurationPolicy.REQUIRE //
 )
+@Capability( // add Provide-Capability to manifest that matches auto-generated Require-Capability
+        namespace = ServiceNamespace.SERVICE_NAMESPACE,
+        effective = "active",
+        attribute = "objectClass=org.apache.zookeeper.ZooKeeper")
 public class ClientManager implements Watcher {
     public static final String DISCOVERY_ZOOKEEPER_ID = "org.apache.aries.rsa.discovery.zookeeper";
     private static final Logger LOG = LoggerFactory.getLogger(ClientManager.class);
