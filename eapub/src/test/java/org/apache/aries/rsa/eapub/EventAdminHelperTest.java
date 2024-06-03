@@ -85,8 +85,8 @@ public class EventAdminHelperTest {
                 Assert.assertEquals(Long.MAX_VALUE, event.getProperty("service.remote.id"));
                 Assert.assertEquals(uuid, event.getProperty("service.remote.uuid"));
                 Assert.assertEquals("foo://bar", event.getProperty("service.remote.uri"));
-                Assert.assertTrue(Arrays.equals(interfaces.toArray(new String[] {}),
-                                                (String[]) event.getProperty("objectClass")));
+                Assert.assertArrayEquals(interfaces.toArray(new String[]{}),
+                        (String[]) event.getProperty("objectClass"));
 
                 Assert.assertNotNull(event.getProperty("timestamp"));
 
@@ -157,8 +157,8 @@ public class EventAdminHelperTest {
                 Assert.assertEquals(new Version("0"), event.getProperty("bundle.version"));
                 Assert.assertSame(exportException, event.getProperty("cause"));
                 Assert.assertEquals(epd, event.getProperty("export.registration"));
-                Assert.assertTrue(Arrays.equals(new String[] {"org.foo.Bar"},
-                                                (String[]) event.getProperty("objectClass")));
+                Assert.assertArrayEquals(new String[]{"org.foo.Bar"},
+                        (String[]) event.getProperty("objectClass"));
 
                 RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) event.getProperty("event");
                 Assert.assertSame(exportException, rsae.getException());

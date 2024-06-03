@@ -18,16 +18,14 @@
  */
 package org.apache.aries.rsa.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 import org.osgi.framework.Constants;
+
+import static org.junit.Assert.*;
 
 public class OverlayPropertiesTest {
 
@@ -57,8 +55,8 @@ public class OverlayPropertiesTest {
         assertEquals("achanged", sProps.get("aaa"));
         assertEquals("bval", sProps.get("bbb"));
         assertEquals("CVAL", sProps.get("CCC"));
-        assertTrue("Should not be possible to override the objectClass property",
-                Arrays.equals(new String[] {"X"}, (Object[]) sProps.get(Constants.OBJECTCLASS)));
+        assertArrayEquals("Should not be possible to override the objectClass property",
+                new String[]{"X"}, (Object[]) sProps.get(Constants.OBJECTCLASS));
         assertEquals("Should not be possible to override the service.id property",
                 17L, sProps.get(Constants.SERVICE_ID));
     }

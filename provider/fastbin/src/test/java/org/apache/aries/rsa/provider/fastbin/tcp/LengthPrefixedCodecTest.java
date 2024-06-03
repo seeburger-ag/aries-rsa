@@ -37,7 +37,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class LengthPrefixedCodecTest {
     private ReadableByteChannel readableByteChannel = createMock(ReadableByteChannel.class);
@@ -62,12 +62,12 @@ public class LengthPrefixedCodecTest {
 
     @Test
     public void testFull() throws Exception {
-        assertEquals(false, codec.full());
+        assertFalse(codec.full());
     }
 
     @Test
     public void testEmpty() throws Exception {
-        assertEquals(true, codec.empty());
+        assertTrue(codec.empty());
     }
 
     @Test
@@ -87,8 +87,8 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.write(value);
 
         assertEquals(BufferState.WAS_EMPTY, state);
-        assertEquals(false, codec.full());
-        assertEquals(false, codec.empty());
+        assertFalse(codec.full());
+        assertFalse(codec.empty());
         assertEquals(0L, codec.getWriteCounter());
     }
 
@@ -101,8 +101,8 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.write(value2);
 
         assertEquals(BufferState.NOT_EMPTY, state);
-        assertEquals(false, codec.full());
-        assertEquals(false, codec.empty());
+        assertFalse(codec.full());
+        assertFalse(codec.empty());
         assertEquals(0L, codec.getWriteCounter());
     }
 
@@ -117,8 +117,8 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.flush();
 
         assertEquals(BufferState.EMPTY, state);
-        assertEquals(false, codec.full());
-        assertEquals(true, codec.empty());
+        assertFalse(codec.full());
+        assertTrue(codec.empty());
         assertEquals(bytesThatWillBeWritten, codec.getWriteCounter());
 
         assertEquals(BufferState.WAS_EMPTY, codec.flush());
@@ -135,8 +135,8 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.flush();
 
         assertEquals(BufferState.NOT_EMPTY, state);
-        assertEquals(false, codec.full());
-        assertEquals(false, codec.empty());
+        assertFalse(codec.full());
+        assertFalse(codec.empty());
         assertEquals(bytesThatWillBeWritten, codec.getWriteCounter());
     }
 

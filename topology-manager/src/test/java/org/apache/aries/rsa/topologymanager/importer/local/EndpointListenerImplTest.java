@@ -73,15 +73,15 @@ public class EndpointListenerImplTest extends Assert {
                     break;
                 case 4:
                     assertEquals("adding second entry failed", 2, scope.size());
-                    assertNotNull(scope.contains("(a=b)"));
-                    assertNotNull(scope.contains("(c=d)"));
+                    assertTrue(scope.contains("(a=b)"));
+                    assertTrue(scope.contains("(c=d)"));
                     break;
                 case 5:
                     assertEquals("remove failed", 1, scope.size());
                     assertEquals("(c=d)", scope.get(0));
                     break;
                 default:
-                    assertTrue("This should not happen!", false);
+                    fail("This should not happen!");
                 }
                 return null;
             }

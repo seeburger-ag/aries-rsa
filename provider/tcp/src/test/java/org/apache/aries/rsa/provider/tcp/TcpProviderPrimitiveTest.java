@@ -104,7 +104,7 @@ public class TcpProviderPrimitiveTest {
 
     @Test
     public void testBoolean() {
-        Assert.assertEquals(true, myServiceProxy.callBoolean(true));
+        Assert.assertTrue(myServiceProxy.callBoolean(true));
     }
 
     @Test

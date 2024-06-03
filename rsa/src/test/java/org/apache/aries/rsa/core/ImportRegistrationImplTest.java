@@ -18,16 +18,14 @@
  */
 package org.apache.aries.rsa.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
+
+import static org.junit.Assert.*;
 
 public class ImportRegistrationImplTest {
 
@@ -81,7 +79,7 @@ public class ImportRegistrationImplTest {
 
         try {
             i2.setImportedServiceRegistration(sr);
-            assertTrue("An exception should be thrown here !", false);
+            fail("An exception should be thrown here !");
         } catch (IllegalStateException e) {
             // must be thrown here
         }

@@ -20,6 +20,7 @@ package org.apache.aries.rsa.core;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
+import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -35,10 +37,9 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-import junit.framework.TestCase;
+public class ClientServiceFactoryTest {
 
-public class ClientServiceFactoryTest extends TestCase {
-
+    @Test
     @SuppressWarnings("rawtypes")
     public void testGetService() throws ClassNotFoundException {
         final Object myTestProxyObject = new Object();
@@ -64,7 +65,7 @@ public class ClientServiceFactoryTest extends TestCase {
 
     /**
      * Creating dummy class as I was not able to really mock it
-     * @param myTestProxyObject
+     * @param proxy
      * @return
      */
     private DistributionProvider mockDistributionProvider(final Object proxy) {
