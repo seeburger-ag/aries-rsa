@@ -156,7 +156,7 @@ public class ZookeeperEndpointRepository {
         } catch (NodeExistsException nee) {
             // this sometimes happens after a ZooKeeper node dies and the ephemeral node
             // that belonged to the old session was not yet deleted. We need to make our
-            // session the owner of the node so it won't get deleted automatically -
+            // session the owner of the node, so it won't get deleted automatically -
             // we do this by deleting and recreating it ourselves.
             LOG.info("node for endpoint already exists, recreating: {}", fullPath);
             try {

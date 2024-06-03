@@ -170,7 +170,7 @@ public final class IntrospectionSupport {
                 return false;
             }
 
-            // If the type is null or it matches the needed type, just use the
+            // If the type is null, or it matches the needed type, just use the
             // value directly
             if (value == null || value.getClass() == setter.getParameterTypes()[0]) {
                 setter.invoke(target, value);

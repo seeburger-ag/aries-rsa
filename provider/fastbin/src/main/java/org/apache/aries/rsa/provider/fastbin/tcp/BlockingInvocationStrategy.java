@@ -116,7 +116,7 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
         } catch(Exception e) {
 
             LOGGER.warn("Initial Encoding response for method {} failed. Retrying", method, e);
-            // we failed to encode the response.. reposition and write that error.
+            // we failed to encode the response... reposition and write that error.
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, method.getReturnType(), null, new RemoteException(e.toString()), responseStream);

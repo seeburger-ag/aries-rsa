@@ -2,7 +2,7 @@
 
 Allows transparent remoting using Java Serialization over TCP. The fastbin provider uses a pool of nio tcp channels to transport data.
 It can use either java object serialization or protobuf to serialize parameters and return values.
-Sync remote calls have a default timeout of 5 minutes. For long running operations async calls should be used. This is indicated by having either
+Sync remote calls have a default timeout of 5 minutes. For long-running operations async calls should be used. This is indicated by having either
 
  * `Future`
  * `CompletableFuture`
@@ -12,7 +12,7 @@ as the return value of the remote method. The client will receive a proxy of tha
 
 ## Streaming Data
 
-When large amount of data (e.g. files) need to be transferred remotely it is not advisable to use large byte arrays as this will allocate a lot of memory. Instead the fastbin transport allows to
+When large amount of data (e.g. files) need to be transferred remotely it is not advisable to use large byte arrays as this will allocate a lot of memory. Instead, the fastbin transport allows to
 use `InputStream` and `OutputStream` as parameter or return value. When a remote method contains such a parameter, the stream is replaced with a proxy implementation that pipes data remotely from/to the original stream.
 
 ## Transport configuration

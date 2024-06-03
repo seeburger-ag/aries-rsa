@@ -196,7 +196,7 @@ public class TcpTransport implements Transport {
         try {
             if (socketState.isConnecting()) {
                 trace("connecting...");
-                // this allows the connect to complete..
+                // this allows the connect to complete...
                 readSource = Dispatch.createSource(channel, SelectionKey.OP_CONNECT, dispatchQueue);
                 readSource.setEventHandler(new Runnable() {
                     public void run() {
@@ -381,7 +381,7 @@ public class TcpTransport implements Transport {
         }
         try {
             long initial = codec.getReadCounter();
-            // Only process up to 64k worth of data at a time so we can give
+            // Only process up to 64k worth of data at a time, so we can give
             // other connections a chance to process their requests.
             while( codec.getReadCounter() - initial < 1024 * 64 ) {
                 Object command = codec.read();
@@ -486,7 +486,7 @@ public class TcpTransport implements Transport {
 
     /**
      * Sets whether 'localhost' or the actual local host name should be used to
-     * make local connections. On some operating systems such as Macs its not
+     * make local connections. On some operating systems such as Macs it's not
      * possible to connect as the local host name so localhost is better.
      */
     public void setUseLocalHost(boolean useLocalHost) {
@@ -588,7 +588,7 @@ public class TcpTransport implements Transport {
                     if( reduction!=0 ) {
                         if( dst.remaining() == 0 ) {
                             // we need to suspend the read now until we get
-                            // a new allowance..
+                            // a new allowance...
                             readSource.suspend();
                             read_suspended = true;
                         }
@@ -621,7 +621,7 @@ public class TcpTransport implements Transport {
                     if( reduction!=0 ) {
                         if( src.remaining() == 0 ) {
                             // we need to suspend the read now until we get
-                            // a new allowance..
+                            // a new allowance...
                             write_suspended = true;
                             suspendWrite();
                         }

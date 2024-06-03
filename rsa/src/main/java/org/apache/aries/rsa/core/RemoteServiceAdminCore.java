@@ -99,7 +99,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         createServiceListener();
     }
 
-    // listen for exported services being unregistered so we can close the export
+    // listen for exported services being unregistered, so we can close the export
     protected void createServiceListener() {
         this.exportedServiceListener = new ServiceListener() {
             public void serviceChanged(ServiceEvent event) {

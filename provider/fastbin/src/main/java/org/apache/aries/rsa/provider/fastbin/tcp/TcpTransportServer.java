@@ -146,7 +146,7 @@ public class TcpTransportServer implements TransportServer {
     protected String resolveHostName() {
         String result;
         if (bindAddress.getAddress().isAnyLocalAddress()) {
-            // make it more human readable and useful, an alternative to 0.0.0.0
+            // make it more human-readable and useful, an alternative to 0.0.0.0
             try {
                 result = InetAddress.getLocalHost().getCanonicalHostName();
             } catch (UnknownHostException e) {
@@ -191,7 +191,7 @@ public class TcpTransportServer implements TransportServer {
     protected final void handleSocket(SocketChannel socket) throws Exception {
         HashMap<String, Object> options = new HashMap<>();
 //      options.put("maxInactivityDuration", Long.valueOf(maxInactivityDuration));
-//      options.put("maxInactivityDurationInitalDelay", Long.valueOf(maxInactivityDurationInitalDelay));
+//      options.put("maxInactivityDurationInitialDelay", Long.valueOf(maxInactivityDurationInitialDelay));
 //      options.put("trace", Boolean.valueOf(trace));
 //      options.put("soTimeout", Integer.valueOf(soTimeout));
 //      options.put("socketBufferSize", Integer.valueOf(socketBufferSize));

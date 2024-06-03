@@ -132,7 +132,7 @@ public class LengthPrefixedCodec implements ProtocolCodec {
     public Object read() throws IOException {
         while(true) {
             if( read_buffer.remaining()!=0 ) {
-                // keep reading from the channel until we fill the read buffer..
+                // keep reading from the channel until we fill the read buffer
                 int count = read_channel.read(read_buffer);
                 if (count == -1) {
                     throw new EOFException("Peer disconnected");
@@ -141,7 +141,7 @@ public class LengthPrefixedCodec implements ProtocolCodec {
                 }
                 read_counter += count;
             } else {
-                //read buffer is full.. interpret it..
+                //read buffer is full... interpret it
                 read_buffer.flip();
 
                 if( read_buffer.capacity() == 4 ) {
@@ -154,18 +154,18 @@ public class LengthPrefixedCodec implements ProtocolCodec {
                         throw new ProtocolException("Packet length was declared as " + size + " but at most " + MAX_PACKET_SIZE + "is allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes");
                     }
                     if( size == 4 ) {
-                        // weird.. empty frame.. guess it could happen.
+                        // weird... empty frame... guess it could happen.
                         Buffer rc = new Buffer(read_buffer);
                         read_buffer = ByteBuffer.allocate(4);
                         return rc;
                     } else {
-                        // Resize to the right size.. this resumes the reads..
+                        // Resize to the right size... this resumes the reads
                         ByteBuffer next = ByteBuffer.allocate(size);
                         next.putInt(size);
                         read_buffer = next;
                     }
                 } else {
-                    // finish loading the rest of the buffer..
+                    // finish loading the rest of the buffer
                     Buffer rc = new Buffer(read_buffer);
                     read_buffer = ByteBuffer.allocate(4);
                     return rc;

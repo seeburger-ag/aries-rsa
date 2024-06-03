@@ -81,7 +81,7 @@ public class TopologyManagerExport implements ServiceListener {
         }
     }
 
-    // track all service registrations so we can export any services that are configured to be exported
+    // track all service registrations, so we can export any services that are configured to be exported
     // ServiceListener events may be delivered out of order, concurrently, re-entrant, etc. (see spec or docs)
     public void serviceChanged(ServiceEvent event) {
         ServiceReference<?> sref = event.getServiceReference();

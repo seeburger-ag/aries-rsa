@@ -104,7 +104,7 @@ public class LocalDiscovery implements BundleListener {
 
     /**
      * If the tracker was removed or the scope was changed this doesn't require
-     * additional callbacks on the tracker. Its the responsibility of the tracker
+     * additional callbacks on the tracker. It's the responsibility of the tracker
      * itself to clean up any orphans. See Remote Service Admin spec 122.6.3
      * @param endpointListener
      */

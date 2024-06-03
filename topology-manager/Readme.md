@@ -11,7 +11,7 @@ with matching remote Endpoints.
 ## ExportPolicy
 
 This behaviour can be customized by exposing a service implementing the [ExportPolicy interface](https://github.com/apache/aries-rsa/blob/master/spi/src/main/java/org/apache/aries/rsa/spi/ExportPolicy.java).
-It can be used to implement system wide governance rules.
+It can be used to implement system-wide governance rules.
 
 Some examples what could be done:
 

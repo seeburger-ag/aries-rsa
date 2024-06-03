@@ -120,7 +120,7 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
         } catch(Exception e) {
 
             LOGGER.warn("Initial Encoding response for method {} failed. Retrying", method, e);
-            // we failed to encode the response.. reposition and write that error.
+            // we failed to encode the response... reposition and write that error
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, null, null, new ServiceException(e.toString()), responseStream);
@@ -175,7 +175,7 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
                 try {
                     serializationStrategy.encodeResponse(loader, resultType, value, error, responseStream);
                 } catch (Exception e) {
-                    // we failed to encode the response.. reposition and write that error.
+                    // we failed to encode the response... reposition and write that error
                     try {
                         responseStream.position(pos);
                         serializationStrategy.encodeResponse(loader, resultType, value, new ServiceException(e.toString()), responseStream);

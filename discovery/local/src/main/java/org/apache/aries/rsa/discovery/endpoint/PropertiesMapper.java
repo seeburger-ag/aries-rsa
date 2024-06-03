@@ -267,7 +267,7 @@ class PropertiesMapper {
                     || val instanceof Float
                     || val instanceof Integer
                     || val instanceof Short) {
-                // various numbers..   maybe "val instanceof Number"?
+                // various numbers...   maybe "val instanceof Number"?
                 setValueType(propEl, val);
                 propEl.setValue(val.toString());
             } else {

@@ -23,7 +23,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * Interface to encode and decode commands in and out of a a non blocking channel.
+ * Interface to encode and decode commands in and out of a non-blocking channel.
  *
  */
 public interface ProtocolCodec {
@@ -83,7 +83,7 @@ public interface ProtocolCodec {
     BufferState flush() throws IOException;
 
     /**
-     * @return true if the codec will no accept any more writes.
+     * @return true if the codec will not accept any more writes.
      */
     boolean full();
 

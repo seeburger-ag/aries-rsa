@@ -36,7 +36,7 @@ public interface ExportPolicy {
      * Allows to supply additional properties for a service that are then
      * given to RemoteServiceAdmin. The service will be exported
      * if the original service or the additional properties contain the
-     * non empty property service.exported.interfaces.
+     * non-empty property service.exported.interfaces.
      *
      * @param sref service to export
      * @return additional properties for exported Service (must not be null)

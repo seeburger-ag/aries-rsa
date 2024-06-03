@@ -158,7 +158,7 @@ public class RemoteServiceAdminCoreTest {
 
         assertEquals(1, rsaCore.getImportedEndpoints().size());
 
-        // lets import the same endpoint once more -> should get a copy of the ImportRegistration
+        // let's import the same endpoint once more -> should get a copy of the ImportRegistration
         ImportRegistration ireg2 = rsaCore.importService(endpoint2);
         assertNotNull(ireg2);
         assertEquals(2, rsaCore.getImportedEndpoints().size());
@@ -201,7 +201,7 @@ public class RemoteServiceAdminCoreTest {
         assertNotNull(ireg);
         assertEquals(1, rsaCore.getImportedEndpoints().size());
 
-        // lets import the same endpoint once more -> should get a copy of the ImportRegistration
+        // let's import the same endpoint once more -> should get a copy of the ImportRegistration
         ImportRegistration ireg2 = rsaCore.importService(endpoint);
         assertNotNull(ireg2);
         assertEquals(2, rsaCore.getImportedEndpoints().size());

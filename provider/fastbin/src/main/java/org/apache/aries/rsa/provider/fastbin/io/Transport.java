@@ -30,7 +30,7 @@ public interface Transport extends Service, Dispatched {
     boolean full();
 
     /**
-     * A one way asynchronous send of a command.  Only sent if the the transport is not full.
+     * A one way asynchronous send of a command.  Only sent if the transport is not full.
      *
      * @param command
      * @return true if the command was accepted.

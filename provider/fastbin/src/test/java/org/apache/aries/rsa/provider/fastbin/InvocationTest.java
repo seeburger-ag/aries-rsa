@@ -85,7 +85,7 @@ public class InvocationTest {
             assertEquals("Hello Fabric!", hello.hello("Fabric"));
             assertEquals("Hello World!", hello.helloworld());
 
-            // Verification the we can pick the right overloaded method even if using a mixure
+            // Verification that we can pick the right overloaded method even if using a mix
             // of primitives / objects and array dimensions.
             assertEquals('a', hello.mix(0));
             assertEquals('b', hello.mix(new int[]{0}));

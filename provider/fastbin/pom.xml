@@ -50,13 +50,13 @@
             <groupId>org.fusesource.hawtbuf</groupId>
             <artifactId>hawtbuf</artifactId>
         </dependency>
-        <!-- this is only needed you you want to use the ProtobufSerializationStrategy -->
+        <!-- this is only needed if you want to use the ProtobufSerializationStrategy -->
         <dependency>
             <groupId>org.fusesource.hawtbuf</groupId>
             <artifactId>hawtbuf-proto</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- this is only needed you you want to use the Promise for remote services -->
+        <!-- this is only needed if you want to use the Promise for remote services -->
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.util.promise</artifactId>

@@ -34,7 +34,7 @@ public interface Service {
     /**
      * Starts the service.  Executes the onComplete runnable once the service has fully started up.
      *
-     * @param onComplete my be set to null if not interested in a callback.
+     * @param onComplete may be set to null if not interested in a callback.
      */
     void start(Runnable onComplete) throws Exception;
 
@@ -47,7 +47,7 @@ public interface Service {
     /**
      * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
      *
-     * @param onComplete my be set to null if not interested in a callback.
+     * @param onComplete may be set to null if not interested in a callback.
      */
     void stop(Runnable onComplete);
 

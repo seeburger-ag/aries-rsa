@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A server listening on a single TCP port, which accepts connections
- * and dispatches method invocation requests to one or more MethodInovkers
+ * and dispatches method invocation requests to one or more MethodInvokers
  * (according to the target endpoint ID).
  */
 public class TcpServer implements Closeable, Runnable {

@@ -31,7 +31,7 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 public interface TransportServer extends Service {
 
     /**
-     * Registers an @see TransportAcceptListener which is notified of accepted
+     * Registers a {@link TransportAcceptListener} which is notified of accepted
      * channels.
      *
      * @param acceptListener
