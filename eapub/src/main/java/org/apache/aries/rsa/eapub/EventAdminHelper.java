@@ -92,7 +92,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         try {
             refs = bctx.getAllServiceReferences(EventAdmin.class.getName(), null);
         } catch (InvalidSyntaxException e) {
-            LOG.error("Failed to get EventAdmin: " + e.getMessage(), e);
+            LOG.error("Failed to get EventAdmin: {}", e.getMessage(), e);
         }
 
         if (refs != null) {

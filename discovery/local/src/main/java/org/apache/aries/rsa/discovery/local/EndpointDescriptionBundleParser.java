@@ -51,7 +51,7 @@ public final class EndpointDescriptionBundleParser {
             try {
                 elements.addAll(parser.readEndpoints(resourceURL.openStream()));
             } catch (Exception ex) {
-                LOG.warn("Problem parsing: " + resourceURL, ex);
+                LOG.warn("Problem parsing: {}", resourceURL, ex);
             }
         }
         return elements;

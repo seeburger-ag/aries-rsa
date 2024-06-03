@@ -165,7 +165,7 @@ class PropertiesMapper {
             return null;
         }
         if (!"String".equals(type)) {
-            LOG.warn("Embedded XML must be of type String, found: " + type);
+            LOG.warn("Embedded XML must be of type String, found: {}", type);
             return null;
         }
         Node xmlContent = (Node)el.getAny();
@@ -225,7 +225,7 @@ class PropertiesMapper {
                 return ctor.newInstance(value);
             }
         } catch (Exception e) {
-            LOG.warn("Could not create Endpoint Property of type " + type + " and value " + value);
+            LOG.warn("Could not create Endpoint Property of type {} and value {}", type, value);
             return null;
         }
     }

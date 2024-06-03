@@ -52,7 +52,7 @@ public class ZookeeperStarter {
             QuorumPeerConfig peerConfig = parseConfig(config, context);
             startFromConfig(peerConfig);
         } catch (Exception th) {
-            LOG.warn("Problem applying configuration update: " + config, th);
+            LOG.warn("Problem applying configuration update: {}", config, th);
         }
     }
 

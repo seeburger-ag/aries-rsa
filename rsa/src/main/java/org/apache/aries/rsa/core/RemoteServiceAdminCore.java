@@ -228,7 +228,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             final List<String> interfaceNames,
             final ServiceReference<?> serviceReference,
             final Map<String, Object> serviceProperties) {
-        LOG.info("interfaces selected for export: " + interfaceNames);
+        LOG.info("interfaces selected for export: {}", interfaceNames);
 
         try {
             checkPermission(new EndpointPermission("*", EndpointPermission.EXPORT));
@@ -497,7 +497,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             imReg.setImportedServiceRegistration(csfReg);
         } catch (Exception ex) {
             // Only logging at debug level as this might be written to the log at the TopologyManager
-            LOG.debug("Can not proxy service with interfaces " + Arrays.toString(interfaceNames) + ": " + ex.getMessage(), ex);
+            LOG.debug("Can not proxy service with interfaces {}: {}",
+                Arrays.toString(interfaceNames), ex.getMessage(), ex);
             imReg.setException(ex);
         }
         return imReg;
@@ -619,7 +620,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     public void close() {
-        LOG.info("Closing " + this.getClass().getSimpleName());
+        LOG.info("Closing {}", this.getClass().getSimpleName());
         closeImportRegistrations();
         if (exportedServiceListener != null) {
             bctx.removeServiceListener(exportedServiceListener);
@@ -639,8 +640,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             if (org.osgi.framework.Constants.SERVICE_ID.toLowerCase().equals(lowerKey)
                 || org.osgi.framework.Constants.OBJECTCLASS.toLowerCase().equals(lowerKey)) {
                 // objectClass and service.id must not be overwritten
-                LOG.info("exportService called with additional properties map that contained illegal key: "
-                    + key + ", the key is ignored");
+                LOG.info("exportService called with additional properties map that contained illegal key: {}," +
+                    " the key is ignored", key);
             } else {
                 String origKey = keysLowerCase.get(lowerKey);
                 if (origKey != null) {

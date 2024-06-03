@@ -108,7 +108,7 @@ public class TcpTransport implements Transport {
                     if (onCompleted != null) {
                         onCompleted.run();
                     }
-                    LOG.error("start should not be called from state: " + _serviceState);
+                    LOG.error("start should not be called from state: {}", _serviceState);
                 }
             }
         });
@@ -137,7 +137,7 @@ public class TcpTransport implements Transport {
                     if (onCompleted != null) {
                         onCompleted.run();
                     }
-                    LOG.error("stop should not be called from state: " + _serviceState);
+                    LOG.error("stop should not be called from state: {}", _serviceState);
                 }
             }
         });
@@ -497,7 +497,7 @@ public class TcpTransport implements Transport {
         if( LOG.isTraceEnabled() ) {
             final String label = dispatchQueue.getLabel();
             if( label !=null ) {
-                LOG.trace(label +" | "+message);
+                LOG.trace("{} | {}", label, message);
             } else {
                 LOG.trace(message);
             }

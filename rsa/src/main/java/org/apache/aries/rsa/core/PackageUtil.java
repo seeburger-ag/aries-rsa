@@ -50,8 +50,8 @@ public class PackageUtil {
             try {
                 Bundle b = pa.getBundle(iClass);
                 if (b == null) {
-                    LOG.info("Unable to find interface version for interface " + iClass.getName()
-                            + ". Falling back to 0.0.0");
+                    LOG.info("Unable to find interface version for interface {}. Falling back to 0.0.0",
+                        iClass.getName());
                     return "0.0.0";
                 }
                 LOG.debug("Interface source bundle: {}", b.getSymbolicName());
@@ -79,8 +79,7 @@ public class PackageUtil {
             LOG.error("Was unable to obtain the package admin service -> can't resolve interface versions");
         }
 
-        LOG.info("Unable to find interface version for interface " + iClass.getName()
-            + ". Falling back to 0.0.0");
+        LOG.info("Unable to find interface version for interface {}. Falling back to 0.0.0", iClass.getName());
         return "0.0.0";
     }
 }

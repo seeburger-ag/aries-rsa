@@ -105,7 +105,7 @@ public class ClientManager implements Watcher {
 
     /* Callback for ZooKeeper */
     public void process(WatchedEvent event) {
-        LOG.debug("Got ZooKeeper event " + event);
+        LOG.debug("Got ZooKeeper event {}", event);
 
         if (event.getState() == KeeperState.SyncConnected) {
             LOG.info("Connection to ZooKeeper established. Publishing Zookeeper service");
