@@ -48,7 +48,7 @@ public class EndpointListenerImplTest extends Assert {
         // expect Listener registration
         EasyMock.expect(bc.registerService(EasyMock.aryEq(ifAr),
                                            EasyMock.anyObject(),
-                                           (Dictionary)EasyMock.anyObject())).andReturn(sr).atLeastOnce();
+                                           EasyMock.anyObject())).andReturn(sr).atLeastOnce();
 
         sr.setProperties(EasyMock.anyObject());
 

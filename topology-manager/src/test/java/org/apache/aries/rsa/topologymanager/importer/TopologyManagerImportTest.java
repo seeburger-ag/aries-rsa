@@ -20,7 +20,6 @@ package org.apache.aries.rsa.topologymanager.importer;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.Dictionary;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -86,7 +85,7 @@ public class TopologyManagerImportTest {
         BundleContext bc = c.createMock(BundleContext.class);
         EasyMock.expect(bc.registerService(EasyMock.eq(RemoteServiceAdminListener.class),
                                            EasyMock.anyObject(RemoteServiceAdminListener.class),
-                                           (Dictionary)EasyMock.anyObject())).andReturn(sreg).anyTimes();
+                                           EasyMock.anyObject())).andReturn(sreg).anyTimes();
         return bc;
     }
 }

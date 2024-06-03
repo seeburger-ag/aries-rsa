@@ -22,6 +22,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 
+import java.util.Objects;
+
 @SuppressWarnings("rawtypes")
 public class ExportReferenceImpl implements ExportReference {
 
@@ -63,10 +65,8 @@ public class ExportReferenceImpl implements ExportReference {
             return false;
         }
         ExportReferenceImpl other = (ExportReferenceImpl) obj;
-        boolean ed = endpoint == null ? other.endpoint == null
-                : endpoint.equals(other.endpoint);
-        boolean sr = serviceReference == null ? other.serviceReference == null
-                : serviceReference.equals(other.serviceReference);
+        boolean ed = Objects.equals(endpoint, other.endpoint);
+        boolean sr = Objects.equals(serviceReference, other.serviceReference);
         return ed && sr;
     }
 

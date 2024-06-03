@@ -18,7 +18,6 @@
  */
 package org.apache.aries.rsa.core;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

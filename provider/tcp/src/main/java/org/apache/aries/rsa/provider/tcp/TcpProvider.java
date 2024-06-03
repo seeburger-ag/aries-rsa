@@ -68,6 +68,7 @@ public class TcpProvider implements DistributionProvider {
         return new String[] {TCP_CONFIG_TYPE};
     }
 
+    @SafeVarargs
     private static <T> Set<T> union(Collection<T>... collections) {
         Set<T> union = new HashSet<>();
         for (Collection<T> c : collections)

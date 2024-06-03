@@ -21,6 +21,7 @@ package org.apache.aries.rsa.discovery.zookeeper;
 import static org.osgi.service.remoteserviceadmin.EndpointEventListener.ENDPOINT_LISTENER_SCOPE;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.aries.rsa.util.StringPlus;
@@ -86,12 +87,7 @@ public class Interest {
         if (getClass() != obj.getClass())
             return false;
         Interest other = (Interest) obj;
-        if (sref == null) {
-            if (other.sref != null)
-                return false;
-        } else if (!sref.equals(other.sref))
-            return false;
-        return true;
+        return Objects.equals(sref, other.sref);
     }
 
     @Override

@@ -115,7 +115,7 @@ public class ZookeeperStarter {
         Properties props = new Properties();
         for (String key : dict.keySet()) {
             Object value = dict.get(key);
-            if (!(value instanceof String && "".equals(value))) {
+            if (!"".equals(value)) {
                 props.put(key, value);
             }
         }

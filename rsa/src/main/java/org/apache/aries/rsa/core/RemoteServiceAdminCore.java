@@ -312,12 +312,10 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             // non-interface classes (which are valid OBJECTCLASS values, even if discouraged)
             interfaces.addAll(providedInterfaces);
         } else {
-            List<String> providedList = providedInterfaces;
-            List<String> allowedList = exportedInterfaces;
-            if (!providedList.containsAll(allowedList)) {
+            if (!providedInterfaces.containsAll(exportedInterfaces)) {
                 throw new IllegalArgumentException(String.format(
                     "exported interfaces %s must be a subset of the service's registered types %s",
-                    allowedList, providedList));
+                        exportedInterfaces, providedInterfaces));
             }
 
             interfaces.addAll(exportedInterfaces);

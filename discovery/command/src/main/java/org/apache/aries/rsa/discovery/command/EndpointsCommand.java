@@ -111,16 +111,13 @@ public class EndpointsCommand implements EndpointEventListener {
             break;
 
         case EndpointEvent.REMOVED:
+        case EndpointEvent.MODIFIED_ENDMATCH:
             endpoints.remove(endpoint);
             break;
 
         case EndpointEvent.MODIFIED:
             endpoints.remove(endpoint);
             endpoints.add(endpoint);
-            break;
-
-        case EndpointEvent.MODIFIED_ENDMATCH:
-            endpoints.remove(endpoint);
             break;
         }
     }

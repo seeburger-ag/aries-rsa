@@ -45,7 +45,7 @@ public class PropertyValidatorTest {
         dic.put("key", "value");
 
         assertThat(toMap(dic).size(), is(1));
-        assertThat(toMap(dic).keySet().contains("key"), is(true));
+        assertThat(toMap(dic).containsKey("key"), is(true));
         assertThat(toMap(dic).get("key"), Is.is("value"));
 
         assertThat(toMap(null), notNullValue());

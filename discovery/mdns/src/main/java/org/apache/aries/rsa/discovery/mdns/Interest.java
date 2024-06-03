@@ -104,7 +104,7 @@ public class Interest {
 			filter = currentScope.get();
         } else if(alreadyAdded) {
         	if(LOG.isDebugEnabled()) {
-        		LOG.debug("Listener {} is no longer interested in endpoint {}. It will be {}", id, ed, alreadyAdded ? "MODIFIED" : "ADDED");
+        		LOG.debug("Listener {} is no longer interested in endpoint {}. It will be {}", id, ed, "MODIFIED");
         	}
         	EndpointDescription previous = added.remove(ed.getId());
         	event = new EndpointEvent(MODIFIED_ENDMATCH, ed);

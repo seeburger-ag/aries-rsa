@@ -130,7 +130,7 @@ public class StreamInvocationTest {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         testService.intoStream(result, "Test");
         Thread.sleep(100);
-        assertEquals("Test", new String(result.toByteArray()));
+        assertEquals("Test", result.toString());
 
     }
 

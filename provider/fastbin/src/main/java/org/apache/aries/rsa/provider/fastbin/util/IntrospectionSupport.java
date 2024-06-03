@@ -57,7 +57,7 @@ public final class IntrospectionSupport {
             String name = method.getName();
             Class<?> type = method.getReturnType();
             Class<?>[] params = method.getParameterTypes();
-            if ((name.startsWith("is") || name.startsWith("get")) && params.length == 0 && type != null && isSettableType(type)) {
+            if ((name.startsWith("is") || name.startsWith("get")) && params.length == 0 && isSettableType(type)) {
 
                 try {
 
@@ -311,7 +311,7 @@ public final class IntrospectionSupport {
             return buffer.toString();
         } catch (Throwable e) {
             e.printStackTrace();
-            return "Could not toString: "+e.toString();
+            return "Could not toString: " + e;
         }
     }
 

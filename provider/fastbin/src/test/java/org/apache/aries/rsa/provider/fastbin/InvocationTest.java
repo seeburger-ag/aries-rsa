@@ -426,8 +426,8 @@ public class InvocationTest {
             double latency_avg = ((latency_sum * 1.0d) / requests.get()) / MILLIS_IN_A_NANO;
             double request_rate = ((requests.get() * 1.0d) / (end - start)) * SECONDS_IN_A_NANO;
 
-            System.err.println(String.format("Requests/Second: %,.2f", request_rate));
-            System.err.println(String.format("Average request latency: %,.2f ms", latency_avg));
+            System.err.printf("Requests/Second: %,.2f%n", request_rate);
+            System.err.printf("Average request latency: %,.2f ms%n", latency_avg);
             System.err.println("Error Ratio: " + failures.get() + " / " + requests.get());
         }
         finally {
@@ -552,8 +552,8 @@ public class InvocationTest {
             double latency_avg = ((latency_sum * 1.0d) / requests.get()) / MILLIS_IN_A_NANO;
             double request_rate = ((requests.get() * 1.0d) / (end - start)) * SECONDS_IN_A_NANO;
 
-            System.err.println(String.format("Requests/Second: %,.2f", request_rate));
-            System.err.println(String.format("Average request latency: %,.2f ms", latency_avg));
+            System.err.printf("Requests/Second: %,.2f%n", request_rate);
+            System.err.printf("Average request latency: %,.2f ms%n", latency_avg);
             System.err.println("Error Ratio: " + failures.get() + " / " + requests.get());
         }
         finally {

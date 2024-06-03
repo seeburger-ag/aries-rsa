@@ -113,9 +113,8 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
         int pos = responseStream.position();
         try {
 
-            Object value = null;
             Throwable error = (Throwable)target;
-            serializationStrategy.encodeResponse(loader, null, value, error, responseStream);
+            serializationStrategy.encodeResponse(loader, null, null, error, responseStream);
 
         } catch(Exception e) {
 

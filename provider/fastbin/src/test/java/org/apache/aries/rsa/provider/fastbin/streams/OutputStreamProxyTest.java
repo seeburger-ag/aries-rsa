@@ -48,7 +48,7 @@ public class OutputStreamProxyTest {
         assertEquals(0, out.size());
         fixture.close();
         assertEquals(10, out.size());
-        assertEquals("xxxxxxxxxx", new String(out.toByteArray()));
+        assertEquals("xxxxxxxxxx", out.toString());
     }
 
     @Test
@@ -70,8 +70,8 @@ public class OutputStreamProxyTest {
         fixture.close();
         assertEquals(10 + charSize, out.size());
         byte[] byteArray = out.toByteArray();
-        for (int i = 0; i < byteArray.length; i++) {
-            assertEquals('x', byteArray[i]);
+        for (byte b : byteArray) {
+            assertEquals('x', b);
         }
     }
 

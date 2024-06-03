@@ -99,11 +99,8 @@ public class TopologyManagerExport implements ServiceListener {
             modified(sref);
             break;
 
-        case ServiceEvent.MODIFIED_ENDMATCH:
-            remove(sref);
-            break;
-
         case ServiceEvent.UNREGISTERING:
+        case ServiceEvent.MODIFIED_ENDMATCH:
             remove(sref);
             break;
         }

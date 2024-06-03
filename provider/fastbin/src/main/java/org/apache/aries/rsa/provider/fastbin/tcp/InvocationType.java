@@ -29,11 +29,7 @@ public enum InvocationType {
 
         @Override
         protected boolean applies(Method method) {
-            Class<?> returnType = method.getReturnType();
-            if(returnType != null) {
-                return Future.class.isAssignableFrom(returnType);
-            }
-            return false;
+            return Future.class.isAssignableFrom(method.getReturnType());
         }
 
     }, ASYNC_CALLBACK(new AsyncInvocationStrategy()){
@@ -48,13 +44,7 @@ public enum InvocationType {
 
         @Override
         protected boolean applies(Method method) {
-            if(!promiseAvailable)
-                return false;
-            Class<?> returnType = method.getReturnType();
-            if(returnType != null) {
-                return Promise.class.isAssignableFrom(returnType);
-            }
-            return false;
+            return promiseAvailable && Promise.class.isAssignableFrom(method.getReturnType());
         }
 
     }, BLOCKING(new BlockingInvocationStrategy()){
@@ -65,7 +55,7 @@ public enum InvocationType {
         }
     };
 
-    private InvocationStrategy strategy;
+    private final InvocationStrategy strategy;
     /**
      * the dependency to OSGi promise is optional. This flag
      * tracks if the class is visible or not
