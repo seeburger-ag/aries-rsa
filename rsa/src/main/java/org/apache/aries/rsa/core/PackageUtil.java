@@ -18,65 +18,51 @@
  */
 package org.apache.aries.rsa.core;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.packageadmin.ExportedPackage;
-import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.framework.*;
+import org.osgi.framework.namespace.PackageNamespace;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("deprecation")
+import java.util.List;
+import java.util.function.Function;
+
+/**
+ * Utility methods for obtaining package metadata.
+ */
 public class PackageUtil {
 
     public static final Logger LOG = LoggerFactory.getLogger(PackageUtil.class);
-    private BundleContext bc;
 
-    public PackageUtil(BundleContext bc) {
-        this.bc = bc;
-    }
+    protected static Function<Class<?>, Bundle> BUNDLE_FINDER = FrameworkUtil::getBundle;
 
     /**
-     * Tries to retrieve the version of iClass via the PackageAdmin.
+     * Tries to retrieve the version of iClass via its bundle exported packages metadata.
      *
      * @param iClass tThe interface for which the version should be found
      * @return the version of the interface or "0.0.0" if no version information could be found or an error
      *         occurred during the retrieval
      */
-    public String getVersion(Class<?> iClass) {
-        ServiceReference<PackageAdmin> paRef = bc.getServiceReference(PackageAdmin.class);
-        if (paRef != null) {
-            PackageAdmin pa = bc.getService(paRef);
-            try {
-                Bundle b = pa.getBundle(iClass);
-                if (b == null) {
-                    LOG.info("Unable to find interface version for interface {}. Falling back to 0.0.0",
-                        iClass.getName());
-                    return "0.0.0";
-                }
-                LOG.debug("Interface source bundle: {}", b.getSymbolicName());
-
-                ExportedPackage[] ep = pa.getExportedPackages(b);
-                LOG.debug("Exported Packages of the source bundle: {}", (Object)ep);
-
-                String pack = iClass.getPackage().getName();
-                LOG.debug("Looking for Package: {}", pack);
-                if (ep != null) {
-                    for (ExportedPackage p : ep) {
-                        if (p != null
-                            && pack.equals(p.getName())) {
-                            LOG.debug("found package -> Version: {}", p.getVersion());
-                            return p.getVersion().toString();
-                        }
+    public static String getVersion(Class<?> iClass) {
+        Bundle bundle = BUNDLE_FINDER.apply(iClass);
+        if (bundle != null) {
+            BundleWiring wiring = bundle.adapt(BundleWiring.class);
+            List<BundleCapability> capabilities = wiring.getCapabilities(PackageNamespace.PACKAGE_NAMESPACE);
+            LOG.debug("Interface {} found in bundle {} with exports {}", iClass.getName(), bundle.getSymbolicName(), capabilities);
+            if (capabilities != null) {
+                String iPackage = iClass.getPackage().getName();
+                LOG.debug("Looking for exported package: {}", iPackage);
+                for (BundleCapability cap : capabilities) {
+                    String capPackage = (String)cap.getAttributes().get(PackageNamespace.PACKAGE_NAMESPACE);
+                    if (iPackage.equals(capPackage)) {
+                        Version version = (Version)cap.getAttributes().get(PackageNamespace.CAPABILITY_VERSION_ATTRIBUTE);
+                        LOG.debug("found package {} version {}", iPackage, version);
+                        if (version != null)
+                            return version.toString();
                     }
                 }
-            } finally {
-                if (pa != null) {
-                    bc.ungetService(paRef);
-                }
             }
-        } else {
-            LOG.error("Was unable to obtain the package admin service -> can't resolve interface versions");
         }
 
         LOG.info("Unable to find interface version for interface {}. Falling back to 0.0.0", iClass.getName());

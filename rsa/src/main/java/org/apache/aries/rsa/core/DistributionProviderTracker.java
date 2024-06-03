@@ -54,13 +54,11 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         }
         LOG.debug("RemoteServiceAdmin Implementation is starting up");
         BundleContext apiContext = getAPIContext();
-        PackageUtil packageUtil = new PackageUtil(context);
         EventProducer eventProducer = new EventProducer(context);
         RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context,
                                                                     apiContext,
                                                                     eventProducer,
-                                                                    provider,
-                                                                    packageUtil);
+                                                                    provider);
         RemoteServiceAdminFactory rsaf = new RemoteServiceAdminFactory(rsaCore);
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(REMOTE_INTENTS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_INTENTS_SUPPORTED));

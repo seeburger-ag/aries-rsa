@@ -71,19 +71,16 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private ServiceListener exportedServiceListener;
     private DistributionProvider provider;
     private BundleContext apictx;
-    private PackageUtil packageUtil;
     private CloseHandler closeHandler;
 
     public RemoteServiceAdminCore(BundleContext context,
             BundleContext apiContext,
             EventProducer eventProducer,
-            DistributionProvider provider,
-            PackageUtil packageUtil) {
+            DistributionProvider provider) {
         this.bctx = context;
         this.apictx = apiContext;
         this.eventProducer = eventProducer;
         this.provider = provider;
-        this.packageUtil = packageUtil;
         this.closeHandler = new CloseHandler() {
             public void onClose(ExportRegistration exportReg) {
                 removeExportRegistration(exportReg);
@@ -682,7 +679,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
         props.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, frameworkUUID);
         for (Class<?> iface : ifaces) {
             String pkg = iface.getPackage().getName();
-            props.put(RemoteConstants.ENDPOINT_PACKAGE_VERSION_ + pkg, packageUtil.getVersion(iface));
+            String version = PackageUtil.getVersion(iface);
+            props.put(RemoteConstants.ENDPOINT_PACKAGE_VERSION_ + pkg, version);
         }
         return props;
     }

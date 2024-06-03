@@ -55,6 +55,9 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
+import org.osgi.framework.namespace.PackageNamespace;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
@@ -80,22 +83,36 @@ public class RemoteServiceAdminCoreTest {
         expect(rsaContext.getProperty(Constants.FRAMEWORK_UUID)).andReturn("some_uuid1").anyTimes();
 
         expect(rsaContext.getBundle()).andReturn(b).anyTimes();
+
+        mockExportingBundle(c, "mybundle", String.class, "1.2.3");
+
         apiContext = c.createMock(BundleContext.class);
         provider = new DummyProvider();
-        PackageUtil packageUtil = new PackageUtil(rsaContext) {
-            @Override
-            public String getVersion(Class<?> iClass) {
-                return "1.0.0";
-            }
-        };
         EventProducer eventProducer = new EventProducer(rsaContext) {
             protected void notifyListeners(org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent rsae) {
                 // skip
             }
         };
-        rsaCore = new RemoteServiceAdminCore(rsaContext, apiContext, eventProducer, provider, packageUtil) {
+        rsaCore = new RemoteServiceAdminCore(rsaContext, apiContext, eventProducer, provider) {
             protected void createServiceListener() {}
         };
+    }
+
+    private void mockExportingBundle(IMocksControl c, String symbolicName, Class<String> iClass, String version) {
+        Map<String, Object> capAttributes = new HashMap<>();
+        capAttributes.put(PackageNamespace.PACKAGE_NAMESPACE, iClass.getPackage().getName());
+        capAttributes.put(PackageNamespace.CAPABILITY_VERSION_ATTRIBUTE, new Version(version));
+
+        BundleCapability cap = c.createMock(BundleCapability.class);
+        expect(cap.getAttributes()).andStubReturn(capAttributes);
+
+        BundleWiring wiring = c.createMock(BundleWiring.class);
+        expect(wiring.getCapabilities(PackageNamespace.PACKAGE_NAMESPACE)).andStubReturn(Arrays.asList(cap));
+
+        Bundle b = c.createMock(Bundle.class);
+        expect(b.getSymbolicName()).andStubReturn(symbolicName);
+        expect(b.adapt(BundleWiring.class)).andStubReturn(wiring);
+        PackageUtil.BUNDLE_FINDER = cls -> b;
     }
 
     @Test
@@ -318,7 +335,7 @@ public class RemoteServiceAdminCoreTest {
         assertEquals("some_uuid1", props.get(RemoteConstants.ENDPOINT_FRAMEWORK_UUID));
         assertEquals(Arrays.asList("java.lang.String"),
             Arrays.asList((Object[]) props.get(org.osgi.framework.Constants.OBJECTCLASS)));
-        assertEquals("1.0.0", props.get("endpoint.package.version.java.lang"));
+        assertEquals("1.2.3", props.get("endpoint.package.version.java.lang"));
         c.verify();
     }
 
