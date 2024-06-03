@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
-            <artifactId>org.apache.karaf.shell.table</artifactId>
+            <artifactId>org.apache.karaf.shell.core</artifactId>
             <version>4.4.6</version>
             <scope>provided</scope>
         </dependency>
