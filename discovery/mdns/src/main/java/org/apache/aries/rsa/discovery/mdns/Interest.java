@@ -78,8 +78,9 @@ public class Interest {
     			event = new EndpointEvent(REMOVED, ed);
     			filter = oldScope.orElse(null);
     		}
-    		
-    		notifyListener(event, filter);
+
+			if (event != null)
+    			notifyListener(event, filter);
     		
     		return remove;
     	});
