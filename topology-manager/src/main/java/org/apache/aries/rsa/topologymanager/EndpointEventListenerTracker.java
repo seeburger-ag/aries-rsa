@@ -18,7 +18,6 @@
  */
 package org.apache.aries.rsa.topologymanager;
 
-import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerAdapter;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
 import org.osgi.framework.BundleContext;
@@ -27,11 +26,10 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.util.tracker.ServiceTracker;
 
 @SuppressWarnings({ "deprecation", "rawtypes", "unchecked" })
-final class EndpointEventListenerTracker extends ServiceTracker {
+final class EndpointEventListenerTracker extends ServiceTracker<EndpointEventListener, EndpointEventListener> {
     private TopologyManagerExport tmExport;
 
     EndpointEventListenerTracker(BundleContext context, TopologyManagerExport tmExport) {
@@ -40,8 +38,7 @@ final class EndpointEventListenerTracker extends ServiceTracker {
     }
 
     private static Filter getFilter() {
-        String filterSt = String.format("(|(objectClass=%s)(objectClass=%s))", EndpointEventListener.class.getName(),
-                EndpointListener.class.getName());
+        String filterSt = String.format("(objectClass=%s)", EndpointEventListener.class.getName());
         try {
             return FrameworkUtil.createFilter(filterSt);
         } catch (InvalidSyntaxException e) {
@@ -50,29 +47,21 @@ final class EndpointEventListenerTracker extends ServiceTracker {
     }
 
     @Override
-    public Object addingService(ServiceReference reference) {
-        Object listener = super.addingService(reference);
-        EndpointEventListener actualListener = getListener(listener);
-        this.tmExport.addEPListener(actualListener, EndpointListenerNotifier.filtersFromEEL(reference));
-        return actualListener;
-    }
-
-    private EndpointEventListener getListener(Object listener) {
-        return (listener instanceof EndpointEventListener)
-                ? (EndpointEventListener) listener
-                : new EndpointListenerAdapter((EndpointListener) listener);
+    public EndpointEventListener addingService(ServiceReference reference) {
+        EndpointEventListener listener = super.addingService(reference);
+        this.tmExport.addEPListener(listener, EndpointListenerNotifier.filtersFromEEL(reference));
+        return listener;
     }
 
     @Override
-    public void modifiedService(ServiceReference reference, Object listener) {
-        EndpointEventListener actualListener = getListener(listener);
-        this.tmExport.addEPListener(actualListener, EndpointListenerNotifier.filtersFromEEL(reference));
-        super.modifiedService(reference, actualListener);
+    public void modifiedService(ServiceReference reference, EndpointEventListener listener) {
+        this.tmExport.addEPListener(listener, EndpointListenerNotifier.filtersFromEEL(reference));
+        super.modifiedService(reference, listener);
     }
 
     @Override
-    public void removedService(ServiceReference reference, Object listener) {
-        this.tmExport.removeEPListener((EndpointEventListener) listener);
+    public void removedService(ServiceReference reference, EndpointEventListener listener) {
+        this.tmExport.removeEPListener(listener);
         super.removedService(reference, listener);
     }
 

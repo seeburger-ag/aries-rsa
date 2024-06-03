@@ -35,7 +35,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +48,6 @@ public class EndpointListenerNotifier {
 
     public EndpointListenerNotifier() {
         this.listeners = new ConcurrentHashMap<>();
-    }
-
-    public static Set<Filter> filtersFromEL(ServiceReference<EndpointListener> sref) {
-        List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
-        return getFilterSet(scopes);
     }
 
     public static Set<Filter> filtersFromEEL(ServiceReference<EndpointEventListener> sref) {

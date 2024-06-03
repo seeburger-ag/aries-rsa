@@ -27,10 +27,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,26 +40,7 @@ import org.slf4j.LoggerFactory;
  * the interest in the local system.
  */
 @SuppressWarnings("deprecation")
-public class EndpointListenerManager implements ServiceInterestListener{
-
-    private final class EndpointListenerAdapter implements EndpointListener, EndpointEventListener {
-        @Override
-        public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-            EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, endpoint);
-            endpointListener.endpointChanged(event, matchedFilter);
-        }
-
-        @Override
-        public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
-            endpointListener.endpointChanged(event, matchedFilter);
-        }
-
-        @Override
-        public void endpointChanged(EndpointEvent event, String filter) {
-            endpointListener.endpointChanged(event, filter);
-        }
-    }
+public class EndpointListenerManager implements ServiceInterestListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(EndpointListenerManager.class);
 
@@ -87,10 +65,8 @@ public class EndpointListenerManager implements ServiceInterestListener{
     }
 
     public void start() {
-        EndpointListener endpointListenerAdapter = new EndpointListenerAdapter();
-        String[] ifAr = {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
-        serviceRegistration = bctx.registerService(ifAr, endpointListenerAdapter, getEELProperties());
-
+        String[] ifAr = { EndpointEventListener.class.getName() };
+        serviceRegistration = bctx.registerService(ifAr, endpointListener, getEELProperties());
         bctx.registerService(ListenerHook.class, listenerHook, null);
         bctx.registerService(FindHook.class, findHook, null);
     }

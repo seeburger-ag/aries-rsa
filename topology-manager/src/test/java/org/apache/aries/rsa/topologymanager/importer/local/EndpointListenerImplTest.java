@@ -22,7 +22,6 @@ import java.util.Dictionary;
 import java.util.List;
 
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
-import org.apache.aries.rsa.topologymanager.importer.local.EndpointListenerManager;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.easymock.IMocksControl;
@@ -31,7 +30,6 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 
 @SuppressWarnings("deprecation")
 public class EndpointListenerImplTest extends Assert {
@@ -46,7 +44,7 @@ public class EndpointListenerImplTest extends Assert {
         TopologyManagerImport tm = c.createMock(TopologyManagerImport.class);
         ServiceRegistration sr = c.createMock(ServiceRegistration.class);
 
-        String[] ifAr = {EndpointListener.class.getName(), EndpointEventListener.class.getName()};
+        String[] ifAr = { EndpointEventListener.class.getName() };
         // expect Listener registration
         EasyMock.expect(bc.registerService(EasyMock.aryEq(ifAr),
                                            EasyMock.anyObject(),
@@ -60,7 +58,7 @@ public class EndpointListenerImplTest extends Assert {
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
                 Dictionary props = (Dictionary)args[0];
-                List<String> scope = (List<String>)props.get(EndpointListener.ENDPOINT_LISTENER_SCOPE);
+                List<String> scope = (List<String>)props.get(EndpointEventListener.ENDPOINT_LISTENER_SCOPE);
                 switch (testCase) {
                 case 1:
                     assertEquals(1, scope.size());

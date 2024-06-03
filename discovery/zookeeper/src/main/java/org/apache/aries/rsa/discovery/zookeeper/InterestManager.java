@@ -32,7 +32,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,20 +81,7 @@ public class InterestManager {
         interests.remove(new Interest(sref));
     }
 
-    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-    public void bindEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
-        addInterest(sref, epListener);
-    }
-
-    public void updatedEndpointListener(ServiceReference<EndpointListener> sref, EndpointListener epListener) {
-        addInterest(sref, epListener);
-    }
-
-    public void unbindEndpointListener(ServiceReference<EndpointListener> sref) {
-        interests.remove(new Interest(sref));
-    }
-
-    private void addInterest(ServiceReference<?> sref, Object epListener) {
+    private void addInterest(ServiceReference<?> sref, EndpointEventListener epListener) {
         if (isOurOwnEndpointEventListener(sref)) {
             LOG.debug("Skipping our own EndpointEventListener");
             return;

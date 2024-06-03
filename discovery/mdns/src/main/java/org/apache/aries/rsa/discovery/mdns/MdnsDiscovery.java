@@ -51,7 +51,6 @@ import org.osgi.service.jaxrs.client.SseEventSourceFactory;
 import org.osgi.service.jaxrs.runtime.JaxrsServiceRuntime;
 import org.osgi.service.jaxrs.runtime.dto.RuntimeDTO;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,19 +96,6 @@ public class MdnsDiscovery {
 
     public void unbindEndpointEventListener(Map<String, Object> props) {
         interestManager.unbindEndpointEventListener(props);
-    }
-
-    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-    public void bindEndpointListener(EndpointListener epListener, Map<String, Object> props) {
-        interestManager.bindEndpointListener(epListener, props);
-    }
-
-    public void updatedEndpointListener(Map<String, Object> props) {
-        interestManager.updatedEndpointListener(props);
-    }
-
-    public void unbindEndpointListener(Map<String, Object> props) {
-    	interestManager.unbindEndpointListener(props);
     }
 
     @Reference(policy = ReferencePolicy.DYNAMIC)

@@ -30,19 +30,17 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
 /**
- * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener}
+ * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener}
  * and publishes changes to the {@link ZookeeperEndpointRepository}
  */
 @SuppressWarnings("deprecation")
 @Component(service = {}, immediate = true)
-public class PublishingEndpointListener implements EndpointEventListener, EndpointListener {
+public class PublishingEndpointListener implements EndpointEventListener {
 
     private ServiceRegistration<?> listenerReg;
 
@@ -52,7 +50,7 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     @Activate
     public void start(BundleContext bctx) {
         String uuid = bctx.getProperty(Constants.FRAMEWORK_UUID);
-        String[] ifAr = {EndpointEventListener.class.getName(), EndpointListener.class.getName()};
+        String[] ifAr = { EndpointEventListener.class.getName() };
         Dictionary<String, String> props = serviceProperties(uuid);
         listenerReg = bctx.registerService(ifAr, this, props);
     }
@@ -65,16 +63,6 @@ public class PublishingEndpointListener implements EndpointEventListener, Endpoi
     @Override
     public void endpointChanged(EndpointEvent event, String filter) {
         repository.endpointChanged(event);
-    }
-
-    @Override
-    public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        endpointChanged(new EndpointEvent(EndpointEvent.ADDED, endpoint), matchedFilter);
-    }
-
-    @Override
-    public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-        endpointChanged(new EndpointEvent(EndpointEvent.REMOVED, endpoint), matchedFilter);
     }
 
     private Dictionary<String, String> serviceProperties(String uuid) {

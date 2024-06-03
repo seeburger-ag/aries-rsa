@@ -39,7 +39,6 @@ import org.apache.aries.rsa.spi.EndpointDescriptionParser;
 import org.osgi.service.jaxrs.client.SseEventSourceFactory;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,23 +162,11 @@ public class InterestManager {
         interests.remove(getServiceId(props));
     }
 
-    public void bindEndpointListener(EndpointListener epListener, Map<String, Object> props) {
-        addInterest(epListener, props);
-    }
-
-    public void updatedEndpointListener(Map<String, Object> props) {
-    	updatedInterest(props);
-    }
-
-    public void unbindEndpointListener(Map<String, Object> props) {
-    	interests.remove(getServiceId(props));
-    }
-
 	private Long getServiceId(Map<String, Object> props) {
 		return (Long) props.get("service.id");
 	}
 
-    private void addInterest(Object epListener, Map<String, Object> props) {
+    private void addInterest(EndpointEventListener epListener, Map<String, Object> props) {
     	
     	Long id = getServiceId(props);
     	

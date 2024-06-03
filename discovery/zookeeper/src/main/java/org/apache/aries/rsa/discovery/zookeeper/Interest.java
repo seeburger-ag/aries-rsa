@@ -28,7 +28,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +37,13 @@ public class Interest {
 
     private final ServiceReference<?> sref;
     private final List<String> scopes;
-    private final Object epListener;
+    private final EndpointEventListener epListener;
 
     public Interest(ServiceReference<?> sref) {
         this(sref, null);
     }
 
-    public Interest(ServiceReference<?> sref, Object epListener) {
+    public Interest(ServiceReference<?> sref, EndpointEventListener epListener) {
         this.sref = sref;
         this.scopes = StringPlus.normalize(sref.getProperty(ENDPOINT_LISTENER_SCOPE));
         this.epListener = epListener;
@@ -54,53 +53,20 @@ public class Interest {
         return scopes;
     }
 
-    public Object getEpListener() {
-        return epListener;
-    }
-
     public void notifyListener(EndpointEvent event) {
         EndpointDescription endpoint = event.getEndpoint();
         Optional<String> currentScope = getFirstMatch(endpoint);
         if (currentScope.isPresent()) {
             LOG.debug("Matched {} against {}", endpoint, currentScope);
-            Object service = getEpListener();
-            if (service instanceof EndpointEventListener) {
-                notifyEEListener(event, currentScope.get(), (EndpointEventListener)service);
-            } else if (service instanceof EndpointListener) {
-                notifyEListener(event, currentScope.get(), (EndpointListener)service);
-            }
+            String scope = currentScope.get();
+            LOG.info("Calling endpointchanged on class {} for filter {}, type {}, endpoint {} ",
+                epListener, scope, event.getType(), endpoint);
+            epListener.endpointChanged(event, scope);
         }
     }
 
     private Optional<String> getFirstMatch(EndpointDescription endpoint) {
         return scopes.stream().filter(endpoint::matches).findFirst();
-    }
-
-    private void notifyEEListener(EndpointEvent event, String currentScope, EndpointEventListener listener) {
-        EndpointDescription endpoint = event.getEndpoint();
-        LOG.info("Calling endpointchanged on class {} for filter {}, type {}, endpoint {} ",
-            listener, currentScope, event.getType(), endpoint);
-        listener.endpointChanged(event, currentScope);
-    }
-
-    private void notifyEListener(EndpointEvent event, String currentScope, EndpointListener listener) {
-        EndpointDescription endpoint = event.getEndpoint();
-        LOG.info("Calling old listener on class {} for filter {}, type {}, endpoint {} ",
-            listener, currentScope, event.getType(), endpoint);
-        switch (event.getType()) {
-        case EndpointEvent.ADDED:
-            listener.endpointAdded(endpoint, currentScope);
-            break;
-
-        case EndpointEvent.MODIFIED:
-            listener.endpointRemoved(endpoint, currentScope);
-            listener.endpointAdded(endpoint, currentScope);
-            break;
-
-        case EndpointEvent.REMOVED:
-            listener.endpointRemoved(endpoint, currentScope);
-            break;
-        }
     }
 
     @Override

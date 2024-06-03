@@ -50,13 +50,12 @@ import org.osgi.service.jaxrs.whiteboard.annotations.RequireJaxrsWhiteboard;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.EndpointEvent;
 import org.osgi.service.remoteserviceadmin.EndpointEventListener;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener} and old style {@link EndpointListener}
+ * Listens for local {@link EndpointEvent}s using {@link EndpointEventListener}
  * and publishes changes to listeners using Server Sent Events (SSE)
  */
 @SuppressWarnings("deprecation")
@@ -80,7 +79,7 @@ public class PublishingEndpointListener {
 	public PublishingEndpointListener(EndpointDescriptionParser parser, BundleContext bctx, String uuid) {
         this.parser = parser;
 		this.uuid = uuid;
-        String[] ifAr = {EndpointEventListener.class.getName(), EndpointListener.class.getName()};
+        String[] ifAr = { EndpointEventListener.class.getName() };
         Dictionary<String, Object> props = serviceProperties(uuid);
         listenerReg = bctx.registerService(ifAr, new ListenerFactory(), props);
         resourceReg = bctx.registerService(PublishingEndpointListener.class, this, 
@@ -181,7 +180,7 @@ public class PublishingEndpointListener {
     	
     }
     
-    private class PerClientEndpointEventListener implements EndpointEventListener, EndpointListener {
+    private class PerClientEndpointEventListener implements EndpointEventListener {
     	
     	private final Long bundleId;
     	
@@ -193,16 +192,6 @@ public class PublishingEndpointListener {
 		@Override
     	public void endpointChanged(EndpointEvent event, String filter) {
     		endpointUpdate(bundleId, event.getEndpoint(), event.getType());
-    	}
-    	
-    	@Override
-    	public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-    		endpointUpdate(bundleId, endpoint, EndpointEvent.ADDED);
-    	}
-    	
-    	@Override
-    	public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-    		endpointUpdate(bundleId, endpoint, EndpointEvent.REMOVED);
     	}
     }
 
