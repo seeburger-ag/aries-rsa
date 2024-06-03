@@ -76,14 +76,14 @@ public class PublishingEndpointListener {
     private final Set<Subscription> listeners = ConcurrentHashMap.newKeySet();
 
     @SuppressWarnings("serial")
-	public PublishingEndpointListener(EndpointDescriptionParser parser, BundleContext bctx, String uuid) {
+    public PublishingEndpointListener(EndpointDescriptionParser parser, BundleContext bctx, String uuid) {
         this.parser = parser;
-		this.uuid = uuid;
+        this.uuid = uuid;
         String[] ifAr = { EndpointEventListener.class.getName() };
         Dictionary<String, Object> props = serviceProperties(uuid);
         listenerReg = bctx.registerService(ifAr, new ListenerFactory(), props);
         resourceReg = bctx.registerService(PublishingEndpointListener.class, this, 
-        		new Hashtable<String, Object>() {{put("osgi.jaxrs.resource", Boolean.TRUE);}});
+                new Hashtable<String, Object>() {{put("osgi.jaxrs.resource", Boolean.TRUE);}});
     }
 
     @Deactivate
@@ -94,41 +94,41 @@ public class PublishingEndpointListener {
     }
 
     private void endpointUpdate(Long bundleId, EndpointDescription ed, int type) {
-    	String edFwUuid = ed.getFrameworkUUID();
-		if(edFwUuid == null || !edFwUuid.equals(uuid)) {
-    		LOG.warn("This listener has been called with an endpoint {} for a remote framework {}", ed.getId(), edFwUuid);
-    		return;
-    	}
-	    String id = ed.getId();
-		switch(type) {
-	        case EndpointEvent.ADDED:
-	        case EndpointEvent.MODIFIED:
-	            localEndpoints.compute(id, (k,v) -> {
-	            	return v == null ? new SponsoredEndpoint(ed, singleton(bundleId)) :
-	            		new SponsoredEndpoint(ed, concat(v.sponsors.stream(), Stream.of(bundleId)).collect(toSet()));
-	            });
-	            String data = toEndpointData(ed);
-	            listeners.forEach(s -> s.update(data));
-	            break;
-	        case EndpointEvent.MODIFIED_ENDMATCH:
-	        case EndpointEvent.REMOVED:
-	        	boolean act = localEndpoints.compute(id, (k,v) -> {
-	        		if(v == null) {
-	        			return null;
-	        		} else {
-	        		  Set<Long> updated = v.sponsors.stream().filter(l -> !bundleId.equals(l)).collect(toSet());
-	        		  return updated.isEmpty() ? null : new SponsoredEndpoint(v.ed, updated);
-	        		}
-	            }) == null;
+        String edFwUuid = ed.getFrameworkUUID();
+        if(edFwUuid == null || !edFwUuid.equals(uuid)) {
+            LOG.warn("This listener has been called with an endpoint {} for a remote framework {}", ed.getId(), edFwUuid);
+            return;
+        }
+        String id = ed.getId();
+        switch(type) {
+            case EndpointEvent.ADDED:
+            case EndpointEvent.MODIFIED:
+                localEndpoints.compute(id, (k,v) -> {
+                    return v == null ? new SponsoredEndpoint(ed, singleton(bundleId)) :
+                        new SponsoredEndpoint(ed, concat(v.sponsors.stream(), Stream.of(bundleId)).collect(toSet()));
+                });
+                String data = toEndpointData(ed);
+                listeners.forEach(s -> s.update(data));
+                break;
+            case EndpointEvent.MODIFIED_ENDMATCH:
+            case EndpointEvent.REMOVED:
+                boolean act = localEndpoints.compute(id, (k,v) -> {
+                    if(v == null) {
+                        return null;
+                    } else {
+                      Set<Long> updated = v.sponsors.stream().filter(l -> !bundleId.equals(l)).collect(toSet());
+                      return updated.isEmpty() ? null : new SponsoredEndpoint(v.ed, updated);
+                    }
+                }) == null;
 
-	        	if(act) {
-	        		listeners.forEach(s -> s.revoke(id));
-	        	}
-	            break;
-	        default:
-	            LOG.error("Unknown event type {} for endpoint {}", type, ed);
-	    }
-	}
+                if(act) {
+                    listeners.forEach(s -> s.revoke(id));
+                }
+                break;
+            default:
+                LOG.error("Unknown event type {} for endpoint {}", type, ed);
+        }
+    }
 
     private Dictionary<String, Object> serviceProperties(String uuid) {
         String scope = String.format("(&(%s=*)(%s=%s))", Constants.OBJECTCLASS,
@@ -139,60 +139,60 @@ public class PublishingEndpointListener {
     }
 
     private String toEndpointData(EndpointDescription ed) {
-    	try {
-    		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    		parser.writeEndpoint(ed, baos);
-    		return new String(baos.toByteArray(), StandardCharsets.UTF_8).replace("\n", "").replace("\r", "");
-		} catch (Exception e) {
-			LOG.error("Unable to serialize the endpoint {}", ed, e);
-			throw new RuntimeException(e);
-		}
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            parser.writeEndpoint(ed, baos);
+            return new String(baos.toByteArray(), StandardCharsets.UTF_8).replace("\n", "").replace("\r", "");
+        } catch (Exception e) {
+            LOG.error("Unable to serialize the endpoint {}", ed, e);
+            throw new RuntimeException(e);
+        }
     }
     
     @GET
-	@Produces(SERVER_SENT_EVENTS)
-	@Path("aries/rsa/discovery")
-	public void listen(@Context Sse sse, @Context SseEventSink sink) {
-		Subscription subscription = new Subscription(sse, sink);
-		listeners.add(subscription);
-		
-		localEndpoints.values().stream()
-			.map(s -> toEndpointData(s.ed))
-			.forEach(subscription::update);
-	}
+    @Produces(SERVER_SENT_EVENTS)
+    @Path("aries/rsa/discovery")
+    public void listen(@Context Sse sse, @Context SseEventSink sink) {
+        Subscription subscription = new Subscription(sse, sink);
+        listeners.add(subscription);
+        
+        localEndpoints.values().stream()
+            .map(s -> toEndpointData(s.ed))
+            .forEach(subscription::update);
+    }
 
-	private class ListenerFactory implements ServiceFactory<PerClientEndpointEventListener> {
+    private class ListenerFactory implements ServiceFactory<PerClientEndpointEventListener> {
 
-		@Override
-		public PerClientEndpointEventListener getService(Bundle bundle,
-				ServiceRegistration<PerClientEndpointEventListener> registration) {
-			return new PerClientEndpointEventListener(bundle.getBundleId());
-		}
+        @Override
+        public PerClientEndpointEventListener getService(Bundle bundle,
+                ServiceRegistration<PerClientEndpointEventListener> registration) {
+            return new PerClientEndpointEventListener(bundle.getBundleId());
+        }
 
-		@Override
-		public void ungetService(Bundle bundle, ServiceRegistration<PerClientEndpointEventListener> registration,
-				PerClientEndpointEventListener service) {
-			Long bundleId = service.bundleId;
-			localEndpoints.values().stream()
-				.filter(s -> s.sponsors.contains(bundleId))
-				.forEach(s -> endpointUpdate(bundleId, s.ed, EndpointEvent.REMOVED));
-		}
-    	
+        @Override
+        public void ungetService(Bundle bundle, ServiceRegistration<PerClientEndpointEventListener> registration,
+                PerClientEndpointEventListener service) {
+            Long bundleId = service.bundleId;
+            localEndpoints.values().stream()
+                .filter(s -> s.sponsors.contains(bundleId))
+                .forEach(s -> endpointUpdate(bundleId, s.ed, EndpointEvent.REMOVED));
+        }
+        
     }
     
     private class PerClientEndpointEventListener implements EndpointEventListener {
-    	
-    	private final Long bundleId;
-    	
-    	public PerClientEndpointEventListener(Long bundleId) {
-			super();
-			this.bundleId = bundleId;
-		}
+        
+        private final Long bundleId;
+        
+        public PerClientEndpointEventListener(Long bundleId) {
+            super();
+            this.bundleId = bundleId;
+        }
 
-		@Override
-    	public void endpointChanged(EndpointEvent event, String filter) {
-    		endpointUpdate(bundleId, event.getEndpoint(), event.getType());
-    	}
+        @Override
+        public void endpointChanged(EndpointEvent event, String filter) {
+            endpointUpdate(bundleId, event.getEndpoint(), event.getType());
+        }
     }
 
     class Subscription {
@@ -204,11 +204,11 @@ public class PublishingEndpointListener {
         SseEventSink eventSink;
         
         public Subscription(Sse sse, SseEventSink eventSink) {
-			this.sse = sse;
-			this.eventSink = eventSink;
-		}
+            this.sse = sse;
+            this.eventSink = eventSink;
+        }
 
-		public void update(String endpointData) {
+        public void update(String endpointData) {
             eventSink.send(sse.newEvent(ENDPOINT_UPDATED, endpointData))
                 .whenComplete(this::sendFailure);
         }
@@ -219,27 +219,27 @@ public class PublishingEndpointListener {
         }
         
         public void close() {
-        	eventSink.close();
-        	listeners.remove(this);
+            eventSink.close();
+            listeners.remove(this);
         }
         
         private void sendFailure(Object o, Throwable t) {
             if(t != null) {
-            	LOG.error("Failed to send endpoint message, closing");
-            	listeners.remove(this);
-            	eventSink.close();
+                LOG.error("Failed to send endpoint message, closing");
+                listeners.remove(this);
+                eventSink.close();
             }
         }
     }
     
     private static class SponsoredEndpoint {
-    	private final EndpointDescription ed;
-    	private final Set<Long> sponsors;
-    	
-		public SponsoredEndpoint(EndpointDescription ed, Set<Long> sponsors) {
-			super();
-			this.ed = ed;
-			this.sponsors = sponsors;
-		}
+        private final EndpointDescription ed;
+        private final Set<Long> sponsors;
+        
+        public SponsoredEndpoint(EndpointDescription ed, Set<Long> sponsors) {
+            super();
+            this.ed = ed;
+            this.sponsors = sponsors;
+        }
     }
 }

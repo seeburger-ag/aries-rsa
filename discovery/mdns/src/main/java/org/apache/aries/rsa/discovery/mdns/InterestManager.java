@@ -64,90 +64,90 @@ public class InterestManager {
     private final ConcurrentMap<String, SseEventSource> streams = new ConcurrentHashMap<>();
     
     public InterestManager(SseEventSourceFactory factory, EndpointDescriptionParser parser, Client client) {
-    	
-    	this.eventSourceFactory = factory;
-    	this.parser = parser;
-    	this.client = client;
-    	
+        
+        this.eventSourceFactory = factory;
+        this.parser = parser;
+        this.client = client;
+        
     }
 
     public void deactivate() {
        
-    	streams.values().forEach(SseEventSource::close);
-    	streams.clear();
-    	
+        streams.values().forEach(SseEventSource::close);
+        streams.clear();
+        
         interests.clear();
     }
 
     public void remoteAdded(String uri) {
-    	if(streams.containsKey(uri)) {
-    		return;
-    	}
-    	
-    	if(LOG.isInfoEnabled()) {
-    		LOG.info("Discovered a remote at {}", uri);
-    	}
-    	
-    	SseEventSource sse = eventSourceFactory.newBuilder(client.target(uri)).build();
-    	sse.register(i -> onEndpointEvent(uri, i), t -> lostRemoteStream(uri, t), () -> lostRemoteStream(uri, null));
-    	streams.put(uri, sse);
-    	sse.open();
+        if(streams.containsKey(uri)) {
+            return;
+        }
+        
+        if(LOG.isInfoEnabled()) {
+            LOG.info("Discovered a remote at {}", uri);
+        }
+        
+        SseEventSource sse = eventSourceFactory.newBuilder(client.target(uri)).build();
+        sse.register(i -> onEndpointEvent(uri, i), t -> lostRemoteStream(uri, t), () -> lostRemoteStream(uri, null));
+        streams.put(uri, sse);
+        sse.open();
     }
     
     public void remoteRemoved(String uri) {
-    	if(LOG.isInfoEnabled()) {
-    		LOG.info("Remote at {} is no longer present", uri);
-    	}
-    	
-    	SseEventSource sseEventSource = streams.remove(uri);
-    	if(sseEventSource != null) {
-    		sseEventSource.close();
-    	}
+        if(LOG.isInfoEnabled()) {
+            LOG.info("Remote at {} is no longer present", uri);
+        }
+        
+        SseEventSource sseEventSource = streams.remove(uri);
+        if(sseEventSource != null) {
+            sseEventSource.close();
+        }
     }
     
     private void onEndpointEvent(String source, InboundSseEvent event) {
-    	String name = event.getName();
-    	
-    	if(LOG.isDebugEnabled()) {
-    		LOG.debug("Received a {} notification from {}", name, source);
-    	}
-    	
-    	if(ENDPOINT_UPDATED.equals(name)) {
-    		EndpointDescription ed = parser.readEndpoint(event.readData(InputStream.class));
-    		endpointsBySource.compute(source, (a,b) -> {
-    			return b == null ? singleton(ed) : concat(b.stream(), Stream.of(ed)).collect(toSet());
-    		});
-    		interests.values().forEach(i -> i.endpointChanged(ed));
-    	} else if (ENDPOINT_REVOKED.equals(name)) {
-    		String id = event.readData();
-    		endpointsBySource.compute(source, (a,b) -> {
-    			if(b == null) {
-    				return null;
-    			} else {
-    				Set<EndpointDescription> set = b.stream().filter(ed -> !ed.getId().equals(id)).collect(toSet());
-    				return set.isEmpty() ? null : set;
-    			}
-    		});
-    		interests.values().forEach(i -> i.endpointRemoved(id));
-    	}
+        String name = event.getName();
+        
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("Received a {} notification from {}", name, source);
+        }
+        
+        if(ENDPOINT_UPDATED.equals(name)) {
+            EndpointDescription ed = parser.readEndpoint(event.readData(InputStream.class));
+            endpointsBySource.compute(source, (a,b) -> {
+                return b == null ? singleton(ed) : concat(b.stream(), Stream.of(ed)).collect(toSet());
+            });
+            interests.values().forEach(i -> i.endpointChanged(ed));
+        } else if (ENDPOINT_REVOKED.equals(name)) {
+            String id = event.readData();
+            endpointsBySource.compute(source, (a,b) -> {
+                if(b == null) {
+                    return null;
+                } else {
+                    Set<EndpointDescription> set = b.stream().filter(ed -> !ed.getId().equals(id)).collect(toSet());
+                    return set.isEmpty() ? null : set;
+                }
+            });
+            interests.values().forEach(i -> i.endpointRemoved(id));
+        }
     }
     
     private void lostRemoteStream(String source, Throwable t) {
-    	
-    	if(t != null) {
-    		if(LOG.isWarnEnabled()) {
-    			LOG.warn("The remote {} had a failure", source, t);
-    		}
-    	} else {
-    		if(LOG.isInfoEnabled()) {
-    			LOG.info("The remote {} has disconnected", source);
-    		}
-    	}
-    	
-    	Set<EndpointDescription> remove = endpointsBySource.remove(source);
-    	if(remove != null) {
-    		remove.forEach(ed -> interests.values().forEach(i -> i.endpointRemoved(ed.getId())));
-    	}
+        
+        if(t != null) {
+            if(LOG.isWarnEnabled()) {
+                LOG.warn("The remote {} had a failure", source, t);
+            }
+        } else {
+            if(LOG.isInfoEnabled()) {
+                LOG.info("The remote {} has disconnected", source);
+            }
+        }
+        
+        Set<EndpointDescription> remove = endpointsBySource.remove(source);
+        if(remove != null) {
+            remove.forEach(ed -> interests.values().forEach(i -> i.endpointRemoved(ed.getId())));
+        }
     }
 
     public void bindEndpointEventListener(EndpointEventListener epListener, Map<String, Object> props) {
@@ -162,18 +162,18 @@ public class InterestManager {
         interests.remove(getServiceId(props));
     }
 
-	private Long getServiceId(Map<String, Object> props) {
-		return (Long) props.get("service.id");
-	}
+    private Long getServiceId(Map<String, Object> props) {
+        return (Long) props.get("service.id");
+    }
 
     private void addInterest(EndpointEventListener epListener, Map<String, Object> props) {
-    	
-    	Long id = getServiceId(props);
-    	
-    	if(LOG.isInfoEnabled()) {
-    		LOG.info("Service {} has registered an interest in endpoint events", id);
-    	}
-    	
+        
+        Long id = getServiceId(props);
+        
+        if(LOG.isInfoEnabled()) {
+            LOG.info("Service {} has registered an interest in endpoint events", id);
+        }
+        
         Interest interest = new Interest(getServiceId(props), epListener, props);
        
         interests.put(getServiceId(props), interest);
@@ -183,13 +183,13 @@ public class InterestManager {
     }
 
     private void updatedInterest(Map<String, Object> props) {
-    	
+        
         Long id = getServiceId(props);
-    	
-    	if(LOG.isInfoEnabled()) {
-    		LOG.info("Service {} has changed its interest in endpoint events", id);
-    	}
-    	
+        
+        if(LOG.isInfoEnabled()) {
+            LOG.info("Service {} has changed its interest in endpoint events", id);
+        }
+        
         interests.get(id).update(props);
     }
 }

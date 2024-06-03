@@ -16,4 +16,4 @@
 #    specific language governing permissions and limitations
 #    under the License.
 Export-Package: \
-	org.osgi.xmlns.rsa.v1_0;version=1.0.0
+    org.osgi.xmlns.rsa.v1_0;version=1.0.0

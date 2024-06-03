@@ -130,10 +130,10 @@ public class LocalDiscovery implements BundleListener {
     void updatedListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
         // if service properties have been updated, the filter (scope)
         // might have changed so we remove and re-add the listener
-    	// TODO fix this so that we don't:
-    	// 1. remove and add when there is no change
-    	// 2. remove and add instead of modifying
-    	// 3. remove instead of modified end match
+        // TODO fix this so that we don't:
+        // 1. remove and add when there is no change
+        // 2. remove and add instead of modifying
+        // 3. remove instead of modified end match
         synchronized (listenerToFilters) {
             unbindListener(endpointListener);
             bindListener(endpointListenerRef, endpointListener);

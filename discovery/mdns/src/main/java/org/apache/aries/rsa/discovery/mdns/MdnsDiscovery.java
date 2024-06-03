@@ -59,31 +59,31 @@ import org.slf4j.LoggerFactory;
 @Component
 public class MdnsDiscovery {
 
-	private static final String _ARIES_DISCOVERY_HTTP_TCP_LOCAL = "_aries-discovery._tcp.local.";
+    private static final String _ARIES_DISCOVERY_HTTP_TCP_LOCAL = "_aries-discovery._tcp.local.";
 
-	private static final Logger LOG = LoggerFactory.getLogger(MdnsDiscovery.class);
-	
-	private final Client client;
-	
-	private final String fwUuid;
-	
-	private final InterestManager interestManager;
-	
-	private final PublishingEndpointListener publishingListener;
-	
-	private JaxrsServiceRuntime runtime;
-	
-	private JmDNS jmdns;
+    private static final Logger LOG = LoggerFactory.getLogger(MdnsDiscovery.class);
+    
+    private final Client client;
+    
+    private final String fwUuid;
+    
+    private final InterestManager interestManager;
+    
+    private final PublishingEndpointListener publishingListener;
+    
+    private JaxrsServiceRuntime runtime;
+    
+    private JmDNS jmdns;
 
 
-	@Activate
-	public MdnsDiscovery(BundleContext ctx, @Reference SseEventSourceFactory eventSourceFactory,
-			@Reference ClientBuilder clientBuilder, @Reference EndpointDescriptionParser parser) {
-		this.client = clientBuilder.build();
-		this.interestManager = new InterestManager(eventSourceFactory, parser, client);
-		fwUuid = ctx.getProperty(FRAMEWORK_UUID);
-		this.publishingListener = new PublishingEndpointListener(parser, ctx, fwUuid);
-	}
+    @Activate
+    public MdnsDiscovery(BundleContext ctx, @Reference SseEventSourceFactory eventSourceFactory,
+            @Reference ClientBuilder clientBuilder, @Reference EndpointDescriptionParser parser) {
+        this.client = clientBuilder.build();
+        this.interestManager = new InterestManager(eventSourceFactory, parser, client);
+        fwUuid = ctx.getProperty(FRAMEWORK_UUID);
+        this.publishingListener = new PublishingEndpointListener(parser, ctx, fwUuid);
+    }
     
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
     public void bindEndpointEventListener(EndpointEventListener epListener, Map<String, Object> props) {
@@ -100,174 +100,174 @@ public class MdnsDiscovery {
 
     @Reference(policy = ReferencePolicy.DYNAMIC)
     public void bindJaxrsServiceRuntime(JaxrsServiceRuntime runtime) {
-    	updateAndRegister(runtime);
+        updateAndRegister(runtime);
     }
 
-	public void updatedJaxrsServiceRuntime(JaxrsServiceRuntime runtime) {
-		updateAndRegister(runtime);
-	}
+    public void updatedJaxrsServiceRuntime(JaxrsServiceRuntime runtime) {
+        updateAndRegister(runtime);
+    }
 
-	public void unbindJaxrsServiceRuntime(JaxrsServiceRuntime runtime) {
-		JmDNS jmdns = null;
-    	synchronized (this) {
-    		if(runtime == this.runtime) {
-    			jmdns = this.jmdns;
-    			this.runtime = null;
-    		}
-		}
-    	
-    	if(jmdns != null) {
-    		jmdns.unregisterAllServices();
-    	}
-	}
+    public void unbindJaxrsServiceRuntime(JaxrsServiceRuntime runtime) {
+        JmDNS jmdns = null;
+        synchronized (this) {
+            if(runtime == this.runtime) {
+                jmdns = this.jmdns;
+                this.runtime = null;
+            }
+        }
+        
+        if(jmdns != null) {
+            jmdns.unregisterAllServices();
+        }
+    }
 
-	private void updateAndRegister(JaxrsServiceRuntime runtime) {
-		JmDNS jmdns;
-    	synchronized (this) {
-    		this.runtime = runtime;
-			jmdns = this.jmdns;
-		}
-    	
-    	if(jmdns != null) {
-    		RuntimeDTO runtimeDTO = runtime.getRuntimeDTO();
-    		List<String> uris = StringPlus.normalize(runtimeDTO.serviceDTO.properties.get(JAX_RS_SERVICE_ENDPOINT));
-    		
-    		if(uris == null || uris.isEmpty()) {
-    			LOG.warn("Unable to advertise discovery as there are no endpoint URIs");
-    			return;
-    		}
-    		
-    		String base = runtimeDTO.defaultApplication.base;
-    		if(base == null) {
-    			base = "";
-    		}
-    		
-    		base += "/aries/rsa/discovery";
-    		
-    		URI uri = uris.stream()
-    			.filter(s -> s.matches(".*(?:[0-9]{1,3}\\.){3}[0-9]{1,3}.*"))
-    			.findFirst()
-    			.map(URI::create)
-    			.orElseGet(() -> URI.create(uris.get(0)));
-    		
-    		Map<String, Object> props = new HashMap<>();
-    		props.put("scheme", uri.getScheme() == null ? "" : uri.getScheme());
-    		props.put("path", uri.getPath() == null ? base : uri.getPath() + base);
-    		props.put("frameworkUuid", fwUuid);
-    		
-    		ServiceInfo info = ServiceInfo.create(_ARIES_DISCOVERY_HTTP_TCP_LOCAL, fwUuid, uri.getPort(), 0, 0, props);
-    		
-    		try {
-    			jmdns.registerService(info);
-    		} catch (IOException ioe) {
-    			LOG.error("Unable to advertise discovery", ioe);
-    		}
-    	}
-	}
+    private void updateAndRegister(JaxrsServiceRuntime runtime) {
+        JmDNS jmdns;
+        synchronized (this) {
+            this.runtime = runtime;
+            jmdns = this.jmdns;
+        }
+        
+        if(jmdns != null) {
+            RuntimeDTO runtimeDTO = runtime.getRuntimeDTO();
+            List<String> uris = StringPlus.normalize(runtimeDTO.serviceDTO.properties.get(JAX_RS_SERVICE_ENDPOINT));
+            
+            if(uris == null || uris.isEmpty()) {
+                LOG.warn("Unable to advertise discovery as there are no endpoint URIs");
+                return;
+            }
+            
+            String base = runtimeDTO.defaultApplication.base;
+            if(base == null) {
+                base = "";
+            }
+            
+            base += "/aries/rsa/discovery";
+            
+            URI uri = uris.stream()
+                .filter(s -> s.matches(".*(?:[0-9]{1,3}\\.){3}[0-9]{1,3}.*"))
+                .findFirst()
+                .map(URI::create)
+                .orElseGet(() -> URI.create(uris.get(0)));
+            
+            Map<String, Object> props = new HashMap<>();
+            props.put("scheme", uri.getScheme() == null ? "" : uri.getScheme());
+            props.put("path", uri.getPath() == null ? base : uri.getPath() + base);
+            props.put("frameworkUuid", fwUuid);
+            
+            ServiceInfo info = ServiceInfo.create(_ARIES_DISCOVERY_HTTP_TCP_LOCAL, fwUuid, uri.getPort(), 0, 0, props);
+            
+            try {
+                jmdns.registerService(info);
+            } catch (IOException ioe) {
+                LOG.error("Unable to advertise discovery", ioe);
+            }
+        }
+    }
     
     public static @interface Config {
-    	public String bind_address();
+        public String bind_address();
     }
     
     @Activate
     public void start(Config config) throws UnknownHostException, IOException {
 
-    	String bind = config.bind_address();
-    	
-	    JmDNS jmdns = JmDNS.create(bind == null ? null : InetAddress.getByName(bind));
-	    
-	    JaxrsServiceRuntime runtime;
-	    synchronized (this) {
-			this.jmdns = jmdns;
-			runtime = this.runtime;
-		}
-	    
-	    if(runtime != null) {
-	    	updateAndRegister(runtime);
-	    }
-	
-	    // Add a service listener
-	    jmdns.addServiceListener(_ARIES_DISCOVERY_HTTP_TCP_LOCAL, new MdnsListener());
-	    
+        String bind = config.bind_address();
+        
+        JmDNS jmdns = JmDNS.create(bind == null ? null : InetAddress.getByName(bind));
+        
+        JaxrsServiceRuntime runtime;
+        synchronized (this) {
+            this.jmdns = jmdns;
+            runtime = this.runtime;
+        }
+        
+        if(runtime != null) {
+            updateAndRegister(runtime);
+        }
+    
+        // Add a service listener
+        jmdns.addServiceListener(_ARIES_DISCOVERY_HTTP_TCP_LOCAL, new MdnsListener());
+        
     }
     
     @Deactivate
     public void stop () {
-    	try {
-			jmdns.close();
-		} catch (IOException e) {
-			LOG.warn("An exception occurred closing the mdns discovery");
-		}
-    	
-    	interestManager.deactivate();
-    	publishingListener.stop();
+        try {
+            jmdns.close();
+        } catch (IOException e) {
+            LOG.warn("An exception occurred closing the mdns discovery");
+        }
+        
+        interestManager.deactivate();
+        publishingListener.stop();
     }
 
-	private class MdnsListener implements ServiceListener {
-		
-		private final ConcurrentMap<String, String> namesToUris = new ConcurrentHashMap<>();
-		
-		@Override
-		public void serviceAdded(ServiceEvent event) {
-		}
-		
-		@Override
-		public void serviceRemoved(ServiceEvent event) {
-			ServiceInfo info = event.getInfo();
-			if(info != null) {
-				String removed = namesToUris.remove(info.getKey());
-				if(removed != null) {
-					interestManager.remoteRemoved(removed);
-				}
-			}
-		}
-		
-		@Override
-		public void serviceResolved(ServiceEvent event) {
-			ServiceInfo info = event.getInfo();
-			
-			String infoUuid = info.getPropertyString("frameworkUuid");
-			
-			if(infoUuid == null || infoUuid.equals(fwUuid)) {
-				// Ignore until we can see if this is for our own endpoint
-				return;
-			}
-			
-			String scheme = info.getPropertyString("scheme");
-			if(scheme == null) {
-				scheme = "http";
-			}
-			
-			String path = info.getPropertyString("path");
-			if(path == null) {
-				// Not a complete record yet
-				return;
-			}
-			
-			int port = info.getPort();
-			if(port == -1) {
-				switch(scheme) {
-					case "http":
-						port = 80;
-						break;
-					case "https":
-						port = 443;
-						break;
-					default:
-						LOG.error("Unknown URI scheme advertised {} by framework {} on host {}", 
-								scheme, info.getName(), info.getDomain());
-				}
-			}
-			
-			String address = info.getInetAddresses()[0].getHostAddress();
-			
-			String uri = String.format("%s://%s:%d/%s", scheme, address, port, path);
-			
-			LOG.info("Discovered remote at {}", uri);
-			
-			namesToUris.put(info.getKey(), uri);
-			
-			interestManager.remoteAdded(uri);
-		}
-	}
+    private class MdnsListener implements ServiceListener {
+        
+        private final ConcurrentMap<String, String> namesToUris = new ConcurrentHashMap<>();
+        
+        @Override
+        public void serviceAdded(ServiceEvent event) {
+        }
+        
+        @Override
+        public void serviceRemoved(ServiceEvent event) {
+            ServiceInfo info = event.getInfo();
+            if(info != null) {
+                String removed = namesToUris.remove(info.getKey());
+                if(removed != null) {
+                    interestManager.remoteRemoved(removed);
+                }
+            }
+        }
+        
+        @Override
+        public void serviceResolved(ServiceEvent event) {
+            ServiceInfo info = event.getInfo();
+            
+            String infoUuid = info.getPropertyString("frameworkUuid");
+            
+            if(infoUuid == null || infoUuid.equals(fwUuid)) {
+                // Ignore until we can see if this is for our own endpoint
+                return;
+            }
+            
+            String scheme = info.getPropertyString("scheme");
+            if(scheme == null) {
+                scheme = "http";
+            }
+            
+            String path = info.getPropertyString("path");
+            if(path == null) {
+                // Not a complete record yet
+                return;
+            }
+            
+            int port = info.getPort();
+            if(port == -1) {
+                switch(scheme) {
+                    case "http":
+                        port = 80;
+                        break;
+                    case "https":
+                        port = 443;
+                        break;
+                    default:
+                        LOG.error("Unknown URI scheme advertised {} by framework {} on host {}", 
+                                scheme, info.getName(), info.getDomain());
+                }
+            }
+            
+            String address = info.getInetAddresses()[0].getHostAddress();
+            
+            String uri = String.format("%s://%s:%d/%s", scheme, address, port, path);
+            
+            LOG.info("Discovered remote at {}", uri);
+            
+            namesToUris.put(info.getKey(), uri);
+            
+            interestManager.remoteAdded(uri);
+        }
+    }
 }

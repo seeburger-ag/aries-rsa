@@ -49,41 +49,41 @@ public class Interest {
 
 
     public Interest(Long id, EndpointEventListener epListener, Map<String, Object> props) {
-    	this.id = id;
+        this.id = id;
         this.scopes.set(StringPlus.normalize(props.get(ENDPOINT_LISTENER_SCOPE)));
         this.epListener = epListener;
     }
 
     public void update(Map<String, Object> props) {
-    	
-    	List<String> newScopes = StringPlus.normalize(props.get(ENDPOINT_LISTENER_SCOPE));
-		List<String> oldScopes = this.scopes.getAndSet(newScopes);
-    	
-    	added.values().removeIf(ed -> {
-    		Optional<String> newScope = getFirstMatch(ed, newScopes);
-    		Optional<String> oldScope = getFirstMatch(ed, oldScopes);
-    		EndpointEvent event;
-    		boolean remove;
-    		String filter;
-    		if(newScope.isPresent()) {
-    			remove = false;
-    			filter = newScope.get();
-				if(oldScope.isPresent() && oldScope.get().equals(filter)) {
-    				event = null;
-    			} else {
-    				event = new EndpointEvent(MODIFIED, ed);
-    			}
-    		} else {
-    			remove = true;
-    			event = new EndpointEvent(REMOVED, ed);
-    			filter = oldScope.orElse(null);
-    		}
+        
+        List<String> newScopes = StringPlus.normalize(props.get(ENDPOINT_LISTENER_SCOPE));
+        List<String> oldScopes = this.scopes.getAndSet(newScopes);
+        
+        added.values().removeIf(ed -> {
+            Optional<String> newScope = getFirstMatch(ed, newScopes);
+            Optional<String> oldScope = getFirstMatch(ed, oldScopes);
+            EndpointEvent event;
+            boolean remove;
+            String filter;
+            if(newScope.isPresent()) {
+                remove = false;
+                filter = newScope.get();
+                if(oldScope.isPresent() && oldScope.get().equals(filter)) {
+                    event = null;
+                } else {
+                    event = new EndpointEvent(MODIFIED, ed);
+                }
+            } else {
+                remove = true;
+                event = new EndpointEvent(REMOVED, ed);
+                filter = oldScope.orElse(null);
+            }
 
-			if (event != null)
-    			notifyListener(event, filter);
-    		
-    		return remove;
-    	});
+            if (event != null)
+                notifyListener(event, filter);
+            
+            return remove;
+        });
     }
     
     public Object getEpListener() {
@@ -91,57 +91,57 @@ public class Interest {
     }
 
     public void endpointChanged(EndpointDescription ed) {
-    	List<String> scopes = this.scopes.get();
-    	Optional<String> currentScope = getFirstMatch(ed, scopes);
-    	boolean alreadyAdded = added.containsKey(ed.getId());
-    	EndpointEvent event;
-    	String filter;
+        List<String> scopes = this.scopes.get();
+        Optional<String> currentScope = getFirstMatch(ed, scopes);
+        boolean alreadyAdded = added.containsKey(ed.getId());
+        EndpointEvent event;
+        String filter;
         if (currentScope.isPresent()) {
-        	if(LOG.isDebugEnabled()) {
-        		LOG.debug("Listener {} is interested in endpoint {}. It will be {}", id, ed, alreadyAdded ? "MODIFIED" : "ADDED");
-        	}
-        	added.put(ed.getId(), ed);
-			event = new EndpointEvent(alreadyAdded ? MODIFIED : ADDED, ed);
-			filter = currentScope.get();
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Listener {} is interested in endpoint {}. It will be {}", id, ed, alreadyAdded ? "MODIFIED" : "ADDED");
+            }
+            added.put(ed.getId(), ed);
+            event = new EndpointEvent(alreadyAdded ? MODIFIED : ADDED, ed);
+            filter = currentScope.get();
         } else if(alreadyAdded) {
-        	if(LOG.isDebugEnabled()) {
-        		LOG.debug("Listener {} is no longer interested in endpoint {}. It will be {}", id, ed, "MODIFIED");
-        	}
-        	EndpointDescription previous = added.remove(ed.getId());
-        	event = new EndpointEvent(MODIFIED_ENDMATCH, ed);
-        	filter = getFirstMatch(previous, scopes).orElse(null);
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Listener {} is no longer interested in endpoint {}. It will be {}", id, ed, "MODIFIED");
+            }
+            EndpointDescription previous = added.remove(ed.getId());
+            event = new EndpointEvent(MODIFIED_ENDMATCH, ed);
+            filter = getFirstMatch(previous, scopes).orElse(null);
         } else {
-        	if(LOG.isDebugEnabled()) {
-        		LOG.debug("Listener {} not interested in endpoint {}", id, ed);
-        	}
-        	return;
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Listener {} not interested in endpoint {}", id, ed);
+            }
+            return;
         }
         
-    	notifyListener(event, filter);
+        notifyListener(event, filter);
     }
 
-	public void endpointRemoved(String id) {
-		EndpointDescription previous = added.remove(id);
-		if(previous != null) {
-			if(LOG.isDebugEnabled()) {
-        		LOG.debug("Endpoint {} is no longer available for listener {}", id, this.id);
-        	}
-        	notifyListener(new EndpointEvent(REMOVED, previous), getFirstMatch(previous, scopes.get()).orElse(null));
-		}
-	}
+    public void endpointRemoved(String id) {
+        EndpointDescription previous = added.remove(id);
+        if(previous != null) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Endpoint {} is no longer available for listener {}", id, this.id);
+            }
+            notifyListener(new EndpointEvent(REMOVED, previous), getFirstMatch(previous, scopes.get()).orElse(null));
+        }
+    }
 
-	private void notifyListener(EndpointEvent event, String filter) {
-		EndpointDescription endpoint = event.getEndpoint();
-		LOG.info("Calling endpointChanged on class {} for filter {}, type {}, endpoint {} ",
-				epListener, filter, event.getType(), endpoint);
-		epListener.endpointChanged(event, filter);
-	}
+    private void notifyListener(EndpointEvent event, String filter) {
+        EndpointDescription endpoint = event.getEndpoint();
+        LOG.info("Calling endpointChanged on class {} for filter {}, type {}, endpoint {} ",
+                epListener, filter, event.getType(), endpoint);
+        epListener.endpointChanged(event, filter);
+    }
     
     private Optional<String> getFirstMatch(EndpointDescription endpoint, List<String> scopes) {
         return scopes.stream().filter(endpoint::matches).findFirst();
     }
 
-	@Override
+    @Override
     public String toString() {
         return "Interest [scopes=" + scopes + ", epListener=" + epListener.getClass() + "]";
     }

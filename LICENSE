@@ -202,24 +202,24 @@
    limitations under the License.
 
 
-	======================================
-	  LICENSES FOR INCLUDED DEPENDENCIES
-	======================================
+    ======================================
+      LICENSES FOR INCLUDED DEPENDENCIES
+    ======================================
 
-	All the source code for the Aries JPA project is released under the
-	license above. Additionally, the Aries JPA binary distribution
-	includes a number of third-party files that are required in
-	order to the software to function. Unless noted below, these jars
-	and resource files are also released under the ASF license above.
+    All the source code for the Aries JPA project is released under the
+    license above. Additionally, the Aries JPA binary distribution
+    includes a number of third-party files that are required in
+    order to the software to function. Unless noted below, these jars
+    and resource files are also released under the ASF license above.
 
-	The exceptions are as follows:
+    The exceptions are as follows:
 
-	===========================
-	  persistence-xsd.rsrc - included in the org.apache.aries.jpa.container jar, taken from:
-	    http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd)
-	  persistence_2_0-xsd.rsrc - included in the org.apache.aries.jpa.container jar, taken from:
-	    http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd)
-	===========================
+    ===========================
+      persistence-xsd.rsrc - included in the org.apache.aries.jpa.container jar, taken from:
+        http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd)
+      persistence_2_0-xsd.rsrc - included in the org.apache.aries.jpa.container jar, taken from:
+        http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd)
+    ===========================
 
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 
