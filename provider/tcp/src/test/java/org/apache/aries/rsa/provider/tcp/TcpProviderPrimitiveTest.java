@@ -19,12 +19,12 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.hamcrest.core.StringStartsWith.startsWith;
-import static org.junit.Assert.assertThat;
 import static org.osgi.framework.Version.parseVersion;
 
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class TcpProviderPrimitiveTest {
         PrimitiveServiceImpl myService = new PrimitiveServiceImpl();
         BundleContext bc = EasyMock.mock(BundleContext.class);
         ep = provider.exportService(myService, bc, props, exportedInterfaces);
-        Assert.assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
+        assertThat(ep.description().getId(), startsWith("tcp://localhost:"));
         System.out.println(ep.description());
         myServiceProxy = (PrimitiveService)provider.importEndpoint(PrimitiveService.class.getClassLoader(),
                                                             bc,

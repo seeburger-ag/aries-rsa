@@ -31,9 +31,9 @@ import java.util.Vector;
 
 import static java.util.Collections.singletonList;
 import static org.apache.aries.rsa.discovery.config.PropertyValidator.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author dpishchukhin

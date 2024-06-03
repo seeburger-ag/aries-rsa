@@ -18,9 +18,9 @@
  */
 package org.apache.aries.rsa.topologymanager.exporter;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Iterator;

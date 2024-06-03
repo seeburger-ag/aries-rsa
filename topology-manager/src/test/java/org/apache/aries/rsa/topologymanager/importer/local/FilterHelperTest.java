@@ -19,8 +19,8 @@
 package org.apache.aries.rsa.topologymanager.importer.local;
 
 import static org.apache.aries.rsa.topologymanager.importer.local.FilterHelper.isClassExcluded;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 import org.junit.Assert;
 import org.junit.Test;

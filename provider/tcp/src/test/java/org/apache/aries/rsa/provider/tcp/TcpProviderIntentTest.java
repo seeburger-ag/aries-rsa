@@ -18,6 +18,7 @@
  */
 package org.apache.aries.rsa.provider.tcp;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -30,7 +31,6 @@ import org.apache.aries.rsa.provider.tcp.myservice.MyServiceImpl;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.apache.aries.rsa.util.EndpointHelper;
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -57,7 +57,7 @@ public class TcpProviderIntentTest {
         String[] standardIntents = {"osgi.basic", "osgi.async"};
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, standardIntents);
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
-        Assert.assertThat("Service should be exported as the intents: " + Arrays.toString(standardIntents) + " must be supported", ep, notNullValue());
+        assertThat("Service should be exported as the intents: " + Arrays.toString(standardIntents) + " must be supported", ep, notNullValue());
     }
 
     @Test
@@ -66,7 +66,7 @@ public class TcpProviderIntentTest {
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS, "unknown");
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
-        Assert.assertThat("Service should not be exported as intent is not supported", ep, nullValue());
+        assertThat("Service should not be exported as intent is not supported", ep, nullValue());
     }
 
     @Test
@@ -75,7 +75,7 @@ public class TcpProviderIntentTest {
         EndpointHelper.addObjectClass(props, exportedInterfaces);
         props.put(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA, "unknown");
         Endpoint ep = provider.exportService(myService, bc, props, exportedInterfaces);
-        Assert.assertThat("Service should not be exported as intent is not supported", ep, nullValue());
+        assertThat("Service should not be exported as intent is not supported", ep, nullValue());
     }
 
 }

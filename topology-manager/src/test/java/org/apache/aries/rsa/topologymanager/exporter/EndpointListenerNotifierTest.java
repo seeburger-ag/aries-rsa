@@ -23,8 +23,8 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -136,7 +136,7 @@ public class EndpointListenerNotifierTest {
         Filter filter2 = it.next();
         Dictionary<String, String> props = new Hashtable();
         props.put("myProp", "A");
-        Assert.assertThat(filter1.match(props) || filter2.match(props), is(true));
+        assertThat(filter1.match(props) || filter2.match(props), is(true));
     }
 
     private void filterMatches(Filter filter) {
