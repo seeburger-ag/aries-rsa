@@ -57,10 +57,6 @@ public class MyServiceImpl implements MyService {
     }
 
     @Override
-    public void callOneWay(String msg) {
-    }
-
-    @Override
     public void callWithList(List<String> msg) {
 
     }

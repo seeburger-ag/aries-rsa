@@ -143,11 +143,6 @@ public class TcpProviderTest {
         assertEquals("service2", myServiceProxy2.getId());
     }
 
-    @Test
-    public void testCallOneway() {
-        myServiceProxy.callOneWay("test");
-    }
-
     /**
      * Test for ARIES-1515
      */
