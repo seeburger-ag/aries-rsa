@@ -70,7 +70,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
 
     public void start() {
         stopped = false;
-        bctx.registerService(RemoteServiceAdminListener.class, this, null);
+        bctx.registerService(RemoteServiceAdminListener.class.getName(), this, null);
     }
 
     public void stop() {

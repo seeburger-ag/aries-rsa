@@ -18,6 +18,8 @@
  */
 package org.apache.aries.rsa.core;
 
+import java.util.UUID;
+
 import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -33,8 +35,16 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 public class Activator implements BundleActivator {
 
     private DistributionProviderTracker tracker;
+    public static String frameworkUUID;
 
     public void start(BundleContext bundlecontext) throws Exception {
+        String uuid = bundlecontext.getProperty("org.osgi.framework.uuid");
+        if(uuid==null)
+        {
+            uuid = System.getProperty("org.osgi.framework.uuid",UUID.randomUUID().toString());
+            System.setProperty("org.osgi.framework.uuid", uuid);
+        }
+        frameworkUUID = uuid;
         tracker = new DistributionProviderTracker(bundlecontext);
         tracker.open();
     }

@@ -50,7 +50,7 @@ public class EndpointListenerImplTest extends Assert {
                                            EasyMock.anyObject(),
                                            EasyMock.anyObject())).andReturn(sr).atLeastOnce();
 
-        sr.setProperties(EasyMock.anyObject());
+        sr.setProperties((Dictionary)EasyMock.anyObject());
 
         // expect property changes based on later calls
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {

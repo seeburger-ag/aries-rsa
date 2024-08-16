@@ -38,6 +38,7 @@ public class InputStreamProxyTest {
         streamProvider = new StreamProviderImpl();
     }
 
+
     @Test
     public void testUnsignedBytes() throws IOException {
         int length = 1024;
@@ -50,7 +51,7 @@ public class InputStreamProxyTest {
         int id = streamProvider.registerStream(new ByteArrayInputStream(data));
 
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         assertEquals(length, fixture.read(result));
         assertArrayEquals(data, result);
@@ -63,7 +64,7 @@ public class InputStreamProxyTest {
         OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
             assertEquals('c', fixture.read());
@@ -77,7 +78,7 @@ public class InputStreamProxyTest {
         OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
             assertEquals('c', fixture.read());
@@ -91,7 +92,7 @@ public class InputStreamProxyTest {
         OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
             assertEquals('c', fixture.read());
@@ -104,7 +105,7 @@ public class InputStreamProxyTest {
         OwnInputStream in = fillStream('c', 1000000);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         assertEquals('c', fixture.read());
         assertEquals(StreamProviderImpl.CHUNK_SIZE - 1, fixture.available());
@@ -126,7 +127,7 @@ public class InputStreamProxyTest {
     public void testClose() throws IOException {
         OwnInputStream in = fillStream('c', 10);
         int id = streamProvider.registerStream(in);
-        InputStreamProxy fixture = new InputStreamProxy(id, "");
+        InputStreamProxy fixture = new InputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         assertEquals('c', fixture.read());
         fixture.close();

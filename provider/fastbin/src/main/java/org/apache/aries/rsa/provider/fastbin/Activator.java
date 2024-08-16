@@ -28,6 +28,7 @@ import org.apache.aries.rsa.provider.fastbin.util.UuidGenerator;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.annotation.bundle.Header;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
@@ -40,49 +41,34 @@ import org.slf4j.LoggerFactory;
         version = "1.1.0"
 )
 @Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
-public class Activator extends BaseActivator implements ManagedService {
+public class Activator extends BaseActivator {
 
     private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
-    static Activator INSTANCE;
-    FastBinProvider provider;
+
+    FastBinProvider fastBinProvider;
     ClientInvoker client;
     ServerInvoker server;
+    static Activator INSTANCE;
 
-    @Override
-    protected void doOpen() throws Exception {
-        manage("org.apache.aries.rsa.provider.fastbin");
-    }
 
-    @Override
-    protected void doStart() throws Exception {
+    public void start(BundleContext context) throws Exception
+    {
         INSTANCE = this;
-        String uri = getString("uri", "tcp://0.0.0.0:2543");
-        LOG.info("Binding Fastbin Server to {}", uri);
-        String exportedAddress = getString("exportedAddress", null);
-        if (exportedAddress == null) {
-            exportedAddress = UuidGenerator.getHostName();
-        }
-        long timeout = getLong("timeout", TimeUnit.MINUTES.toMillis(5));
-        provider = new FastBinProvider(uri, exportedAddress, timeout);
-        client = provider.getClient();
-        server = provider.getServer();
-        Dictionary<String, Object> props = new Hashtable<>();
-        props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{});
-        props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, provider.getSupportedTypes());
-        register(DistributionProvider.class, provider, props);
+        Hashtable<String, Object> props = new Hashtable<>();
+        props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, new String[]{""});
+        props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, new String[]{FastBinProvider.CONFIG_NAME});
+        fastBinProvider = new FastBinProvider();
+        fastBinProvider.activate(context, props);
+        this.client = fastBinProvider.getClient();
+        this.server = fastBinProvider.getServer();
     }
 
-    @Override
-    protected void doStop() {
-        super.doStop();
-        if (provider != null) {
-            try {
-                provider.close();
-            } finally {
-                provider = null;
-            }
-        }
+    public void stop(BundleContext context) throws Exception
+    {
+        if(fastBinProvider!=null)
+            fastBinProvider.deactivate();
     }
+
 
     public ClientInvoker getClient() {
         return client;

@@ -34,8 +34,8 @@
     <name>Aries Remote Service Admin Main</name>
 
     <scm>
-        <connection>scm:git:git@github.com:apache/aries-rsa.git</connection>
-        <developerConnection>scm:git:git@github.com:apache/aries-rsa.git</developerConnection>
+        <connection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</connection>
+        <developerConnection>scm:git:git@github.com:seeburger-ag/aries-rsa.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -94,7 +94,9 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>3.0.1</version>
                     <configuration>
-                        <releaseProfiles>apache-release</releaseProfiles>
+                        <arguments>${arguments}</arguments>
+                        <!--releaseProfiles>apache-release</releaseProfiles-->
+                        <useReleaseProfile>false</useReleaseProfile>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <tagNameFormat>org.apache.aries.rsa-@{project.version}</tagNameFormat>

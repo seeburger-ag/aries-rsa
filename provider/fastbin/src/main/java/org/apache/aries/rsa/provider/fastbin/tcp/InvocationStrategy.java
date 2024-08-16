@@ -31,7 +31,7 @@ import org.fusesource.hawtbuf.DataByteArrayOutputStream;
  */
 public interface InvocationStrategy {
 
-    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception;
+    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception;
 
     /**
      * handles the actual remote call.

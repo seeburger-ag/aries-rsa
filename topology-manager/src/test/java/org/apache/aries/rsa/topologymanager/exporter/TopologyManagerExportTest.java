@@ -37,6 +37,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
@@ -169,10 +170,16 @@ public class TopologyManagerExportTest {
     }
 
     private ServiceReference createUserService(Object exportedInterfaces) {
-        final ServiceReference sref = c.createMock(ServiceReference.class);
+        final ServiceReference<Object> sref = c.createMock(ServiceReference.class);
         expect(sref.getProperty(EasyMock.same(RemoteConstants.SERVICE_EXPORTED_INTERFACES)))
             .andReturn(exportedInterfaces).anyTimes();
         Bundle srefBundle = c.createMock(Bundle.class);
+        BundleContext srefContext = c.createMock(BundleContext.class);
+        expect(srefBundle.getState()).andReturn(Bundle.ACTIVE).anyTimes();
+        expect(srefBundle.getBundleContext()).andReturn(srefContext).anyTimes();
+        Object serviceInstance = new Object();
+        expect(srefContext.getService(sref)).andReturn(serviceInstance).anyTimes();
+        expect(srefContext.ungetService(sref)).andReturn(true).anyTimes();
         expect(sref.getBundle()).andReturn(srefBundle).anyTimes();
         expect(srefBundle.getSymbolicName()).andReturn("serviceBundleName").anyTimes();
         expect(sref.getProperty("objectClass")).andReturn("org.My").anyTimes();

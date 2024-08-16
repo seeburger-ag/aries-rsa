@@ -40,7 +40,7 @@ public class OutputStreamProxyTest {
         int charSize = 10;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int id = streamProvider.registerStream(out);
-        OutputStreamProxy fixture = new OutputStreamProxy(id, "");
+        OutputStreamProxy fixture = new OutputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
             fixture.write('x');
@@ -56,7 +56,7 @@ public class OutputStreamProxyTest {
         int charSize = StreamProviderImpl.CHUNK_SIZE * 2;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int id = streamProvider.registerStream(out);
-        OutputStreamProxy fixture = new OutputStreamProxy(id, "");
+        OutputStreamProxy fixture = new OutputStreamProxy(id, "",1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < 10; i++) {
             fixture.write('x');

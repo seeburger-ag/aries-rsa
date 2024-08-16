@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -37,7 +37,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class LengthPrefixedCodecTest {
     private ReadableByteChannel readableByteChannel = createMock(ReadableByteChannel.class);
@@ -62,22 +62,22 @@ public class LengthPrefixedCodecTest {
 
     @Test
     public void testFull() throws Exception {
-        assertFalse(codec.full());
+        assertEquals(false, codec.full());
     }
 
     @Test
     public void testEmpty() throws Exception {
-        assertTrue(codec.empty());
+        assertEquals(true, codec.empty());
     }
 
     @Test
     public void testGetWriteCounter() throws Exception {
-        assertEquals(0L, codec.getWriteCounter());
+        assertEquals(0l, codec.getWriteCounter());
     }
 
     @Test
     public void testGetReadCounter() throws Exception {
-        assertEquals(0L, codec.getReadCounter());
+        assertEquals(0l, codec.getReadCounter());
     }
 
     @Test
@@ -87,9 +87,9 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.write(value);
 
         assertEquals(BufferState.WAS_EMPTY, state);
-        assertFalse(codec.full());
-        assertFalse(codec.empty());
-        assertEquals(0L, codec.getWriteCounter());
+        assertEquals(false, codec.full());
+        assertEquals(false, codec.empty());
+        assertEquals(0l, codec.getWriteCounter());
     }
 
     @Test
@@ -101,9 +101,9 @@ public class LengthPrefixedCodecTest {
         final BufferState state = codec.write(value2);
 
         assertEquals(BufferState.NOT_EMPTY, state);
-        assertFalse(codec.full());
-        assertFalse(codec.empty());
-        assertEquals(0L, codec.getWriteCounter());
+        assertEquals(false, codec.full());
+        assertEquals(false, codec.empty());
+        assertEquals(0l, codec.getWriteCounter());
     }
 
     @Test
@@ -111,14 +111,14 @@ public class LengthPrefixedCodecTest {
         final Buffer value = Buffer.ascii("TESTDATA");
         codec.write(value);
         final int bytesThatWillBeWritten = value.length();
-        expect(writableByteChannel.write(anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
+        expect(writableByteChannel.write((ByteBuffer) anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
         replay(writableByteChannel);
 
         final BufferState state = codec.flush();
 
         assertEquals(BufferState.EMPTY, state);
-        assertFalse(codec.full());
-        assertTrue(codec.empty());
+        assertEquals(false, codec.full());
+        assertEquals(true, codec.empty());
         assertEquals(bytesThatWillBeWritten, codec.getWriteCounter());
 
         assertEquals(BufferState.WAS_EMPTY, codec.flush());
@@ -129,14 +129,14 @@ public class LengthPrefixedCodecTest {
         final Buffer value = Buffer.ascii("TESTDATA");
         codec.write(value);
         final int bytesThatWillBeWritten = value.length() / 2;
-        expect(writableByteChannel.write(anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
+        expect(writableByteChannel.write((ByteBuffer) anyObject())).andAnswer(createWriteAnswer(bytesThatWillBeWritten));
         replay(writableByteChannel);
 
         final BufferState state = codec.flush();
 
         assertEquals(BufferState.NOT_EMPTY, state);
-        assertFalse(codec.full());
-        assertFalse(codec.empty());
+        assertEquals(false, codec.full());
+        assertEquals(false, codec.empty());
         assertEquals(bytesThatWillBeWritten, codec.getWriteCounter());
     }
 

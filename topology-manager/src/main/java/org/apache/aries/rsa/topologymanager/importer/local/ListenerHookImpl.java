@@ -20,8 +20,8 @@ package org.apache.aries.rsa.topologymanager.importer.local;
 
 import java.util.Collection;
 
+import org.apache.aries.rsa.topologymanager.Activator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
@@ -41,14 +41,15 @@ public class ListenerHookImpl implements ListenerHook {
 
     public ListenerHookImpl(BundleContext bc, ServiceInterestListener serviceInterestListener) {
         this.bctx = bc;
-        this.frameworkUUID = bctx.getProperty(Constants.FRAMEWORK_UUID);
+        this.frameworkUUID = Activator.frameworkUUID;
         this.serviceInterestListener = serviceInterestListener;
     }
 
     @Override
-    public void added(Collection<ListenerInfo> listeners) {
+    public void added(Collection listeners) {
         LOG.debug("added listeners {}", listeners);
-        for (ListenerInfo listenerInfo : listeners) {
+        for (Object listenerInfoObject : listeners) {
+            ListenerInfo listenerInfo = (ListenerInfo)listenerInfoObject;
             LOG.debug("Filter {}", listenerInfo.getFilter());
 
             String className = FilterHelper.getObjectClass(listenerInfo.getFilter());
@@ -73,10 +74,11 @@ public class ListenerHookImpl implements ListenerHook {
     }
 
     @Override
-    public void removed(Collection<ListenerInfo> listeners) {
+    public void removed(Collection listeners) {
         LOG.debug("removed listeners {}", listeners);
 
-        for (ListenerInfo listenerInfo : listeners) {
+        for (Object listenerInfoObject : listeners) {
+            ListenerInfo listenerInfo = (ListenerInfo)listenerInfoObject;
             LOG.debug("Filter {}", listenerInfo.getFilter());
 
             // TODO: determine if service was handled?

@@ -38,10 +38,12 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
     private transient int position;
     private transient byte[] buffer;
     private transient AtomicInteger chunkCounter;
+    private int protocolVersion;
 
-    public OutputStreamProxy(int streamID, String address) {
+    public OutputStreamProxy(int streamID, String address, int protocolVersion) {
         this.streamID = streamID;
         this.address = address;
+        this.protocolVersion = protocolVersion;
         init();
     }
 
@@ -67,7 +69,7 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
     private void readObject(ObjectInputStream stream)
             throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        InvocationHandler handler = Activator.getInstance().getClient().getProxy(address, StreamProvider.STREAM_PROVIDER_SERVICE_NAME, getClass().getClassLoader());
+        InvocationHandler handler = Activator.getInstance().getClient().getProxy(address, StreamProvider.serviceNameForProtocolVersion(protocolVersion), getClass().getClassLoader(), protocolVersion);
         streamProvider = (StreamProvider)Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{StreamProvider.class}, handler);
         init();
     }

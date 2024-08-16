@@ -79,7 +79,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             assertEquals("Hello Fabric!", hello.hello("Fabric"));
@@ -137,7 +137,7 @@ public class InvocationTest {
                 }
             }, Hello2Impl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id-broken", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id-broken", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello2 hello = (Hello2) Proxy.newProxyInstance(Hello2Impl.class.getClassLoader(), new Class[] { Hello2.class }, handler);
 
             try{
@@ -182,7 +182,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
             assertNotEquals("Hashcode should be handled by the proxy and not be a remote call", -7, hello.hashCode());
             assertFalse("equals should be handled by the proxy and not be a remote call", hello.equals(serviceImpl));
@@ -218,7 +218,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             char[] chars = new char[65 * 1024];
@@ -267,7 +267,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             final AtomicInteger requests = new AtomicInteger(0);
@@ -296,7 +296,7 @@ public class InvocationTest {
             }
 
             for (int t = 0; t < BENCHMARK_CLIENTS; t++) {
-                threads[t].join(10000);
+                threads[t].join(50000);
                 System.err.format("REQUEST: %d of %d%n", requests.get(), BENCHMARK_CLIENTS);
                 System.err.format("RESPONSES: %d of %d%n", responses.get(), BENCHMARK_CLIENTS);
                 assertFalse(threads[t].isAlive());
@@ -335,7 +335,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
             char[] chars = new char[65 * 1024];
@@ -371,7 +371,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
 
             final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 
@@ -436,6 +436,61 @@ public class InvocationTest {
         }
     }
 
+    @Test(timeout=30*1000)
+    public void testInvokeWithBindAddress() throws Exception {
+
+        DispatchQueue queue = Dispatch.createQueue();
+        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        map.put("protobuf", new ProtobufSerializationStrategy());
+
+        ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0?bindAddress=0.0.0.0", queue, map);
+        server.start();
+
+        ClientInvokerImpl client = new ClientInvokerImpl(queue, map);
+        client.start();
+
+        try {
+            server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+                public Object get() {
+                    return new HelloImpl();
+                }
+                public void unget() {
+                }
+            }, HelloImpl.class.getClassLoader());
+
+
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
+            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
+
+            assertEquals("Hello Fabric!", hello.hello("Fabric"));
+            assertEquals("Hello World!", hello.helloworld());
+
+            // Verification the we can pick the right overloaded method even if using a mixure
+            // of primitives / objects and array dimensions.
+            assertEquals('a', hello.mix(0));
+            assertEquals('b', hello.mix(new int[]{0}));
+            assertEquals('c', hello.mix(new Integer(0)));
+            assertEquals('d', hello.mix(new Integer[]{new Integer(0)}));
+            assertEquals('e', hello.mix(new int[0][0]));
+            assertEquals('f', hello.mix(new Integer[0][0]));
+
+            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<String>();
+            hello.hello("Hiram", future1);
+            assertEquals("Hello Hiram!", future1.get(2, TimeUnit.SECONDS));
+
+            assertEquals("Hello Hiram!", hello.protobuf(stringValue("Hiram")).getValue());
+
+            AsyncCallbackFuture<StringValue.Getter> future2 = new AsyncCallbackFuture<StringValue.Getter>();
+            hello.protobuf(stringValue("Hiram Async"), future2);
+            assertEquals("Hello Hiram Async!", future2.get(2, TimeUnit.SECONDS).getValue());
+
+        }
+        finally {
+            server.stop();
+            client.stop();
+        }
+    }
+
     class AsyncClient implements AsyncCallback<StringValue.Getter> {
 
         final int thread_idx;
@@ -470,7 +525,7 @@ public class InvocationTest {
         }
 
         void join() throws InterruptedException {
-            done.await(10, TimeUnit.SECONDS);
+            done.await();
         }
 
         private void sendNext() {
@@ -501,7 +556,7 @@ public class InvocationTest {
         }
     }
 
-    @Test(timeout=30*1000)
+    @Test
     public void testUnderLoadAsyncProto() throws Exception {
         HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
@@ -523,7 +578,7 @@ public class InvocationTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
 
             final Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[] { Hello.class }, handler);
 

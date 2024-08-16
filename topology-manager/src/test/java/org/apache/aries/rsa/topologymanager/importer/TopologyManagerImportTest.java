@@ -83,7 +83,7 @@ public class TopologyManagerImportTest {
     private BundleContext getBundleContext(IMocksControl c) {
         ServiceRegistration sreg = c.createMock(ServiceRegistration.class);
         BundleContext bc = c.createMock(BundleContext.class);
-        EasyMock.expect(bc.registerService(EasyMock.eq(RemoteServiceAdminListener.class),
+        EasyMock.expect(bc.registerService(EasyMock.anyString(),
                                            EasyMock.anyObject(RemoteServiceAdminListener.class),
                                            EasyMock.anyObject())).andReturn(sreg).anyTimes();
         return bc;

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtbuf.proto.PBMessage;
@@ -124,6 +125,17 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
             result.onSuccess(decodeProtobuf(type, source));
         }
 
+    }
+
+    @Override
+    public int getProtocolVersion() {
+        return FastBinProvider.PROTOCOL_VERSION;
+    }
+
+    @Override
+    public SerializationStrategy forProtocolVersion(int protocolVersion)
+    {
+        return INSTANCE;
     }
 
 }

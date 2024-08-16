@@ -29,6 +29,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.api.Dispatched;
 import org.apache.aries.rsa.provider.fastbin.api.ObjectSerializationStrategy;
 import org.apache.aries.rsa.provider.fastbin.api.Serialization;
@@ -71,7 +72,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
     protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<>();
-    private StreamProvider streamProvider;
+    private StreamProviderImpl streamProvider;
 
     static class MethodData {
 
@@ -174,6 +175,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public void registerService(final String id, final ServiceFactory service, final ClassLoader classLoader) {
         queue().execute(new Runnable() {
             public void run() {
+                LOGGER.debug("Registering service "+id);
                 holders.put(new UTF8Buffer(id), new ServiceFactoryHolder(service, classLoader));
             }
         });
@@ -182,6 +184,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public void unregisterService(final String id) {
         queue().execute(new Runnable() {
             public void run() {
+                LOGGER.debug("Deregistering service "+id);
                 holders.remove(new UTF8Buffer(id));
             }
         });
@@ -198,7 +201,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     private void registerStreamProvider() {
         streamProvider = new StreamProviderImpl();
-        registerService(StreamProvider.STREAM_PROVIDER_SERVICE_NAME, new ServerInvoker.ServiceFactory() {
+        registerService(StreamProvider.serviceNameForProtocolVersion(FastBinProvider.PROTOCOL_VERSION), new ServerInvoker.ServiceFactory() {
 
             @Override
             public Object get() {
@@ -269,7 +272,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             executor.execute(task);
 
         } catch (Exception e) {
-            LOGGER.info("Error while reading request", e);
+            LOGGER.error("Error while reading request", e);
         }
     }
 

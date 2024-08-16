@@ -21,9 +21,12 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.provider.fastbin.Activator;
+import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
 import org.apache.aries.rsa.provider.fastbin.streams.InputStreamProxy;
 import org.apache.aries.rsa.provider.fastbin.streams.OutputStreamProxy;
@@ -39,33 +42,36 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
     protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
 
     @Override
-    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception {
-        replaceStreamParameters(method, args);
-        encodeRequest(serializationStrategy, loader, method, args, requestStream);
-        return createResponse(serializationStrategy, loader, method, args);
+    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
+        serializationStrategy = serializationStrategy.forProtocolVersion(protocolVersion);
+        requestStream.writeShort(protocolVersion);
+        replaceStreamParameters(method, args, protocolVersion);
+
+        encodeRequest(serializationStrategy, loader, method, args, requestStream, protocolVersion);
+        return createResponse(serializationStrategy, loader,method, args);
     }
 
-    protected void replaceStreamParameters(Method method, Object[] args) {
+    protected void replaceStreamParameters(Method method, Object[] args, int protocolVersion) {
         Class< ? >[] types = method.getParameterTypes();
         if(args==null)
             return;
         for (int i = 0; i < args.length; i++) {
             if(isStream(types[i])) {
-                args[i] = replaceStream(args[i]);
+                args[i] = replaceStream(args[i], protocolVersion);
             }
         }
     }
 
-    protected Object replaceStream(Object value) {
+    protected Object replaceStream(Object value, int protocolVersion) {
         if (value instanceof InputStream) {
             InputStream in = (InputStream)value;
             int streamID = Activator.getInstance().getServer().getStreamProvider().registerStream(in);
-            value = new InputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress());
+            value = new InputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress(),protocolVersion);
         }
         else if (value instanceof OutputStream) {
             OutputStream out = (OutputStream)value;
             int streamID = Activator.getInstance().getServer().getStreamProvider().registerStream(out);
-            value = new OutputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress());
+            value = new OutputStreamProxy(streamID, Activator.getInstance().getServer().getConnectAddress(),protocolVersion);
         }
         return value;
     }
@@ -83,7 +89,7 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
      * @param requestStream
      * @throws Exception
      */
-    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception {
+    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
         serializationStrategy.encodeRequest(loader, method.getParameterTypes(), args, requestStream);
     }
 
@@ -100,6 +106,8 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
 
     @Override
     public final void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
+        // first see which version the client requested
+        serializationStrategy = serializationStrategy.forProtocolVersion(checkVersion(requestStream));
         if(method==null && target instanceof ServiceException) {
             handleInvalidRequest(serializationStrategy, loader, method, target, responseStream, onComplete);
             return;
@@ -122,7 +130,7 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
             // we failed to encode the response... reposition and write that error
             try {
                 responseStream.position(pos);
-                serializationStrategy.encodeResponse(loader, null, null, new ServiceException(e.toString()), responseStream);
+                serializationStrategy.encodeResponse(loader, null, null, new RemoteException(e.toString()), responseStream);
             } catch (Exception unexpected) {
                 LOGGER.error("Error while servicing {}", method, unexpected);
             }
@@ -143,6 +151,14 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy {
      * @param onComplete to be executed after the call has finished
      */
     protected abstract void doService(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete);
+
+    protected int checkVersion(DataByteArrayInputStream source)
+    {
+        int protocolVersion = source.readShort();
+        if(protocolVersion>FastBinProvider.PROTOCOL_VERSION)
+            throw new ServiceException(MessageFormat.format("Incorrect fastbin protocol {0} version. Only protocol versions up to {1} are supported.", protocolVersion,FastBinProvider.PROTOCOL_VERSION));
+        return protocolVersion;
+    }
 
     protected Class getResultType(Method method) {
         return method.getReturnType();

@@ -21,6 +21,7 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -49,12 +50,12 @@ import org.slf4j.LoggerFactory;
 
 public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
-    public static final long DEFAULT_TIMEOUT = TimeUnit.MINUTES.toMillis(5);
+    public static final long DEFAULT_TIMEOUT = TimeUnit.SECONDS.toMillis(20);
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
     @SuppressWarnings("rawtypes")
-    private static final Map<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
+    private static final HashMap<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
 
     static {
         CLASS_TO_PRIMITIVE.put(boolean.class, "Z");
@@ -74,6 +75,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     protected final Map<Long, ResponseFuture> requests = new HashMap<>();
     protected final long timeout;
     protected final Map<String, SerializationStrategy> serializationStrategies;
+    protected final boolean isTracing;
 
     public ClientInvokerImpl(DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies) {
         this(queue, DEFAULT_TIMEOUT, serializationStrategies);
@@ -83,6 +85,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         this.queue = queue;
         this.timeout = timeout;
         this.serializationStrategies = serializationStrategies;
+        this.isTracing = LOGGER.isTraceEnabled();
     }
 
     public DispatchQueue queue() {
@@ -130,14 +133,14 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         }
     }
 
-    public InvocationHandler getProxy(String address, String service, ClassLoader classLoader) {
-        return new ProxyInvocationHandler(address, service, classLoader);
+    public InvocationHandler getProxy(String address, String service, ClassLoader classLoader, int protocolVersion) {
+        return new ProxyInvocationHandler(address, service, classLoader, protocolVersion);
     }
 
     protected void onCommand(TransportPool pool, Object data) {
         try {
             DataByteArrayInputStream bais = new DataByteArrayInputStream( (Buffer) data);
-            bais.readInt();
+            int size = bais.readInt();
             long correlation = bais.readVarLong();
             pool.onDone(correlation);
             ResponseFuture response = requests.remove(correlation);
@@ -240,15 +243,15 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         MethodData methodData = getMethodData(method);
         writeBuffer(baos, methodData.signature);
 
-        final ResponseFuture future = methodData.invocationStrategy.request(methodData.serializationStrategy, classLoader, method, args, baos);
-
+        final ResponseFuture future = methodData.invocationStrategy.request(methodData.serializationStrategy.forProtocolVersion(handler.protocolVersion), classLoader, method, args, baos, handler.protocolVersion);
         // toBuffer() is better than toByteArray() since it avoids an
         // array copy.
         final Buffer command = baos.toBuffer();
 
         // Update the field size.
         BufferEditor editor = command.buffer().bigEndianEditor();
-        editor.writeInt(command.length);
+        final int commandSize = command.length;
+        editor.writeInt(commandSize);
         handler.lastRequestSize = command.length;
 
         queue().execute(new Runnable() {
@@ -269,8 +272,27 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
             }
         });
 
-        // TODO: make that configurable, that's only for tests
-        return future.get(timeout, TimeUnit.MILLISECONDS);
+        Object result;
+        try
+        {
+            result = future.get(timeout, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception e)
+        {
+            trace(method, address, args, commandSize, future, null, e);
+            throw e;
+        }
+        trace(method, address, args, commandSize, future, result, null);
+        return result;
+    }
+
+    private void trace(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex)
+    {
+        if (!isTracing) return;
+
+        String methodString = String.valueOf(method).replace("public abstract ", "");
+        String message = String.format("Finished call. Address=%s, future=%s, method=%s, args=%s, size=%d, result=%s", address, future, methodString, Arrays.toString(args), commandSize, result);
+        LOGGER.trace(message, ex);
     }
 
     private void writeBuffer(DataByteArrayOutputStream baos, Buffer value) throws IOException {
@@ -280,15 +302,17 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
     protected class ProxyInvocationHandler implements InvocationHandler {
 
+        int protocolVersion;
         final String address;
         final UTF8Buffer service;
         final ClassLoader classLoader;
         int lastRequestSize = 250;
 
-        public ProxyInvocationHandler(String address, String service, ClassLoader classLoader) {
+        public ProxyInvocationHandler(String address, String service, ClassLoader classLoader, int protocolVersion) {
             this.address = address;
             this.service = new UTF8Buffer(service);
             this.classLoader = classLoader;
+            this.protocolVersion = protocolVersion;
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

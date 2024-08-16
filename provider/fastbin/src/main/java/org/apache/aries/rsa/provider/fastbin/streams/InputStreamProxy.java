@@ -39,10 +39,12 @@ public class InputStreamProxy extends InputStream implements Serializable {
     private transient int position;
     private transient int expectedChunkNumber = 0;
     private transient boolean reachedEnd = false;
+    private int protocolVersion;
 
-    public InputStreamProxy(int streamID, String address) {
+    public InputStreamProxy(int streamID, String address, int protocolVersion) {
         this.streamID = streamID;
         this.address = address;
+        this.protocolVersion = protocolVersion;
     }
 
     @Override
@@ -145,7 +147,7 @@ public class InputStreamProxy extends InputStream implements Serializable {
     private void readObject(ObjectInputStream stream)
             throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        InvocationHandler handler = Activator.getInstance().getClient().getProxy(address, StreamProvider.STREAM_PROVIDER_SERVICE_NAME, getClass().getClassLoader());
+        InvocationHandler handler = Activator.getInstance().getClient().getProxy(address, StreamProvider.serviceNameForProtocolVersion(protocolVersion), getClass().getClassLoader(), protocolVersion);
         streamProvider = (StreamProvider)Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{StreamProvider.class}, handler);
     }
 

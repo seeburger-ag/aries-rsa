@@ -18,13 +18,14 @@
  */
 package org.apache.aries.rsa.topologymanager.importer.local;
 
+import static org.junit.Assert.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.aries.rsa.topologymanager.importer.local.ListenerHookImpl;
-import org.apache.aries.rsa.topologymanager.importer.local.ServiceInterestListener;
+import org.apache.aries.rsa.topologymanager.Activator;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.Test;
@@ -34,9 +35,6 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.hooks.service.ListenerHook.ListenerInfo;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class ListenerHookImplTest {
 
@@ -86,6 +84,7 @@ public class ListenerHookImplTest {
         BundleContext bc = EasyMock.createNiceMock(BundleContext.class);
         EasyMock.expect(bc.getProperty(EasyMock.eq("org.osgi.framework.uuid"))).andReturn("MyUUID").atLeastOnce();
         EasyMock.replay(bc);
+        Activator.frameworkUUID = "MyUUID";
         return bc;
     }
 }

@@ -50,7 +50,7 @@ public class EndpointListenerNotifier {
         this.listeners = new ConcurrentHashMap<>();
     }
 
-    public static Set<Filter> filtersFromEEL(ServiceReference<EndpointEventListener> sref) {
+    public static Set<Filter> filtersFromEEL(ServiceReference sref) {
         List<String> scopes = StringPlus.normalize(sref.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         return getFilterSet(scopes);
     }
@@ -67,11 +67,11 @@ public class EndpointListenerNotifier {
         return filters;
     }
 
-    public void add(EndpointEventListener ep, Set<Filter> filters, Collection<EndpointDescription> endpoints) {
+    public void add(EndpointEventListener ep, Set<Filter> filters, Collection endpoints) {
         LOG.debug("EndpointListener added");
         listeners.put(ep, filters);
-        for (EndpointDescription endpoint : endpoints) {
-            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+        for (Object endpoint : endpoints) {
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, (EndpointDescription)endpoint);
             notifyListener(event, ep, filters);
         }
     }

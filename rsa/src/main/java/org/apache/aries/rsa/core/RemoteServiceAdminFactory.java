@@ -25,7 +25,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoteServiceAdminFactory implements ServiceFactory<RemoteServiceAdmin> {
+public class RemoteServiceAdminFactory implements ServiceFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminFactory.class);
 
@@ -36,14 +36,14 @@ public class RemoteServiceAdminFactory implements ServiceFactory<RemoteServiceAd
         this.rsaCore = rsaCore;
     }
 
-    public synchronized RemoteServiceAdmin getService(Bundle b, ServiceRegistration<RemoteServiceAdmin> sreg) {
+    public synchronized RemoteServiceAdmin getService(Bundle b, ServiceRegistration sreg) {
         LOG.debug("new RemoteServiceAdmin ServiceInstance created for Bundle {}", b.getSymbolicName());
         instances++;
         return new RemoteServiceAdminInstance(b.getBundleContext(), rsaCore);
     }
 
-    public synchronized void ungetService(Bundle b, ServiceRegistration<RemoteServiceAdmin> sreg,
-                                          RemoteServiceAdmin serviceObject) {
+    public synchronized void ungetService(Bundle b, ServiceRegistration sreg,
+                                          Object serviceObject) {
         LOG.debug("RemoteServiceAdmin ServiceInstance removed for Bundle {}", b.getSymbolicName());
         instances--;
         ((RemoteServiceAdminInstance)serviceObject).close(b, instances == 0);

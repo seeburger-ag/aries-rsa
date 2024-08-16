@@ -20,8 +20,10 @@ package org.apache.aries.rsa.provider.fastbin.io;
 
 import java.lang.reflect.InvocationHandler;
 
-public interface ClientInvoker extends Service {
 
-    InvocationHandler getProxy(String address, String service, ClassLoader classLoader);
+public interface ClientInvoker extends Service
+{
+
+    InvocationHandler getProxy(String address, String service, ClassLoader classLoader, int protocolVersion);
 
 }

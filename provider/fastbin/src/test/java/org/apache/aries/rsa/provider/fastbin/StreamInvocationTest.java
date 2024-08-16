@@ -72,7 +72,7 @@ public class StreamInvocationTest {
             }
         }, TestServiceImpl.class.getClassLoader());
 
-        InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader());
+        InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
         testService = (TestService)Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{TestService.class}, handler);
         Activator.INSTANCE = new Activator();
         Activator.INSTANCE.client = client;

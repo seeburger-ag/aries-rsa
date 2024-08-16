@@ -26,10 +26,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
@@ -61,7 +63,7 @@ public class TopologyManagerExport implements ServiceListener {
     private final Executor executor;
     private final ExportPolicy policy;
     private final Map<RemoteServiceAdmin, ServiceExportsRepository> endpointRepo;
-    private final Set<ServiceReference<?>> toBeExported;
+    private final Set<ServiceReference> toBeExported;
 
     public TopologyManagerExport(EndpointListenerNotifier notifier, Executor executor, ExportPolicy policy) {
         this.notifier = notifier;
@@ -84,7 +86,7 @@ public class TopologyManagerExport implements ServiceListener {
     // track all service registrations, so we can export any services that are configured to be exported
     // ServiceListener events may be delivered out of order, concurrently, re-entrant, etc. (see spec or docs)
     public void serviceChanged(ServiceEvent event) {
-        ServiceReference<?> sref = event.getServiceReference();
+        ServiceReference sref = event.getServiceReference();
         if (!shouldExport(sref)) {
             LOG.debug("Skipping service {}", sref);
             return;
@@ -106,13 +108,13 @@ public class TopologyManagerExport implements ServiceListener {
         }
     }
 
-    private void modified(ServiceReference<?> sref) {
+    private void modified(ServiceReference sref) {
         for (ServiceExportsRepository repo : endpointRepo.values()) {
             repo.modifyService(sref);
         }
     }
 
-    private void remove(ServiceReference<?> sref) {
+    private void remove(ServiceReference sref) {
         toBeExported.remove(sref);
         for (ServiceExportsRepository repo : endpointRepo.values()) {
             repo.removeService(sref);
@@ -121,7 +123,7 @@ public class TopologyManagerExport implements ServiceListener {
 
     public void add(RemoteServiceAdmin rsa) {
         endpointRepo.put(rsa, new ServiceExportsRepository(rsa, notifier));
-        for (ServiceReference<?> sref : toBeExported) {
+        for (ServiceReference sref : toBeExported) {
             exportInBackground(sref);
         }
     }
@@ -133,15 +135,42 @@ public class TopologyManagerExport implements ServiceListener {
         }
     }
 
-    private void exportInBackground(final ServiceReference<?> sref) {
+    private void exportInBackground(final ServiceReference sref) {
         executor.execute(() -> doExport(sref));
     }
 
-    private void doExport(final ServiceReference<?> sref) {
+    private void doExport(final ServiceReference sref) {
+        if (System.getProperty("jboss.domain.default.config") != null)
+        {
+            /*
+             * XXX: there is a threading issue in jboss when one thread is still activating the bundle
+             * while the topology manager tries to access the newly registered service from another thread.
+             * The mini pause is supposed to make sure that the bundle has properly transitioned to STARTED before the service is accessed
+             */
+            try
+            {
+                Thread.sleep(600);
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
+
+        }
+
+        Bundle bundle = sref.getBundle();
+        if(bundle == null) {
+            LOG.warn("Service Reference {} had no bundle reference. Skipping",sref);
+            return;
+        }
+        if(bundle.getState()==Bundle.STOPPING || bundle.getState()==Bundle.RESOLVED || bundle.getState()==Bundle.INSTALLED) {
+            LOG.warn("Trying to export a service from bundle {} which has been stopped in the meantime. Skipping",bundle.getSymbolicName());
+            return;
+        }
+
         LOG.debug("Exporting service {}", sref);
         toBeExported.add(sref);
         if (endpointRepo.isEmpty()) {
-            Bundle bundle = sref.getBundle();
             String bundleName = bundle == null ? null : bundle.getSymbolicName();
             LOG.error("Unable to export service from bundle {}, interfaces: {} as no RemoteServiceAdmin is available. Marked for later export.",
                 bundleName, sref.getProperty(org.osgi.framework.Constants.OBJECTCLASS));
@@ -154,7 +183,7 @@ public class TopologyManagerExport implements ServiceListener {
         }
     }
 
-    private Collection<ExportRegistration> exportService(final RemoteServiceAdmin rsa, final ServiceReference<?> sref) {
+    private Collection<ExportRegistration> exportService(final RemoteServiceAdmin rsa, final ServiceReference sref) {
         // abort if the service was unregistered by the time we got here
         // (we check again at the end, but this optimization saves unnecessary heavy processing)
         if (sref.getBundle() == null) {
@@ -163,6 +192,9 @@ public class TopologyManagerExport implements ServiceListener {
         }
 
         LOG.debug("exporting Service {} using RemoteServiceAdmin {}", sref, rsa.getClass().getName());
+        if(!canAccessService(sref, true)) {
+            return Collections.emptyList();
+        }
         Map<String, ?> addProps = policy.additionalParameters(sref);
         Collection<ExportRegistration> regs = rsa.exportService(sref, addProps);
 
@@ -189,7 +221,53 @@ public class TopologyManagerExport implements ServiceListener {
         return regs;
     }
 
-    private boolean shouldExport(ServiceReference<?> sref) {
+    /**
+     * on jboss we sometimes face some threading issues when accessing a service when the exporting bundle is started
+     * This methods tries to get and unget the service object to test if it will be possible to export.
+     * If the retry parameter is set to true, it will wait for 2 seconds in case of an error and try again
+     * @param sref
+     * @param retry
+     * @return <code>true</code> if the service object could be retrieved <code>false</code> in all other cases
+     */
+    private boolean canAccessService(ServiceReference sref, boolean retry)
+    {
+        try {
+            LOG.debug("Trying to access to-be-exported service {}",sref);
+            BundleContext bundleContext = sref.getBundle().getBundleContext();
+            Object service = bundleContext.getService(sref);
+            if(service!=null) {
+                LOG.debug("Service {} could be accessed and will be exported",sref);
+                /*
+                 * normally we should unget the service here, because we were never really interested in it
+                 * however, this might cause a threading issue where SCR is stuck between activation and deactivation.
+                 * It is possible this triggers an issue similar to
+                 * https://issues.apache.org/jira/browse/FELIX-5276
+                 * Omit ungetService for now.
+                 * See http://bugzilla.seeburger.de/bugzilla/show_bug.cgi?id=73676
+                 */
+//                bundleContext.ungetService(sref);
+            }
+            else {
+                // enters the retry logic in the catch
+                throw new IllegalStateException("getService returned null for service reference '"+sref);
+            }
+            return true;
+        } catch (Exception e) {
+            if(retry) {
+                LOG.warn("Unable to access to-be-exported service "+sref+". Retrying in 2 seconds.",e);
+                try {
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+                } catch (InterruptedException e1) {}
+                return canAccessService(sref, false);
+            }
+            LOG.error("Unable to access to-be-exported service "+sref+". Service will not be exported",e);
+            return false;
+        }
+
+
+    }
+
+    private boolean shouldExport(ServiceReference sref) {
         Map<String, ?> addProps = policy.additionalParameters(sref);
         List<String> exported = StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
         List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));

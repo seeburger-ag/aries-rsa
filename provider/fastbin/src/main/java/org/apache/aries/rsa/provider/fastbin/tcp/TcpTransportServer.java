@@ -27,15 +27,19 @@ import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.aries.rsa.provider.fastbin.io.TransportAcceptListener;
 import org.apache.aries.rsa.provider.fastbin.io.TransportServer;
 import org.apache.aries.rsa.provider.fastbin.util.IntrospectionSupport;
+import org.apache.aries.rsa.provider.fastbin.util.URISupport;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.fusesource.hawtdispatch.DispatchSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A TCP based transport server
@@ -43,6 +47,8 @@ import org.fusesource.hawtdispatch.DispatchSource;
  */
 
 public class TcpTransportServer implements TransportServer {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TcpTransportServer.class);
 
     private final String bindScheme;
     private final InetSocketAddress bindAddress;
@@ -54,12 +60,41 @@ public class TcpTransportServer implements TransportServer {
     private TransportAcceptListener listener;
     private DispatchQueue dispatchQueue;
     private DispatchSource acceptSource;
+    private String connectAddress;
+    /** query param for the location uri if the bind address is different than the public server address */
+    public static final String BIND_ADDRESS_QUERY_PARAM = "bindAddress";
 
     public TcpTransportServer(URI location) throws UnknownHostException {
         bindScheme = location.getScheme();
         String host = location.getHost();
-        host = (host == null || host.length() == 0) ? "::" : host;
-        bindAddress = new InetSocketAddress(InetAddress.getByName(host), location.getPort());
+        connectAddress = location.getScheme() + "://";
+        if(host==null || host.length()==0)
+        {
+            host = "::";
+            connectAddress += resolveHostName();
+        }
+        else
+        {
+            connectAddress += host;
+        }
+
+        Map<String, String> options = Collections.emptyMap();
+        try
+        {
+            options = new HashMap<String, String>(URISupport.parseParameters(location));
+        }
+        catch (URISyntaxException e)
+        {
+            LOG.error("Failed to parse location URI "+location,e);
+        }
+        if(options.containsKey(BIND_ADDRESS_QUERY_PARAM))
+        {
+            this.bindAddress = new InetSocketAddress(options.get(BIND_ADDRESS_QUERY_PARAM), location.getPort());
+        }
+        else
+        {
+            this.bindAddress = new InetSocketAddress(InetAddress.getByName(host), location.getPort());
+        }
     }
 
     public void setAcceptListener(TransportAcceptListener listener) {
@@ -136,11 +171,8 @@ public class TcpTransportServer implements TransportServer {
     }
 
     public String getConnectAddress() {
-        try {
-            return new URI(bindScheme, null, resolveHostName(), channel.socket().getLocalPort(), null, null, null).toString();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        int port = bindAddress.getPort() <=0 ? channel.socket().getLocalPort() : bindAddress.getPort();
+        return connectAddress + ":" + port;
     }
 
     protected String resolveHostName() {
@@ -162,6 +194,13 @@ public class TcpTransportServer implements TransportServer {
         stop(null);
     }
     public void stop(final Runnable onCompleted) {
+        if (acceptSource == null) {
+            if (onCompleted != null)
+            {
+                onCompleted.run();
+            }
+            return;
+        }
         if( acceptSource.isCanceled() ) {
             onCompleted.run();
         } else {

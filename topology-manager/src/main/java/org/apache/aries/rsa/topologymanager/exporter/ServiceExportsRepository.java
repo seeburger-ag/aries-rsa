@@ -29,6 +29,7 @@ import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.osgi.framework.Bundle;
 
 /**
  * Holds all Exports of a given RemoteServiceAdmin.
@@ -98,6 +99,9 @@ public class ServiceExportsRepository implements Closeable {
 
     public synchronized void addService(ServiceReference<?> sref, Collection<ExportRegistration> registrations) {
         Collection<ExportRegistrationHolder> exports = new ArrayList<>(registrations.size());
+        Bundle bundle = sref.getBundle();
+        String symbolicName = bundle == null ? "<bundle-was-null>" : bundle.getSymbolicName();
+        LOG.info("Marking service from bundle {} for export", symbolicName);
         exportsMap.put(sref, exports);
         for (ExportRegistration reg : registrations) {
             ExportReference reference = reg.getExportReference();

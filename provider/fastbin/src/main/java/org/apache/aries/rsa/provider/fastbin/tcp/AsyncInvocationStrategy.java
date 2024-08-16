@@ -93,7 +93,7 @@ public class AsyncInvocationStrategy extends AbstractInvocationStrategy {
     }
 
     @Override
-    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream) throws Exception {
+    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
         Class<?>[] new_types = payloadTypes(method);
         Object[] new_args = new Object[args.length - 1];
         System.arraycopy(args, 0, new_args, 0, new_args.length);

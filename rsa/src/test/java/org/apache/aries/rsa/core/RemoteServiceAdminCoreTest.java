@@ -80,7 +80,7 @@ public class RemoteServiceAdminCoreTest {
         rsaContext = c.createMock(BundleContext.class);
         Bundle b = createDummyRsaBundle(rsaContext);
         expect(rsaContext.getProperty(Constants.FRAMEWORK_VERSION)).andReturn("1111").anyTimes();
-        expect(rsaContext.getProperty(Constants.FRAMEWORK_UUID)).andReturn("some_uuid1").anyTimes();
+        expect(rsaContext.getProperty("org.osgi.framework.uuid")).andReturn("some_uuid1").anyTimes();
 
         expect(rsaContext.getBundle()).andReturn(b).anyTimes();
 

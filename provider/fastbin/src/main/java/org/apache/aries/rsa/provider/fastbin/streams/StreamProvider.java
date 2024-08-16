@@ -69,4 +69,13 @@ public interface StreamProvider {
      */
     int registerStream(OutputStream out);
 
+    /**
+    *
+    * @param protocolVersion
+    * @return the unique registration name of the stream provider service for the given protocol version
+    */
+   static String serviceNameForProtocolVersion(int protocolVersion) {
+       return STREAM_PROVIDER_SERVICE_NAME + "/" + protocolVersion;
+   }
+
 }

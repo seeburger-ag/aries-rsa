@@ -20,10 +20,13 @@ package org.apache.aries.rsa.provider.fastbin.api;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.text.MessageFormat;
 
+import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.util.ClassLoaderObjectInputStream;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
+import org.osgi.framework.ServiceException;
 
 /**
  * <p>
@@ -33,6 +36,8 @@ import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 @SuppressWarnings("rawtypes")
 public class ObjectSerializationStrategy implements SerializationStrategy {
     public static final ObjectSerializationStrategy INSTANCE = new ObjectSerializationStrategy();
+    private static final ObjectSerializationStrategy V1 = INSTANCE;
+    private int protocolVersion = FastBinProvider.PROTOCOL_VERSION;
 
     public String name() {
         return "object";
@@ -71,6 +76,24 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
         oos.writeObject(error);
         oos.writeObject(value);
         oos.flush();
+    }
+
+    @Override
+    public int getProtocolVersion() {
+        return FastBinProvider.PROTOCOL_VERSION;
+    }
+
+    @Override
+    public SerializationStrategy forProtocolVersion(int protocolVersion)
+    {
+        switch (protocolVersion)
+        {
+            case 1:
+                return V1;
+            default:
+                break;
+        }
+        throw new ServiceException(MessageFormat.format("Incorrect fastbin protocol {0} version. Only protocol versions up to {1} are supported.", protocolVersion,FastBinProvider.PROTOCOL_VERSION));
     }
 
 }

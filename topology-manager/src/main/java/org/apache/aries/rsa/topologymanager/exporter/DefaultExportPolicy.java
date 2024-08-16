@@ -30,7 +30,7 @@ import org.osgi.framework.ServiceReference;
 public class DefaultExportPolicy implements ExportPolicy {
 
     @Override
-    public Map<String, ?> additionalParameters(ServiceReference<?> sref) {
+    public Map<String, ?> additionalParameters(ServiceReference sref) {
         return new HashMap<>();
     }
 

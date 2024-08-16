@@ -68,7 +68,7 @@ public class TransportFailureTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader());
+            InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
             Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{Hello.class}, handler);
 
             AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<>();
