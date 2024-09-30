@@ -21,9 +21,15 @@ package org.apache.aries.rsa.provider.fastbin.api;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.util.ClassLoaderObjectInputStream;
+import org.apache.aries.rsa.provider.fastbin.util.FilteredClassLoaderObjectInputStream;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.osgi.framework.ServiceException;
@@ -38,6 +44,39 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
     private static final ObjectSerializationStrategy V1 = INSTANCE;
     private int protocolVersion = FastBinProvider.PROTOCOL_VERSION;
 
+    private static final Set<String> ALLOWEDCLASSES;
+    private static final FilteredClassLoaderObjectInputStream.AllowlistPackagesPredicate ALLOWED_PACKAGES;
+    static
+    {
+        Set<String> classes = new HashSet<>();
+        classes.addAll(Arrays.asList(
+                        "B",  // byte
+                        "C",  // char
+                        "D",  // double
+                        "F",  // float
+                        "I",  // int
+                        "J",  // long
+                        "S",  // short
+                        "Z",  // boolean
+                        "L"   // Object type (LClassName;)
+                        ));
+
+        ALLOWEDCLASSES = classes;
+
+
+        List<String> packages = new ArrayList<>();
+        packages.addAll(Arrays.asList(
+                        "java",
+                        "javax",
+                        "Ljava",
+                        "org.apache.aries.rsa",
+                        "org.osgi.framework",
+                        "com.seeburger"));
+
+        ALLOWED_PACKAGES = new FilteredClassLoaderObjectInputStream.AllowlistPackagesPredicate(packages);
+    }
+
+
 
     public String name() {
         return "object";
@@ -50,7 +89,7 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
     }
 
     public void decodeResponse(ClassLoader loader, Class<?> type, DataByteArrayInputStream source, AsyncCallback result) throws IOException, ClassNotFoundException {
-        ClassLoaderObjectInputStream ois = new ClassLoaderObjectInputStream(source);
+        ClassLoaderObjectInputStream ois = new FilteredClassLoaderObjectInputStream(source, ALLOWEDCLASSES, ALLOWED_PACKAGES);
         ois.setClassLoader(loader);
         Throwable error = (Throwable) ois.readObject();
         Object value = ois.readObject();
@@ -62,7 +101,7 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
     }
 
     public void decodeRequest(ClassLoader loader, Class<?>[] types, DataByteArrayInputStream source, Object[] target) throws IOException, ClassNotFoundException {
-        final ClassLoaderObjectInputStream ois = new ClassLoaderObjectInputStream(source);
+        ClassLoaderObjectInputStream ois = new FilteredClassLoaderObjectInputStream(source, ALLOWEDCLASSES, ALLOWED_PACKAGES);
         ois.setClassLoader(loader);
         final Object[] args = (Object[]) ois.readObject();
         if( args!=null ) {
