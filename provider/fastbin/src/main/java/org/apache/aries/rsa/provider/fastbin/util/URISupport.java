@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -31,13 +31,14 @@ import java.util.Map;
 
 /**
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class URISupport {
 
     public static class CompositeData {
         private String host;
         private String scheme;
         private String path;
-        private URI components[];
+        private URI[] components;
         private Map<String, String> parameters;
         private String fragment;
 
@@ -66,7 +67,7 @@ public class URISupport {
         }
 
         public URI toURI() throws URISyntaxException {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             if (scheme != null) {
                 sb.append(scheme);
                 sb.append(':');
@@ -103,17 +104,17 @@ public class URISupport {
 
     public static Map<String, String> parseQuery(String uri) throws URISyntaxException {
         try {
-            Map<String, String> rc = new HashMap<String, String>();
+            Map<String, String> rc = new HashMap<>();
             if (uri != null) {
                 String[] parameters = uri.split("&");
-                for (int i = 0; i < parameters.length; i++) {
-                    int p = parameters[i].indexOf("=");
+                for (String parameter : parameters) {
+                    int p = parameter.indexOf("=");
                     if (p >= 0) {
-                        String name = URLDecoder.decode(parameters[i].substring(0, p), "UTF-8");
-                        String value = URLDecoder.decode(parameters[i].substring(p + 1), "UTF-8");
+                        String name = URLDecoder.decode(parameter.substring(0, p), "UTF-8");
+                        String value = URLDecoder.decode(parameter.substring(p + 1), "UTF-8");
                         rc.put(name, value);
                     } else {
-                        rc.put(parameters[i], null);
+                        rc.put(parameter, null);
                     }
                 }
             }
@@ -127,7 +128,6 @@ public class URISupport {
         return uri.getQuery() == null ? emptyMap() : parseQuery(stripPrefix(uri.getQuery(), "?"));
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, String> emptyMap() {
         return Collections.EMPTY_MAP;
     }
@@ -144,7 +144,7 @@ public class URISupport {
      */
     public static URI createURIWithQuery(URI uri, String query) throws URISyntaxException {
         return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(),
-                       query, uri.getFragment());
+            query, uri.getFragment());
     }
 
     public static CompositeData parseComposite(URI uri) throws URISyntaxException {
@@ -174,16 +174,16 @@ public class URISupport {
         }
 
         int p;
-        int intialParen = ssp.indexOf("(");
-        if (intialParen == 0) {
-            rc.host = ssp.substring(0, intialParen);
+        int initialParen = ssp.indexOf("(");
+        if (initialParen == 0) {
+            rc.host = ssp.substring(0, initialParen);
             p = rc.host.indexOf("/");
             if (p >= 0) {
                 rc.path = rc.host.substring(p);
                 rc.host = rc.host.substring(0, p);
             }
             p = ssp.lastIndexOf(")");
-            componentString = ssp.substring(intialParen + 1, p);
+            componentString = ssp.substring(initialParen + 1, p);
             params = ssp.substring(p + 1).trim();
 
         } else {
@@ -191,7 +191,7 @@ public class URISupport {
             params = "";
         }
 
-        String components[] = splitComponents(componentString);
+        String[] components = splitComponents(componentString);
         rc.components = new URI[components.length];
         for (int i = 0; i < components.length; i++) {
             rc.components[i] = new URI(components[i].trim());
@@ -216,11 +216,11 @@ public class URISupport {
      * @return
      */
     private static String[] splitComponents(String str) {
-        List<String> l = new ArrayList<String>();
+        List<String> l = new ArrayList<>();
 
         int last = 0;
         int depth = 0;
-        char chars[] = str.toCharArray();
+        char[] chars = str.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             switch (chars[i]) {
             case '(':
@@ -245,7 +245,7 @@ public class URISupport {
             l.add(s);
         }
 
-        String rc[] = new String[l.size()];
+        String[] rc = new String[l.size()];
         l.toArray(rc);
         return rc;
     }
@@ -261,12 +261,12 @@ public class URISupport {
         return new URI(stripPrefix(uri.getSchemeSpecificPart().trim(), "//"));
     }
 
-    public static String createQueryString(Map<String,String> options) throws URISyntaxException {
+    public static String createQueryString(Map<String, String> options) throws URISyntaxException {
         try {
             if (options.size() > 0) {
-                StringBuffer rc = new StringBuffer();
+                StringBuilder rc = new StringBuilder();
                 boolean first = true;
-                for (Map.Entry<String,String> entry : options.entrySet()) {
+                for (Map.Entry<String, String> entry : options.entrySet()) {
                     if (first) {
                         first = false;
                     } else {
@@ -288,8 +288,8 @@ public class URISupport {
     }
 
     /**
-     * Creates a URI from the original URI and the remaining paramaters
-     * 
+     * Creates a URI from the original URI and the remaining parameters
+     *
      * @throws URISyntaxException
      */
     public static URI createRemainingURI(URI originalURI, Map params) throws URISyntaxException {
@@ -327,9 +327,7 @@ public class URISupport {
     }
 
     public int indexOfParenthesisMatch(String str) {
-        int result = -1;
-
-        return result;
+        return -1;
     }
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,65 +18,76 @@
  */
 package org.apache.aries.rsa.discovery.zookeeper.server;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
-import junit.framework.TestCase;
-
-import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter;
-import org.apache.aries.rsa.discovery.zookeeper.server.ZookeeperStarter.MyZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.osgi.framework.BundleContext;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
+public class ZookeeperStarterTest {
 
-public class ZookeeperStarterTest extends TestCase {
+    @Rule
+    public MockitoRule mockito = MockitoJUnit.rule();
 
+    @Mock
+    BundleContext bc;
+
+    @Mock
+    ZookeeperServer server;
+
+    private static QuorumPeerConfig config;
+
+    @InjectMocks
+    ZookeeperStarter starter = new ZookeeperStarter() {
+
+        @Override
+        protected ZookeeperServer createServer(QuorumPeerConfig config) {
+            ZookeeperStarterTest.config = config;
+            return server;
+        }
+    };
+
+    @Captor
+    ArgumentCaptor<QuorumPeerConfig> configCaptor;
+
+    @Test
     public void testUpdateConfig() throws Exception {
         final File tempDir = new File("target");
-        IMocksControl control = EasyMock.createControl();
-        BundleContext bc = control.createMock(BundleContext.class);
-        expect(bc.getDataFile("")).andReturn(tempDir);
-        final MyZooKeeperServerMain mockServer = control.createMock(MyZooKeeperServerMain.class);
-        control.replay();
+        when(bc.getDataFile("")).thenReturn(tempDir);
 
-        ZookeeperStarter starter = new ZookeeperStarter(bc) {
-            @Override
-            protected void startFromConfig(QuorumPeerConfig config) {
-                assertEquals(1234, config.getClientPortAddress().getPort());
-                assertTrue(config.getDataDir().contains(tempDir + File.separator + "zkdata"));
-                assertEquals(2000, config.getTickTime());
-                assertEquals(10, config.getInitLimit());
-                assertEquals(5, config.getSyncLimit());
-                this.main = mockServer;
-            }
-        };
-        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        Map<String, String> props = new HashMap<>();
         props.put("clientPort", "1234");
-        starter.updated(props);
-        assertNotNull(starter.main);
+        starter.activate(bc, props);
 
-        control.verify();
+        verify(server, after(1000)).startup();
+        verifyConfig(tempDir);
+
+        starter.deactivate();
+
+        verify(server).shutdown();
     }
 
-    public void testRemoveConfiguration() throws Exception {
-        BundleContext bc = EasyMock.createMock(BundleContext.class);
-        MyZooKeeperServerMain zkServer = EasyMock.createMock(MyZooKeeperServerMain.class);
-        zkServer.shutdown();
-        EasyMock.expectLastCall();
-
-        replay(zkServer);
-
-        ZookeeperStarter starter = new ZookeeperStarter(bc);
-        starter.main = zkServer;
-        starter.updated(null);
-
-        verify(zkServer);
-        assertNull("main should be null", starter.main);
+    private void verifyConfig(final File tempDir) {
+        assertEquals(1234, config.getClientPortAddress().getPort());
+        assertTrue(config.getDataDir().toString().contains(tempDir + File.separator + "zkdata"));
+        assertEquals(2000, config.getTickTime());
+        assertEquals(10, config.getInitLimit());
+        assertEquals(5, config.getSyncLimit());
     }
+
 }

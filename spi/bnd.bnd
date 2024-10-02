@@ -1,3 +1,0 @@
-Export-Package: \
-	org.apache.aries.rsa.spi,\
-	org.apache.aries.rsa.util

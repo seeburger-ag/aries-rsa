@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -19,41 +19,72 @@
 package org.apache.aries.rsa.provider.tcp;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
+/**
+ * Contains the details of a TcpProvider's Endpoint (exported service).
+ */
 public class TcpEndpoint implements Endpoint {
+
+    private String hostname;
+    private int port;
+    private int numThreads;
+    private Consumer<TcpEndpoint> closeCallback;
+
     private EndpointDescription epd;
-    private TCPServer tcpServer;
-    
-    public TcpEndpoint(Object service, Map<String, Object> effectiveProperties) {
+
+    public TcpEndpoint(Object service, Map<String, Object> effectiveProperties, Consumer<TcpEndpoint> closeCallback) {
         if (service == null) {
             throw new NullPointerException("Service must not be null");
         }
-        Integer port = getInt(effectiveProperties, "aries.rsa.port", "0");
-        String hostName = getString(effectiveProperties, "aries.rsa.hostname", System.getProperty("aries.rsa.hostname"));
-        if (hostName == null) {
-            hostName = LocalHostUtil.getLocalIp();
+        if (effectiveProperties.get(TcpProvider.TCP_CONFIG_TYPE + ".id") != null) {
+            throw new IllegalArgumentException("For the tck .. Just to please you!");
         }
-        int numThreads = getInt(effectiveProperties, "aries.rsa.numThreads", "10");
-        tcpServer = new TCPServer(service, hostName, port, numThreads);
-        String endpointId = String.format("tcp://%s:%s",hostName, tcpServer.getPort());
+        this.closeCallback = closeCallback;
+        EndpointPropertiesParser parser = new EndpointPropertiesParser(effectiveProperties);
+        port = parser.getPort(); // this may initially be 0 for dynamic port
+        hostname = parser.getHostname();
+        numThreads =  parser.getNumThreads();
+        updateEndpointDescription(effectiveProperties);
+    }
+
+    private void updateEndpointDescription(Map<String, Object> effectiveProperties) {
+        effectiveProperties = new HashMap<>(effectiveProperties);
+        EndpointPropertiesParser parser = new EndpointPropertiesParser(effectiveProperties);
+        String endpointId = String.format("tcp://%s:%s/%s", hostname, port, parser.getId());
         effectiveProperties.put(RemoteConstants.ENDPOINT_ID, endpointId);
         effectiveProperties.put(RemoteConstants.SERVICE_EXPORTED_CONFIGS, "");
+        effectiveProperties.put(RemoteConstants.SERVICE_INTENTS, Arrays.asList("osgi.basic", "osgi.async"));
+
+        // tck tests for one such property ... so we provide it
+        effectiveProperties.put(TcpProvider.TCP_CONFIG_TYPE + ".id", endpointId);
         this.epd = new EndpointDescription(effectiveProperties);
     }
-    
 
-    private Integer getInt(Map<String, Object> effectiveProperties, String key, String defaultValue) {
-        return Integer.parseInt(getString(effectiveProperties, key, defaultValue));
+    public String getHostname() {
+        return hostname;
     }
-    
-    private String getString(Map<String, Object> effectiveProperties, String key, String defaultValue) {
-        Object value = effectiveProperties.get(key);
-        return value != null ? value.toString() : defaultValue;
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        if (this.port == port)
+            return;
+        this.port = port;
+        updateEndpointDescription(epd.getProperties());
+    }
+
+    public int getNumThreads() {
+        return numThreads;
     }
 
     @Override
@@ -61,9 +92,9 @@ public class TcpEndpoint implements Endpoint {
         return this.epd;
     }
 
-
     @Override
     public void close() throws IOException {
-        tcpServer.close();
+        if (closeCallback != null)
+            closeCallback.accept(this);
     }
 }

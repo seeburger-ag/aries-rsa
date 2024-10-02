@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -23,17 +23,17 @@ import java.net.InetSocketAddress;
 import org.fusesource.hawtdispatch.DispatchQueue;
 
 /**
- * A TransportServer asynchronously accepts {@see Transport} objects and then
- * delivers those objects to a {@see TransportAcceptListener}.
- * 
+ * A TransportServer asynchronously accepts @see Transport objects and then
+ * delivers those objects to a @see TransportAcceptListener.
+ *
  * @version $Revision: 1.4 $
  */
 public interface TransportServer extends Service {
 
     /**
-     * Registers an {@see TransportAcceptListener} which is notified of accepted
+     * Registers a {@link TransportAcceptListener} which is notified of accepted
      * channels.
-     * 
+     *
      * @param acceptListener
      */
     void setAcceptListener(TransportAcceptListener acceptListener);

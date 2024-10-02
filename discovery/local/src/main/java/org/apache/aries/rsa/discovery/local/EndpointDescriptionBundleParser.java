@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -25,7 +25,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParser;
+import org.apache.aries.rsa.discovery.endpoint.EndpointDescriptionParserImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
@@ -37,29 +37,29 @@ public final class EndpointDescriptionBundleParser {
     private static final String REMOTE_SERVICES_HEADER_NAME = "Remote-Service";
     private static final String REMOTE_SERVICES_DIRECTORY = "OSGI-INF/remote-service/";
 
-    private EndpointDescriptionParser parser;
+    private EndpointDescriptionParserImpl parser;
 
     public EndpointDescriptionBundleParser() {
-        parser = new EndpointDescriptionParser();
+        parser = new EndpointDescriptionParserImpl();
     }
 
     public List<EndpointDescription> getAllEndpointDescriptions(Bundle b) {
         Enumeration<URL> urls = getEndpointDescriptionURLs(b);
-        List<EndpointDescription> elements = new ArrayList<EndpointDescription>();
+        List<EndpointDescription> elements = new ArrayList<>();
         while (urls.hasMoreElements()) {
-            URL resourceURL = (URL) urls.nextElement();
+            URL resourceURL = urls.nextElement();
             try {
                 elements.addAll(parser.readEndpoints(resourceURL.openStream()));
             } catch (Exception ex) {
-                LOG.warn("Problem parsing: " + resourceURL, ex);
+                LOG.warn("Problem parsing: {}", resourceURL, ex);
             }
         }
         return elements;
     }
-    
-    Enumeration<URL> getEndpointDescriptionURLs(Bundle b) {
+
+    private Enumeration<URL> getEndpointDescriptionURLs(Bundle b) {
         String origDir = getRemoteServicesDir(b);
-        
+
         // Split origDir into dir and file pattern
         String filePattern = "*.xml";
         String dir;
@@ -77,7 +77,7 @@ public final class EndpointDescriptionBundleParser {
         }
 
         Enumeration<URL> urls = b.findEntries(dir, filePattern, false);
-        return (urls == null) ? Collections.enumeration(new ArrayList<URL>()) : urls;
+        return (urls == null) ? Collections.enumeration(new ArrayList<>()) : urls;
     }
 
     private static String getRemoteServicesDir(Bundle b) {

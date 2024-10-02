@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.aries.rsa.itests.felix;
 
 import java.lang.reflect.Method;
@@ -32,7 +31,7 @@ import org.ops4j.pax.exam.spi.PaxExamRuntime;
 /**
  * Can be used instead of the PaxExam runner to start a second
  * OSGi container that typically hosts the server side for the test.
- * 
+ *
  * Use the @ServerConfiguration annotation to mark the config of your server side
  */
 public class TwoContainerPaxExam extends PaxExam {
@@ -48,7 +47,7 @@ public class TwoContainerPaxExam extends PaxExam {
     public void run(RunNotifier notifier) {
         TestContainer remoteContainer = null;
         try {
-            
+
             ExamSystem testSystem = PaxExamRuntime.createTestSystem(remoteConfig());
             remoteContainer = PaxExamRuntime.createContainer(testSystem);
             remoteContainer.start();
@@ -65,7 +64,6 @@ public class TwoContainerPaxExam extends PaxExam {
                 }
             }
         }
-        
     }
 
     private Option[] remoteConfig() throws Exception {

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
-
-
 /**
- * Interface to encode and decode commands in and out of a a non blocking channel.
+ * Interface to encode and decode commands in and out of a non-blocking channel.
  *
  */
 public interface ProtocolCodec {
@@ -43,7 +41,7 @@ public interface ProtocolCodec {
 
     /**
      * Non-blocking channel based decoding.
-     * 
+     *
      * @return
      * @throws IOException
      */
@@ -54,13 +52,11 @@ public interface ProtocolCodec {
      */
     public long getReadCounter();
 
-
     ///////////////////////////////////////////////////////////////////
     //
     // Methods related with writing to the channel
     //
     ///////////////////////////////////////////////////////////////////
-
 
     enum BufferState {
         EMPTY,
@@ -87,7 +83,7 @@ public interface ProtocolCodec {
     BufferState flush() throws IOException;
 
     /**
-     * @return true if the codec will no accept any more writes.
+     * @return true if the codec will not accept any more writes.
      */
     boolean full();
 
@@ -95,6 +91,5 @@ public interface ProtocolCodec {
      * @return The number of bytes written.
      */
     public long getWriteCounter();
-
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,7 @@ import static org.osgi.service.remoteserviceadmin.RemoteConstants.REMOTE_INTENTS
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public class DistributionProviderTracker extends ServiceTracker<DistributionProvider, ServiceRegistration> {
-    private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DistributionProviderTracker.class);
 
     public DistributionProviderTracker(BundleContext context) {
         super(context, DistributionProvider.class, null);
@@ -46,17 +47,23 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
 
     @Override
     public ServiceRegistration addingService(ServiceReference<DistributionProvider> reference) {
-        LOG.debug("RemoteServiceAdmin Implementation is starting up");
         DistributionProvider provider = context.getService(reference);
+        if (provider == null) {
+            // Can happen if the service is created by a service factory and an exception occurs
+            return null;
+        }
+        LOG.debug("RemoteServiceAdmin Implementation is starting up");
         BundleContext apiContext = getAPIContext();
-        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context, 
-                                                                    apiContext, 
+        EventProducer eventProducer = new EventProducer(context);
+        RemoteServiceAdminCore rsaCore = new RemoteServiceAdminCore(context,
+                                                                    apiContext,
+                                                                    eventProducer,
                                                                     provider);
-        RemoteServiceadminFactory rsaf = new RemoteServiceadminFactory(rsaCore);
-        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        RemoteServiceAdminFactory rsaf = new RemoteServiceAdminFactory(rsaCore);
+        Dictionary<String, Object> props = new Hashtable<>();
         props.put(REMOTE_INTENTS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_INTENTS_SUPPORTED));
         props.put(REMOTE_CONFIGS_SUPPORTED, getPropertyNullSafe(reference, REMOTE_CONFIGS_SUPPORTED));
-        LOG.info("Registering RemoteServiceAdmin for provider " + provider.getClass().getName());
+        LOG.info("Registering RemoteServiceAdmin for provider {}", provider.getClass().getName());
         return context.registerService(RemoteServiceAdmin.class.getName(), rsaf, props);
     }
 
@@ -72,10 +79,9 @@ public class DistributionProviderTracker extends ServiceTracker<DistributionProv
         } catch (BundleException e) {
             LOG.error(e.getMessage(), e);
         }
-        BundleContext apiContext = apiBundle.getBundleContext();
-        return apiContext;
+        return apiBundle.getBundleContext();
     }
-    
+
     @Override
     public void removedService(ServiceReference<DistributionProvider> reference,
                                ServiceRegistration reg) {

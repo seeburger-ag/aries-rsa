@@ -1,5 +1,4 @@
-package org.apache.aries.rsa.itests.felix.discovery.config;
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +16,7 @@ package org.apache.aries.rsa.itests.felix.discovery.config;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.aries.rsa.itests.felix.discovery.config;
 
 import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
@@ -43,23 +42,21 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaProviderTcp(), //
-         echoTcpService()
+        return new Option[] {
+            rsaCore(), //
+            rsaProviderTcp(), //
+            echoTcpService()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryConfig(), //
-         rsaProviderTcp(), //
-         echoTcpConsumer(), //
-         configImportEchoService()
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryConfig(), //
+            rsaProviderTcp(), //
+            echoTcpConsumer(), //
+            configImportEchoService()
         };
     }
 
@@ -68,13 +65,12 @@ public class TestConfigDiscoveryRoundTrip extends RsaTestBase {
             .put("service.imported", "true")
             .put("service.imported.configs", "aries.tcp")
             .put("objectClass", "org.apache.aries.rsa.examples.echotcp.api.EchoService")
-            .put("endpoint.id", "tcp://localhost:8201")
+            .put("endpoint.id", "tcp://localhost:8201/echo")
             .put("aries.tcp.hostname", "localhost")
             .put("aries.tcp.port", "8201")
             .asOption();
     }
 
-    //currently fails on jenkins because of the used port
     @Test
     @Ignore
     public void testCall() throws Exception {

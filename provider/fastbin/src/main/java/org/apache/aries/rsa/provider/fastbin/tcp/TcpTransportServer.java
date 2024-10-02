@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -60,6 +60,7 @@ public class TcpTransportServer implements TransportServer {
     private DispatchQueue dispatchQueue;
     private DispatchSource acceptSource;
     private String connectAddress;
+
     /** query param for the location uri if the bind address is different than the public server address */
     public static final String BIND_ADDRESS_QUERY_PARAM = "bindAddress";
 
@@ -174,11 +175,10 @@ public class TcpTransportServer implements TransportServer {
         return connectAddress + ":" + port;
     }
 
-
     protected String resolveHostName() {
         String result;
         if (bindAddress.getAddress().isAnyLocalAddress()) {
-            // make it more human readable and useful, an alternative to 0.0.0.0
+            // make it more human-readable and useful, an alternative to 0.0.0.0
             try {
                 result = InetAddress.getLocalHost().getCanonicalHostName();
             } catch (UnknownHostException e) {
@@ -227,9 +227,9 @@ public class TcpTransportServer implements TransportServer {
     }
 
     protected final void handleSocket(SocketChannel socket) throws Exception {
-        HashMap<String, Object> options = new HashMap<String, Object>();
+        HashMap<String, Object> options = new HashMap<>();
 //      options.put("maxInactivityDuration", Long.valueOf(maxInactivityDuration));
-//      options.put("maxInactivityDurationInitalDelay", Long.valueOf(maxInactivityDurationInitalDelay));
+//      options.put("maxInactivityDurationInitialDelay", Long.valueOf(maxInactivityDurationInitialDelay));
 //      options.put("trace", Boolean.valueOf(trace));
 //      options.put("soTimeout", Integer.valueOf(soTimeout));
 //      options.put("socketBufferSize", Integer.valueOf(socketBufferSize));

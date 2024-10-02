@@ -24,13 +24,13 @@
     <parent>
       <groupId>org.apache.aries.rsa</groupId>
       <artifactId>org.apache.aries.rsa.parent</artifactId>
-      <version>1.10.0.SEE13-SNAPSHOT</version>
+      <version>1.17.1.SEE1-SNAPSHOT</version>
       <relativePath>../parent/pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>org.apache.aries.rsa.examples</artifactId>
     <packaging>pom</packaging>
-    
+
     <name>Aries Remote Service Admin Examples</name>
 
     <properties>
@@ -39,5 +39,6 @@
 
     <modules>
     <module>echotcp</module>
+    <module>echofastbin</module>
     </modules>
 </project>

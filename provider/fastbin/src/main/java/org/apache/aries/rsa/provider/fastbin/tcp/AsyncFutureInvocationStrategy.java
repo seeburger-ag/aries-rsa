@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -39,9 +39,8 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
 
     private FutureCompleter completer = new FutureCompleter();
@@ -55,7 +54,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             final Object[] args = new Object[types.length];
             serializationStrategy.decodeRequest(loader, types, requestStream, args);
             Future<Object> future = (Future<Object>)method.invoke(target, args);
-            CompletableFuture<Object> completable = null;
+            CompletableFuture<Object> completable;
             if(future instanceof CompletableFuture) {
                 completable = (CompletableFuture<Object>)future;
             }
@@ -65,14 +64,13 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             completable.whenComplete(new BiConsumer<Object, Throwable>() {
                 public void accept(Object returnValue, Throwable exception) {
                     helper.send(exception, returnValue);
-                };
+                }
             });
 
         } catch (Throwable t) {
             helper.send(t, null);
         }
     }
-
 
     @Override
     protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
@@ -90,7 +88,6 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-    @SuppressWarnings({"rawtypes"})
     private class AsyncResponseFuture implements ResponseFuture, AsyncCallback {
 
         private final ClassLoader loader;
@@ -144,8 +141,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
 
         @Override
-        public Object get(long timeout, TimeUnit unit) throws Exception
-        {
+        public Object get(long timeout, TimeUnit unit) throws Exception {
             return future;
         }
     }
@@ -227,6 +223,3 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 }
-
-
-

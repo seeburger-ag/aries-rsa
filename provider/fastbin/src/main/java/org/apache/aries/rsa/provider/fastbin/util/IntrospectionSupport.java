@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -31,10 +31,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
-
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class IntrospectionSupport {
-    
+
     private IntrospectionSupport() {
     }
 
@@ -54,16 +53,15 @@ public final class IntrospectionSupport {
 
         Class<?> clazz = target.getClass();
         Method[] methods = clazz.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
+        for (Method method : methods) {
             String name = method.getName();
             Class<?> type = method.getReturnType();
-            Class<?> params[] = method.getParameterTypes();
-            if ((name.startsWith("is") || name.startsWith("get")) && params.length == 0 && type != null && isSettableType(type)) {
+            Class<?>[] params = method.getParameterTypes();
+            if ((name.startsWith("is") || name.startsWith("get")) && params.length == 0 && isSettableType(type)) {
 
                 try {
 
-                    Object value = method.invoke(target, new Object[] {});
+                    Object value = method.invoke(target);
                     if (value == null) {
                         continue;
                     }
@@ -74,10 +72,10 @@ public final class IntrospectionSupport {
                     }
                     if (name.startsWith("get")) {
                         name = name.substring(3, 4).toLowerCase()
-                                + name.substring(4);
+                            + name.substring(4);
                     } else {
                         name = name.substring(2, 3).toLowerCase()
-                                + name.substring(3);
+                            + name.substring(3);
                     }
                     props.put(optionPrefix + name, strValue);
                     rc = true;
@@ -119,7 +117,7 @@ public final class IntrospectionSupport {
             throw new IllegalArgumentException("props was null.");
         }
 
-        HashMap<String, Object> rc = new HashMap<String, Object>(props.size());
+        HashMap<String, Object> rc = new HashMap<>(props.size());
 
         for (Iterator<Entry> iter = props.entrySet().iterator(); iter.hasNext();) {
             Entry entry = iter.next();
@@ -163,7 +161,7 @@ public final class IntrospectionSupport {
         }
         return setter.getParameterTypes()[0];
     }
-    
+
     public static boolean setProperty(Object target, String name, Object value) {
         try {
             Class<?> clazz = target.getClass();
@@ -172,13 +170,13 @@ public final class IntrospectionSupport {
                 return false;
             }
 
-            // If the type is null or it matches the needed type, just use the
+            // If the type is null, or it matches the needed type, just use the
             // value directly
             if (value == null || value.getClass() == setter.getParameterTypes()[0]) {
-                setter.invoke(target, new Object[] {value});
+                setter.invoke(target, value);
             } else {
                 // We need to convert it
-                setter.invoke(target, new Object[] {convert(value, setter.getParameterTypes()[0])});
+                setter.invoke(target, convert(value, setter.getParameterTypes()[0]));
             }
             return true;
         } catch (Throwable ignore) {
@@ -220,10 +218,9 @@ public final class IntrospectionSupport {
         // Build the method name.
         name = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
         Method[] methods = clazz.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            Class<?> params[] = method.getParameterTypes();
-            if (method.getName().equals(name) && params.length == 1 ) {
+        for (Method method : methods) {
+            Class<?>[] params = method.getParameterTypes();
+            if (method.getName().equals(name) && params.length == 1) {
                 return method;
             }
         }
@@ -231,21 +228,17 @@ public final class IntrospectionSupport {
     }
 
     private static boolean isSettableType(Class<?> clazz) {
-        if (PropertyEditorManager.findEditor(clazz) != null) {
-            return true;
-        }
-            
-        return false;
+        return PropertyEditorManager.findEditor(clazz) != null;
     }
 
     public static String toString(Object target) {
         return toString(target, Object.class, null, (String[])null);
     }
-    
+
     public static String toString(Object target, String...fields) {
         return toString(target, Object.class, null, fields);
     }
-    
+
     public static String toString(Object target, Class<?> stopClass) {
         return toString(target, stopClass, null, (String[])null);
     }
@@ -256,7 +249,7 @@ public final class IntrospectionSupport {
 
     public static String toString(Object target, Class<?> stopClass, Map<String, Object> overrideFields, String ... fields) {
         try {
-            LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+            LinkedHashMap<String, Object> map = new LinkedHashMap<>();
             addFields(target, target.getClass(), stopClass, map);
             if (overrideFields != null) {
                 for(String key : overrideFields.keySet()) {
@@ -264,26 +257,26 @@ public final class IntrospectionSupport {
                     map.put(key, value);
                 }
             }
-            
+
             if( fields!=null ) {
                 map.keySet().retainAll(Arrays.asList(fields));
             }
-           
-            boolean useMultiLine=false;
-            LinkedHashMap<String, String> props = new LinkedHashMap<String, String>();
+
+            boolean useMultiLine = false;
+            LinkedHashMap<String, String> props = new LinkedHashMap<>();
             for (Entry<String, Object> entry : map.entrySet()) {
                 String key = entry.getKey();
                 String value = null;
                 if( entry.getValue() !=null ) {
                     value = entry.getValue().toString();
                     if( value!=null && ( value.indexOf('\n')>=0 || (key.length()+value.length())>70 ) ) {
-                        useMultiLine=true;
+                        useMultiLine = true;
                     }
                 }
                 props.put(key, value);
             }
-            
-            StringBuffer buffer = new StringBuffer();
+
+            StringBuilder buffer = new StringBuilder();
             if( useMultiLine) {
                 buffer.append("{\n");
                 boolean first = true;
@@ -318,10 +311,9 @@ public final class IntrospectionSupport {
             return buffer.toString();
         } catch (Throwable e) {
             e.printStackTrace();
-            return "Could not toString: "+e.toString();
+            return "Could not toString: " + e;
         }
     }
-
 
     public static String simpleName(Class<?> clazz) {
         String name = clazz.getName();
@@ -339,8 +331,7 @@ public final class IntrospectionSupport {
         }
 
         Field[] fields = startClass.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }

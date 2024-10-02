@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -38,14 +38,11 @@ public class InputStreamProxyTest {
         streamProvider = new StreamProviderImpl();
     }
 
-
-
     @Test
     public void testUnsignedBytes() throws IOException {
         int length = 1024;
         ByteArrayOutputStream out = new ByteArrayOutputStream(length);
-        for(int i=0;i<length;i++)
-        {
+        for(int i = 0; i < length; i++) {
             out.write((byte)i);
         }
         byte[] data = out.toByteArray();
@@ -63,81 +60,81 @@ public class InputStreamProxyTest {
     @Test
     public void testReadFully() throws IOException {
         int charSize = 10;
-        OwnInputStream in = fillStream('c',charSize);
+        OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
         InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
-            assertEquals('c',fixture.read());
+            assertEquals('c', fixture.read());
         }
         assertEquals(-1, fixture.read());
     }
 
     @Test
     public void testReadFullyExceedsChunkSize() throws IOException {
-        int charSize = StreamProviderImpl.CHUNK_SIZE+10;
-        OwnInputStream in = fillStream('c',charSize);
+        int charSize = StreamProviderImpl.CHUNK_SIZE + 10;
+        OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
         InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
-            assertEquals('c',fixture.read());
+            assertEquals('c', fixture.read());
         }
         assertEquals(-1, fixture.read());
     }
 
     @Test
     public void testReadFullyExceedsChunkSize2() throws IOException {
-        int charSize = StreamProviderImpl.CHUNK_SIZE*2;
-        OwnInputStream in = fillStream('c',charSize);
+        int charSize = StreamProviderImpl.CHUNK_SIZE * 2;
+        OwnInputStream in = fillStream('c', charSize);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
         InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
         fixture.setStreamProvider(streamProvider);
         for (int i = 0; i < charSize; i++) {
-            assertEquals('c',fixture.read());
+            assertEquals('c', fixture.read());
         }
         assertEquals(-1, fixture.read());
     }
 
     @Test
     public void testReadArray() throws IOException {
-        OwnInputStream in = fillStream('c',1000000);
+        OwnInputStream in = fillStream('c', 1000000);
         int id = streamProvider.registerStream(in);
         @SuppressWarnings("resource")
         InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
         fixture.setStreamProvider(streamProvider);
-        assertEquals('c',fixture.read());
-        assertEquals(StreamProviderImpl.CHUNK_SIZE-1, fixture.available());
-        assertEquals('c',fixture.read());
-        assertEquals('c',fixture.read());
-        assertEquals('c',fixture.read());
-        assertEquals('c',fixture.read());
+        assertEquals('c', fixture.read());
+        assertEquals(StreamProviderImpl.CHUNK_SIZE - 1, fixture.available());
+        assertEquals('c', fixture.read());
+        assertEquals('c', fixture.read());
+        assertEquals('c', fixture.read());
+        assertEquals('c', fixture.read());
         byte[] target = new byte[5];
         fixture.read(target);
-        assertEquals("ccccc",new String(target));
+        assertEquals("ccccc", new String(target));
 
-        target = new byte[1000000-10];
-        assertEquals(target.length,fixture.read(target));
-        assertEquals(1000000-10,new String(target).length());
+        target = new byte[1000000 - 10];
+        assertEquals(target.length, fixture.read(target));
+        assertEquals(1000000 - 10, new String(target).length());
         assertEquals(-1, fixture.read(target));
     }
 
     @Test
     public void testClose() throws IOException {
-        OwnInputStream in = fillStream('c',10);
+        OwnInputStream in = fillStream('c', 10);
         int id = streamProvider.registerStream(in);
         InputStreamProxy fixture = new InputStreamProxy(id, "", 1);
         fixture.setStreamProvider(streamProvider);
-        assertEquals('c',fixture.read());
+        assertEquals('c', fixture.read());
         fixture.close();
         assertTrue(in.isClosed);
         try{
             streamProvider.read(id);
             fail("must have been closed already");
-        } catch(IOException e) {};
+        } catch(IOException e) {}
     }
 
     private OwnInputStream fillStream(char c, int repetitions) {
@@ -163,6 +160,3 @@ public class InputStreamProxyTest {
         }
     }
 }
-
-
-

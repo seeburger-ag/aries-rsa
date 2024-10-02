@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -49,7 +49,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         props.put("bundle.id", bctx.getBundle().getBundleId());
         props.put("bundle.symbolicname", bctx.getBundle().getSymbolicName());
 
-        String version = (String)bctx.getBundle().getHeaders().get("Bundle-Version");
+        String version = bctx.getBundle().getHeaders().get("Bundle-Version");
         Version v = version != null ? new Version(version) : Version.emptyVersion;
         setIfNotNull(props, "bundle.version", v);
 
@@ -60,7 +60,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
     public void remoteAdminEvent(RemoteServiceAdminEvent rsae) {
         String topic = remoteServiceAdminEventTypeToString(rsae.getType());
 
-        Map<String, Object> props = new HashMap<String, Object>();
+        Map<String, Object> props = new HashMap<>();
         setIfNotNull(props, "cause", rsae.getException());
 
         EndpointDescription endpoint = null;
@@ -76,7 +76,7 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
             setIfNotNull(props, "service.remote.id", endpoint.getServiceId());
             setIfNotNull(props, "service.remote.uuid", endpoint.getFrameworkUUID());
             setIfNotNull(props, "service.remote.uri", endpoint.getId());
-            setIfNotNull(props, "objectClass", endpoint.getInterfaces().toArray());
+            setIfNotNull(props, "objectClass", endpoint.getInterfaces().toArray(new String[0]));
             setIfNotNull(props, "service.imported.configs", endpoint.getConfigurationTypes());
         }
         props.put("timestamp", System.currentTimeMillis());
@@ -86,15 +86,13 @@ public class EventAdminHelper implements RemoteServiceAdminListener {
         notifyEventAdmins(topic, event);
     }
 
-    @SuppressWarnings({
-     "rawtypes", "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void notifyEventAdmins(String topic, Event event) {
         ServiceReference[] refs = null;
         try {
             refs = bctx.getAllServiceReferences(EventAdmin.class.getName(), null);
         } catch (InvalidSyntaxException e) {
-            LOG.error("Failed to get EventAdmin: " + e.getMessage(), e);
+            LOG.error("Failed to get EventAdmin: {}", e.getMessage(), e);
         }
 
         if (refs != null) {

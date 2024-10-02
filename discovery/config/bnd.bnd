@@ -1,4 +1,0 @@
-Bundle-Activator: org.apache.aries.rsa.discovery.config.Activator
-Private-Package: org.apache.aries.rsa.discovery.config
-Provide-Capability: osgi.remoteserviceadmin.discovery;\
-	protocols:List<String>="config"; version:Version=1.0

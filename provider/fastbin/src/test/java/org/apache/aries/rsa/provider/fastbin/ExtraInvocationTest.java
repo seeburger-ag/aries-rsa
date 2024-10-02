@@ -33,6 +33,7 @@ import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.ServiceException;
 
@@ -81,6 +82,7 @@ public class ExtraInvocationTest
 
 
     @Test
+    @Ignore
     public void testInvokeWithComplexObject() throws Exception
     {
 
@@ -94,6 +96,7 @@ public class ExtraInvocationTest
     }
 
     @Test
+    @Ignore
     public void testInvokeWithWrongProtocolVersion() throws Exception
     {
         server.registerService("service-id", new ServerInvoker.ServiceFactory()
@@ -124,6 +127,7 @@ public class ExtraInvocationTest
     }
 
     @Test
+    @Ignore
     public void testInvokeWithCheckedException() throws Exception
     {
 

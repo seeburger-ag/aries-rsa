@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -34,11 +34,11 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
     private static final long serialVersionUID = -6008791618074159841L;
     private int streamID;
     private String address;
-    private int protocolVersion;
     private transient StreamProvider streamProvider;
     private transient int position;
     private transient byte[] buffer;
     private transient AtomicInteger chunkCounter;
+    private int protocolVersion;
 
     public OutputStreamProxy(int streamID, String address, int protocolVersion) {
         this.streamID = streamID;
@@ -47,12 +47,10 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         init();
     }
 
-
-    private final void init() {
+    private void init() {
         buffer = new byte[StreamProviderImpl.CHUNK_SIZE];
         chunkCounter = new AtomicInteger(-1);
     }
-
 
     @Override
     public void close() throws IOException {
@@ -79,7 +77,6 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
     protected void setStreamProvider(StreamProvider streamProvider) {
         this.streamProvider = streamProvider;
     }
-
 
     @Override
     public void write(int b) throws IOException {
@@ -115,7 +112,7 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         int processed = 0;
         while(processed < len) {
             int available = buffer.length - position;
-            int chunkLength = Math.min(len-processed, available);
+            int chunkLength = Math.min(len - processed, available);
             System.arraycopy(b, off, buffer, position, chunkLength);
             position += chunkLength;
             processed += chunkLength;
@@ -149,6 +146,3 @@ public class OutputStreamProxy extends OutputStream implements Serializable {
         position = 0;
     }
 }
-
-
-

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -46,8 +46,8 @@ public abstract class TransportPool implements Service {
 
     protected final String uri;
     protected final DispatchQueue queue;
-    protected final LinkedList<Pair> pending = new LinkedList<Pair>();
-    protected final Map<Transport, TransportState> transports = new HashMap<Transport, TransportState>();
+    protected final LinkedList<Pair> pending = new LinkedList<>();
+    protected final Map<Transport, TransportState> transports = new HashMap<>();
     protected AtomicBoolean running = new AtomicBoolean(false);
 
     protected int poolSize;
@@ -137,7 +137,7 @@ public abstract class TransportPool implements Service {
             queue.execute(new Runnable() {
                 public void run() {
                     final AtomicInteger latch = new AtomicInteger(transports.size());
-                    final Runnable coutDown = new Runnable() {
+                    final Runnable countDown = new Runnable() {
                         public void run() {
                             if (latch.decrementAndGet() == 0) {
                                 while (!pending.isEmpty()) {
@@ -156,7 +156,7 @@ public abstract class TransportPool implements Service {
                                 onFailure(id, new IOException("Transport stopped"));
                             }
                         }
-                        transport.stop(coutDown);
+                        transport.stop(countDown);
                     }
                 }
             });
@@ -191,7 +191,7 @@ public abstract class TransportPool implements Service {
 
         public TransportState() {
             time = 0;
-            inflight = new HashSet<Object>();
+            inflight = new HashSet<>();
         }
     }
 
@@ -202,7 +202,7 @@ public abstract class TransportPool implements Service {
         }
 
         public void onRefill(final Transport transport) {
-            while (pending.size() > 0 &&  !transport.full()) {
+            while (pending.size() > 0 && !transport.full()) {
                 Pair pair = pending.removeFirst();
                 boolean accepted = doOffer(transport, pair.command, pair.id);
                 assert accepted: "Should have been accepted since the transport was not full";

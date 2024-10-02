@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -30,9 +30,9 @@ public final class EndpointHelper {
     public static void addObjectClass(Map<String, Object> props, Class<?>[] interfaces) {
         props.put(org.osgi.framework.Constants.OBJECTCLASS, getClassNames(interfaces));
     }
-    
+
     public static String[] getClassNames(Class<?>[] ifaces) {
-        List<String> ifaceNames = new ArrayList<String>();
+        List<String> ifaceNames = new ArrayList<>();
         for (Class<?> iface : ifaces) {
             ifaceNames.add(iface.getName());
         }

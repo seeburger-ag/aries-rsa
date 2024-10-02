@@ -1,5 +1,4 @@
-package org.apache.aries.rsa.itests.felix.fastbin;
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -17,10 +16,13 @@ package org.apache.aries.rsa.itests.felix.fastbin;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.aries.rsa.itests.felix.fastbin;
 
-import static org.junit.Assert.assertEquals;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
@@ -28,7 +30,6 @@ import org.apache.aries.rsa.examples.echotcp.api.EchoService;
 import org.apache.aries.rsa.itests.felix.RsaTestBase;
 import org.apache.aries.rsa.itests.felix.ServerConfiguration;
 import org.apache.aries.rsa.itests.felix.TwoContainerPaxExam;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -36,41 +37,42 @@ import org.ops4j.pax.exam.Option;
 
 @RunWith(TwoContainerPaxExam.class)
 public class TestFastbinRoundTrip extends RsaTestBase {
-    private static final String FASTBIN_PORT_SERVER = "2544";
-    private static final String FASTBIN_PORT_CLIENT = "2545";
+
     @Inject
     EchoService echoService;
 
     @ServerConfiguration
     public static Option[] remoteConfig() throws IOException {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryZookeeper(), //
-         rsaProviderFastBin(), //
-         echoTcpService(), //
-         configZKServer(), //
-         configZKDiscovery(), //
-         configFastBinPort(FASTBIN_PORT_SERVER),
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryZookeeper(), //
+            rsaProviderFastBin(), //
+            echoTcpService(), //
+            configZKServer(), //
+            configZKDiscovery(), //
+            configFastBinFreePort()
         };
     }
 
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaDiscoveryZookeeper(), //
-         rsaProviderFastBin(), //
-         echoTcpConsumer(), //
-         configZKDiscovery(), //
-         configFastBinPort(FASTBIN_PORT_CLIENT)
+        return new Option[] {
+            rsaCore(), //
+            rsaDiscoveryZookeeper(), //
+            rsaProviderFastBin(), //
+            echoTcpConsumer(), //
+            configZKDiscovery(), //
+            configFastBinFreePort()
         };
     }
 
     @Test
     public void testCall() throws Exception {
-        assertEquals("test", echoService.echo("test"));
+        await().ignoreExceptions().until(new Callable<String>() {
+            public String call() throws Exception {
+                return echoService.echo("test");
+            }
+        }, equalTo("test"));
     }
 
 }

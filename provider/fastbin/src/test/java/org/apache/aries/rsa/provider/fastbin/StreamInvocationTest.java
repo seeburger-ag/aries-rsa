@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  * under the License.
  */
 package org.apache.aries.rsa.provider.fastbin;
-
 
 import static org.junit.Assert.*;
 
@@ -48,35 +47,29 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-
 public class StreamInvocationTest {
 
     private ServerInvokerImpl server;
     private ClientInvokerImpl client;
     private TestService testService;
 
-
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
         server.start();
 
         client = new ClientInvokerImpl(queue, map);
         client.start();
 //        server.stop();
-        server.registerService("service-id", new ServerInvoker.ServiceFactory()
-        {
-            public Object get()
-            {
+        server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+            public Object get() {
                 return new TestServiceImpl();
             }
 
-
-            public void unget()
-            {}
+            public void unget() {
+            }
         }, TestServiceImpl.class.getClassLoader());
 
         InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
@@ -86,18 +79,15 @@ public class StreamInvocationTest {
         Activator.INSTANCE.server = server;
     }
 
-
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         server.stop();
         client.stop();
     }
 
-
     @Test
     public void testToString() throws IOException {
-        assertEquals("Test",testService.toString(new ByteArrayInputStream("Test".getBytes())));
+        assertEquals("Test", testService.toString(new ByteArrayInputStream("Test".getBytes())));
 
     }
 
@@ -106,18 +96,17 @@ public class StreamInvocationTest {
         InputStream in = fillStream('a', 1000000);
         long time = System.currentTimeMillis();
         String result = testService.toString(in); //roughly 1 MB of data
-        System.out.println("Transfered 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
+        System.out.println("Transferred 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
         assertEquals(1000000, result.length());
-        for(int i=0;i<result.length();i++) {
-            assertEquals('a',result.charAt(i));
+        for(int i = 0; i < result.length(); i++) {
+            assertEquals('a', result.charAt(i));
         }
 
     }
 
-
     @Test
     public void testToStream() throws IOException {
-        assertEquals("Test",new BufferedReader(new InputStreamReader(testService.toStream("Test"))).readLine());
+        assertEquals("Test", new BufferedReader(new InputStreamReader(testService.toStream("Test"))).readLine());
 
     }
 
@@ -128,10 +117,10 @@ public class StreamInvocationTest {
         InputStream stream = testService.toStream(string); //roughly 1 MB of data
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String result = reader.readLine();
-        System.out.println("Transfered 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
+        System.out.println("Transferred 1MB of data in "+(System.currentTimeMillis()-time)+"ms");
         assertEquals(1000000, result.length());
-        for(int i=0;i<result.length();i++) {
-            assertEquals('a',result.charAt(i));
+        for(int i = 0;i < result.length(); i++) {
+            assertEquals('a', result.charAt(i));
         }
 
     }
@@ -141,7 +130,7 @@ public class StreamInvocationTest {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         testService.intoStream(result, "Test");
         Thread.sleep(100);
-        assertEquals("Test",new String(result.toByteArray()));
+        assertEquals("Test", result.toString());
 
     }
 
@@ -151,7 +140,7 @@ public class StreamInvocationTest {
         MessageDigest digester = MessageDigest.getInstance("MD5");
         byte[] digest = digester.digest(testString.getBytes());
         Future<byte[]> future = testService.digest(new ByteArrayInputStream(testString.getBytes()));
-        assertArrayEquals(digest,future.get());
+        assertArrayEquals(digest, future.get());
 
     }
 
@@ -202,8 +191,7 @@ public class StreamInvocationTest {
                     while((i = in.read()) != -1) {
                         out.write(i);
                     }
-                    byte[] md5 = digest.digest(out.toByteArray());
-                    return md5;
+                    return digest.digest(out.toByteArray());
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -215,7 +203,7 @@ public class StreamInvocationTest {
 
     protected InputStream fillStream(char c, int repetitions) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        for (int i=0; i<repetitions; i++){
+        for (int i = 0; i < repetitions; i++){
             out.write(c);
         }
         return new ByteArrayInputStream(out.toByteArray());
