@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -19,8 +19,11 @@
 package org.apache.aries.rsa.core;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
@@ -38,41 +41,45 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     private volatile ServiceRegistration importedService; // used only in parent
     private EndpointDescription endpoint;
     private volatile ClientServiceFactory clientServiceFactory;
-    private RemoteServiceAdminCore rsaCore;
-    private boolean closed;
+    private CloseHandler closeHandler;
+    private AtomicBoolean closed = new AtomicBoolean();
+    private AtomicBoolean closing = new AtomicBoolean();
     private boolean detached; // used only in parent
 
     private ImportRegistrationImpl parent;
     private List<ImportRegistrationImpl> children; // used only in parent
+
+    private EventProducer eventProducer;
 
     public ImportRegistrationImpl(Throwable ex) {
         exception = ex;
         initParent();
     }
 
-    public ImportRegistrationImpl(EndpointDescription endpoint, RemoteServiceAdminCore rsac) {
+    public ImportRegistrationImpl(EndpointDescription endpoint, CloseHandler closeHandler, EventProducer eventProducer) {
         this.endpoint = endpoint;
-        this.rsaCore = rsac;
+        this.closeHandler = closeHandler;
+        this.eventProducer = eventProducer;
         initParent();
     }
 
     /**
      * Creates a clone of the given parent instance.
      */
-    public ImportRegistrationImpl(ImportRegistrationImpl ir) {
+    public ImportRegistrationImpl(ImportRegistration ir) {
         // we always want a link to the parent...
-        parent = ir.getParent();
+        parent = ((ImportRegistrationImpl)ir).getParent();
         exception = parent.getException();
         endpoint = parent.getImportedEndpointDescription();
         clientServiceFactory = parent.clientServiceFactory;
-        rsaCore = parent.rsaCore;
+        closeHandler = parent.closeHandler;
 
         parent.instanceAdded(this);
     }
 
     private void initParent() {
         parent = this;
-        children = new ArrayList<ImportRegistrationImpl>(1);
+        children = new ArrayList<>(1);
     }
 
     private void ensureParent() {
@@ -96,11 +103,11 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
      *
      * @param iri the child
      */
-    private void instanceClosed(ImportRegistrationImpl iri) {
+    private void instanceClosed(ImportRegistration iri) {
         ensureParent();
         synchronized (this) {
             children.remove(iri);
-            if (!children.isEmpty() || detached || !closed) {
+            if (!children.isEmpty() || detached || !closing.get()) {
                 return;
             }
             detached = true;
@@ -123,15 +130,15 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     public void close() {
         LOG.debug("close() called");
-
         synchronized (this) {
-            if (isInvalid()) {
+            boolean curClosing = closing.getAndSet(true);
+            if (curClosing || isInvalid()) {
                 return;
             }
-            closed = true;
         }
-        rsaCore.removeImportRegistration(this);
+        closeHandler.onClose(this);
         parent.instanceClosed(this);
+        closed.set(true);
     }
 
     /**
@@ -154,7 +161,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
 
     private List<ImportRegistrationImpl> copyChildren() {
         synchronized (this) {
-            return new ArrayList<ImportRegistrationImpl>(children);
+            return new ArrayList<>(children);
         }
     }
 
@@ -168,7 +175,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     }
 
     @Override
-    public ServiceReference getImportedService() {
+    public ServiceReference<?> getImportedService() {
         return isInvalid() || parent.importedService == null ? null : parent.importedService.getReference();
     }
 
@@ -187,7 +194,7 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
     }
 
     private synchronized boolean isInvalid() {
-        return exception != null || closed;
+        return exception != null || closed.get();
     }
 
     /**
@@ -218,13 +225,11 @@ public class ImportRegistrationImpl implements ImportRegistration, ImportReferen
         return parent;
     }
 
-    /**
-     * Returns the imported endpoint even if this
-     * instance is closed or has an exception.
-     *
-     * @return the imported endpoint
-     */
-    public EndpointDescription getImportedEndpointAlways() {
-        return endpoint;
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean update(EndpointDescription endpoint) {
+        importedService.setProperties(new Hashtable<>(endpoint.getProperties()));
+        eventProducer.notifyUpdate(this);
+        return true;
     }
 }

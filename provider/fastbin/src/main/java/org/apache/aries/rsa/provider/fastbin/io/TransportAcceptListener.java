@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,6 @@
  */
 package org.apache.aries.rsa.provider.fastbin.io;
 
-
 import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransport;
 
 /**
@@ -26,9 +25,9 @@ import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransport;
  *
  */
 public interface TransportAcceptListener {
-    
+
     void onAccept(TransportServer transportServer, TcpTransport transport);
-    
+
     void onAcceptError(TransportServer transportServer, Exception error);
 
 }

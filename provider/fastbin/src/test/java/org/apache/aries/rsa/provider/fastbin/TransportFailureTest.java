@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -40,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("rawtypes")
 public class TransportFailureTest {
 
     private static long SLEEP_TIME = 100;
@@ -49,7 +50,7 @@ public class TransportFailureTest {
     public void testInvoke() throws Exception {
 
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         map.put("protobuf", new ProtobufSerializationStrategy());
 
         ServerInvokerImpl server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
@@ -67,11 +68,10 @@ public class TransportFailureTest {
                 }
             }, HelloImpl.class.getClassLoader());
 
-
             InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", HelloImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
-            Hello hello  = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{Hello.class}, handler);
+            Hello hello = (Hello) Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{Hello.class}, handler);
 
-            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<String>();
+            AsyncCallbackFuture<String> future1 = new AsyncCallbackFuture<>();
             hello.hello("Guillaume", future1);
 
             long t0 = System.currentTimeMillis();
@@ -92,7 +92,7 @@ public class TransportFailureTest {
         }
     }
 
-    public static interface Hello {
+    public interface Hello {
         void hello(String name, AsyncCallback<String> callback) throws Exception;
     }
 

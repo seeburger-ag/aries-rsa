@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -41,7 +41,7 @@ public class InputStreamProxy extends InputStream implements Serializable {
     private transient int expectedChunkNumber = 0;
     private transient boolean reachedEnd = false;
 
-    public InputStreamProxy(int streamID, String address, int protocolVersion) {
+    public InputStreamProxy(int streamID, String address,int protocolVersion) {
         this.streamID = streamID;
         this.address = address;
         this.protocolVersion = protocolVersion;
@@ -128,7 +128,7 @@ public class InputStreamProxy extends InputStream implements Serializable {
     public int available() throws IOException {
         if(buffer == null)
             return 0;
-        return buffer.length-position;
+        return buffer.length - position;
     }
 
     @Override
@@ -155,6 +155,3 @@ public class InputStreamProxy extends InputStream implements Serializable {
         this.streamProvider = streamProvider;
     }
 }
-
-
-

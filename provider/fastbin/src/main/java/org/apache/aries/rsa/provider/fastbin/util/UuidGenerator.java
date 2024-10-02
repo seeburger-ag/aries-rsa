@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -26,11 +26,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A unique ID generator which is a fast implementation based on
- * how <a href="http://activemq.apache.org/>Apache ActiveMQ</a> generates its UUID.
- * <p/>
+ * how Apache ActiveMQ generates its UUID.
  */
 public class UuidGenerator {
 
@@ -41,7 +39,7 @@ public class UuidGenerator {
     private String seed;
     private AtomicLong sequence = new AtomicLong(1);
     private int length;
-    
+
     private static UuidGenerator instance = null;
     static {
         String stub = "";
@@ -92,8 +90,8 @@ public class UuidGenerator {
     }
 
     /**
-     * As we have to find the hostname as a side-affect of generating a unique
-     * stub, we allow it's easy retrevial here
+     * As we have to find the hostname as a side effect of generating a unique
+     * stub, we allow its easy retrieval here
      *
      * @return the local host name
      */
@@ -102,9 +100,8 @@ public class UuidGenerator {
         return hostName;
     }
 
-
     /**
-     * Generate a unqiue id
+     * Generate a unique id
      *
      * @return a unique id
      */
@@ -130,18 +127,17 @@ public class UuidGenerator {
         return id;
     }
 
-        
     public static String getUUID() {
         return getInstance().generateId();
     }
-    
+
     public static UuidGenerator getInstance() {
         if (instance == null) {
-            instance = new UuidGenerator(); 
+            instance = new UuidGenerator();
         }
         return instance;
     }
-  
+
     /**
      * When using the {@link java.net.InetAddress#getHostName()} method in an
      * environment where neither a proper DNS lookup nor an <tt>/etc/hosts</tt>

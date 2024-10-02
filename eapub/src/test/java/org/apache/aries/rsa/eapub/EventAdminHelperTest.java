@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -40,7 +40,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class EventAdminHelperTest {
-    
+
     @Test
     public void testPublishNotification() throws Exception {
         final EndpointDescription epd = EasyMock.createNiceMock(EndpointDescription.class);
@@ -62,13 +62,13 @@ public class EventAdminHelperTest {
         final Bundle bundle = EasyMock.createNiceMock(Bundle.class);
         EasyMock.expect(bundle.getBundleId()).andReturn(42L).anyTimes();
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test.bundle").anyTimes();
-        Dictionary<String, String> headers = new Hashtable<String, String>();
+        Dictionary<String, String> headers = new Hashtable<>();
         headers.put("Bundle-Version", "1.2.3.test");
         EasyMock.expect(bundle.getHeaders()).andReturn(headers).anyTimes();
         EasyMock.replay(bundle);
 
         EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        ea.postEvent(EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
@@ -85,8 +85,8 @@ public class EventAdminHelperTest {
                 Assert.assertEquals(Long.MAX_VALUE, event.getProperty("service.remote.id"));
                 Assert.assertEquals(uuid, event.getProperty("service.remote.uuid"));
                 Assert.assertEquals("foo://bar", event.getProperty("service.remote.uri"));
-                Assert.assertTrue(Arrays.equals(interfaces.toArray(new String[] {}),
-                                                (String[]) event.getProperty("objectClass")));
+                Assert.assertArrayEquals(interfaces.toArray(new String[]{}),
+                        (String[]) event.getProperty("objectClass"));
 
                 Assert.assertNotNull(event.getProperty("timestamp"));
 
@@ -138,13 +138,13 @@ public class EventAdminHelperTest {
         final Bundle bundle = EasyMock.createNiceMock(Bundle.class);
         EasyMock.expect(bundle.getBundleId()).andReturn(42L).anyTimes();
         EasyMock.expect(bundle.getSymbolicName()).andReturn("test.bundle").anyTimes();
-        EasyMock.expect(bundle.getHeaders()).andReturn(new Hashtable<String, String>()).anyTimes();
+        EasyMock.expect(bundle.getHeaders()).andReturn(new Hashtable<>()).anyTimes();
         EasyMock.replay(bundle);
 
         final Exception exportException = new Exception();
 
         EventAdmin ea = EasyMock.createNiceMock(EventAdmin.class);
-        ea.postEvent((Event) EasyMock.anyObject());
+        ea.postEvent(EasyMock.anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             @Override
             public Object answer() throws Throwable {
@@ -157,8 +157,8 @@ public class EventAdminHelperTest {
                 Assert.assertEquals(new Version("0"), event.getProperty("bundle.version"));
                 Assert.assertSame(exportException, event.getProperty("cause"));
                 Assert.assertEquals(epd, event.getProperty("export.registration"));
-                Assert.assertTrue(Arrays.equals(new String[] {"org.foo.Bar"},
-                                                (String[]) event.getProperty("objectClass")));
+                Assert.assertArrayEquals(new String[]{"org.foo.Bar"},
+                        (String[]) event.getProperty("objectClass"));
 
                 RemoteServiceAdminEvent rsae = (RemoteServiceAdminEvent) event.getProperty("event");
                 Assert.assertSame(exportException, rsae.getException());
@@ -183,7 +183,6 @@ public class EventAdminHelperTest {
             .andReturn(new ServiceReference[] {eaSref}).anyTimes();
         EasyMock.expect(bc.getService(eaSref)).andReturn(ea).anyTimes();
         EasyMock.replay(bc);
-
 
         RemoteServiceAdminEvent event = new RemoteServiceAdminEvent(
                 RemoteServiceAdminEvent.EXPORT_ERROR,

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -22,6 +22,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 
+import java.util.Objects;
+
 @SuppressWarnings("rawtypes")
 public class ExportReferenceImpl implements ExportReference {
 
@@ -41,7 +43,7 @@ public class ExportReferenceImpl implements ExportReference {
         return endpoint;
     }
 
-    public ServiceReference getExportedService() {
+    public ServiceReference<?> getExportedService() {
         return serviceReference;
     }
 
@@ -63,10 +65,8 @@ public class ExportReferenceImpl implements ExportReference {
             return false;
         }
         ExportReferenceImpl other = (ExportReferenceImpl) obj;
-        boolean ed = endpoint == null ? other.endpoint == null
-                : endpoint.equals(other.endpoint);
-        boolean sr = serviceReference == null ? other.serviceReference == null
-                : serviceReference.equals(other.serviceReference);
+        boolean ed = Objects.equals(endpoint, other.endpoint);
+        boolean sr = Objects.equals(serviceReference, other.serviceReference);
         return ed && sr;
     }
 

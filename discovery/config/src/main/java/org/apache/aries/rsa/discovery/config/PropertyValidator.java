@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.aries.rsa.discovery.config;
 
 import org.osgi.framework.Constants;
@@ -54,7 +53,7 @@ class PropertyValidator {
 
     static String[] convertToStringArray(Object o) {
         String[] result;
-        
+
         if (o == null) {
             result = new String[0];
         } else if (o instanceof List) {

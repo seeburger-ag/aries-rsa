@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -54,24 +54,25 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
-    private final static HashMap<Class,String> CLASS_TO_PRIMITIVE = new HashMap<Class, String>(8, 1.0F);
+    @SuppressWarnings("rawtypes")
+    private static final Map<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
 
     static {
-        CLASS_TO_PRIMITIVE.put(boolean.class,"Z");
-        CLASS_TO_PRIMITIVE.put(byte.class,"B");
-        CLASS_TO_PRIMITIVE.put(char.class,"C");
-        CLASS_TO_PRIMITIVE.put(short.class,"S");
-        CLASS_TO_PRIMITIVE.put(int.class,"I");
-        CLASS_TO_PRIMITIVE.put(long.class,"J");
-        CLASS_TO_PRIMITIVE.put(float.class,"F");
-        CLASS_TO_PRIMITIVE.put(double.class,"D");
+        CLASS_TO_PRIMITIVE.put(boolean.class, "Z");
+        CLASS_TO_PRIMITIVE.put(byte.class, "B");
+        CLASS_TO_PRIMITIVE.put(char.class, "C");
+        CLASS_TO_PRIMITIVE.put(short.class, "S");
+        CLASS_TO_PRIMITIVE.put(int.class, "I");
+        CLASS_TO_PRIMITIVE.put(long.class, "J");
+        CLASS_TO_PRIMITIVE.put(float.class, "F");
+        CLASS_TO_PRIMITIVE.put(double.class, "D");
     }
 
     protected final AtomicLong correlationGenerator = new AtomicLong();
     protected final DispatchQueue queue;
-    protected final Map<String, TransportPool> transports = new HashMap<String, TransportPool>();
+    protected final Map<String, TransportPool> transports = new HashMap<>();
     protected final AtomicBoolean running = new AtomicBoolean(false);
-    protected final Map<Long, ResponseFuture> requests = new HashMap<Long, ResponseFuture>();
+    protected final Map<Long, ResponseFuture> requests = new HashMap<>();
     protected final long timeout;
     protected final Map<String, SerializationStrategy> serializationStrategies;
     protected final boolean isTracing;
@@ -133,13 +134,13 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     }
 
     public InvocationHandler getProxy(String address, String service, ClassLoader classLoader, int protocolVersion) {
-        return new ProxyInvocationHandler(address, service, classLoader, protocolVersion);
+        return new ProxyInvocationHandler(address, service, classLoader,protocolVersion);
     }
 
     protected void onCommand(TransportPool pool, Object data) {
         try {
             DataByteArrayInputStream bais = new DataByteArrayInputStream( (Buffer) data);
-            int size = bais.readInt();
+            bais.readInt();
             long correlation = bais.readVarLong();
             pool.onDone(correlation);
             ResponseFuture response = requests.remove(correlation);
@@ -158,7 +159,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         }
     }
 
-    static final WeakHashMap<Method, MethodData> method_cache = new WeakHashMap<Method, MethodData>();
+    static final WeakHashMap<Method, MethodData> method_cache = new WeakHashMap<>();
 
     static class MethodData {
         private final SerializationStrategy serializationStrategy;
@@ -173,7 +174,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
     }
 
     private MethodData getMethodData(Method method) throws IOException {
-        MethodData rc = null;
+        MethodData rc;
         synchronized (method_cache) {
             rc = method_cache.get(method);
         }
@@ -182,8 +183,8 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
             sb.append(method.getName());
             sb.append(",");
             Class<?>[] types = method.getParameterTypes();
-            for(int i=0; i < types.length; i++) {
-                if( i!=0 ) {
+            for(int i = 0; i < types.length; i++) {
+                if( i != 0 ) {
                     sb.append(",");
                 }
                 sb.append(encodeClassName(types[i]));
@@ -234,7 +235,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         // and #2 reduce CPU load done in the execution queue since it's
         // serially executed.
 
-        DataByteArrayOutputStream baos = new DataByteArrayOutputStream((int) (handler.lastRequestSize*1.10));
+        DataByteArrayOutputStream baos = new DataByteArrayOutputStream((int) (handler.lastRequestSize * 1.10));
         baos.writeInt(0); // we don't know the size yet...
         baos.writeVarLong(correlation);
         writeBuffer(baos, service);
@@ -243,11 +244,9 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         writeBuffer(baos, methodData.signature);
 
         final ResponseFuture future = methodData.invocationStrategy.request(methodData.serializationStrategy.forProtocolVersion(handler.protocolVersion), classLoader, method, args, baos, handler.protocolVersion);
-
         // toBuffer() is better than toByteArray() since it avoids an
         // array copy.
         final Buffer command = baos.toBuffer();
-
 
         // Update the field size.
         BufferEditor editor = command.buffer().bigEndianEditor();
@@ -296,6 +295,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         LOGGER.trace(message, ex);
     }
 
+
     private void writeBuffer(DataByteArrayOutputStream baos, Buffer value) throws IOException {
         baos.writeVarInt(value.length);
         baos.write(value);
@@ -341,8 +341,7 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
                     e = executionException.getCause();
                 }
                 if (e instanceof RuntimeException) {
-                    RuntimeException runtimeException = (RuntimeException)e;
-                    throw runtimeException;
+                    throw e;
                 }
                 Class< ? >[] exceptionTypes = method.getExceptionTypes();
                 for (Class< ? > exceptionType : exceptionTypes) {
@@ -359,9 +358,9 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
         public InvokerTransportPool(String uri, DispatchQueue queue) {
             /*
-             * the evict time needs to be 0. Otherwise the client will
+             * the evict time needs to be 0. Otherwise, the client will
              * evict transport objects which breaks the connection for
-             * long running async calls.
+             * long-running async calls.
              * Since there is limit of 2 transports per uri it shouldn't be that many objects
              */
             super(uri, queue, TransportPool.DEFAULT_POOL_SIZE, 0);

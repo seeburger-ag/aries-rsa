@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -38,7 +38,7 @@ public class PropertiesMapperTest {
     @Test
     @Ignore
     public void testCreateXML() throws Exception {
-        Map<String, Object> m = new LinkedHashMap<String, Object>();
+        Map<String, Object> m = new LinkedHashMap<>();
         m.put("service.imported.configs", "org.apache.cxf.ws");
         m.put("endpoint.id", "foo:bar");
         m.put("objectClass", new String[] {"com.acme.HelloService", "some.other.Service"});
@@ -60,15 +60,15 @@ public class PropertiesMapperTest {
         m.put("char", '@');
         m.put("Character2", 'X');
 
-        m.put("bool-list", Arrays.asList(new Boolean[]{true, false}));
-        m.put("empty-set", new HashSet<Object>());
+        m.put("bool-list", Arrays.asList(true, false));
+        m.put("empty-set", new HashSet<>());
 
-        Set<String> stringSet = new LinkedHashSet<String>();
+        Set<String> stringSet = new LinkedHashSet<>();
         stringSet.add("Hello there");
         stringSet.add("How are you?");
         m.put("string-set", stringSet);
 
-        int[] intArray = new int[] {1, 2};
+        int[] intArray = {1, 2};
         m.put("int-array", intArray);
 
         String xml = "<xml>\n"
@@ -80,12 +80,12 @@ public class PropertiesMapperTest {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         EndpointDescription epd = new EndpointDescription(m);
-        new EndpointDescriptionParser().writeEndpoint(epd, bos);
+        new EndpointDescriptionParserImpl().writeEndpoint(epd, bos);
         byte[] epData = bos.toByteArray();
         System.out.println(new String(epData));
         URL edURL = getClass().getResource("/ed2-generated.xml");
         InputSource expectedXml = new InputSource(edURL.openStream());
-        InputSource actualXml = new InputSource(new ByteArrayInputStream(epData)); 
+        InputSource actualXml = new InputSource(new ByteArrayInputStream(epData));
         XMLAssert.assertXMLEqual(expectedXml, actualXml);
     }
 

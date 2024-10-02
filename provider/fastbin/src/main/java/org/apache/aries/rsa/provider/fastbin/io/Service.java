@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,8 @@
  */
 package org.apache.aries.rsa.provider.fastbin.io;
 
-
 /**
- * The core lifecyle interface for ActiveMQ components.
+ * The core lifecycle interface for ActiveMQ components.
  *
  * @version $Revision: 1.1 $
  */
@@ -35,7 +34,7 @@ public interface Service {
     /**
      * Starts the service.  Executes the onComplete runnable once the service has fully started up.
      *
-     * @param onComplete my be set to null if not interested in a callback.
+     * @param onComplete may be set to null if not interested in a callback.
      */
     void start(Runnable onComplete) throws Exception;
 
@@ -48,7 +47,7 @@ public interface Service {
     /**
      * Stops the service.  Executes the onComplete runnable once the service has fully stopped.
      *
-     * @param onComplete my be set to null if not interested in a callback.
+     * @param onComplete may be set to null if not interested in a callback.
      */
     void stop(Runnable onComplete);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -25,10 +25,11 @@ import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ClassLoaderObjectInputStream extends ObjectInputStream {
 
     /** <p>Maps primitive type names to corresponding class objects.</p> */
-    private static final HashMap<String, Class> primClasses = new HashMap<String, Class>(8, 1.0F);
+    private static final HashMap<String, Class> primClasses = new HashMap<>(8, 1.0F);
 
     private ClassLoader classLoader;
 

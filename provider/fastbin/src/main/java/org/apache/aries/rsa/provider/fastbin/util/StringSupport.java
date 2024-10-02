@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 /**
  * Helper class to hold common text/string manipulation methods.
- *  
+ *
  */
 public class StringSupport {
 
@@ -35,9 +35,9 @@ public class StringSupport {
     }
 
     public static String fillString(int count, char character) {
-        char t[] = new char[count];
+        char[] t = new char[count];
         Arrays.fill(t, character);
         return new String(t);
     }
-    
+
 }

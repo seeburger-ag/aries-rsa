@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +17,6 @@
  * under the License.
  */
 package org.apache.aries.rsa.provider.fastbin;
-
 
 import static org.junit.Assert.*;
 
@@ -47,55 +46,45 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-
-public class FutureInvocationTest
-{
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class FutureInvocationTest {
 
     private ServerInvokerImpl server;
     private ClientInvokerImpl client;
     private TestService testService;
 
-
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         DispatchQueue queue = Dispatch.createQueue();
-        HashMap<String, SerializationStrategy> map = new HashMap<String, SerializationStrategy>();
+        HashMap<String, SerializationStrategy> map = new HashMap<>();
         server = new ServerInvokerImpl("tcp://localhost:0", queue, map);
         server.start();
 
         client = new ClientInvokerImpl(queue, map);
         client.start();
 //        server.stop();
-        server.registerService("service-id", new ServerInvoker.ServiceFactory()
-        {
-            public Object get()
-            {
+        server.registerService("service-id", new ServerInvoker.ServiceFactory() {
+            public Object get() {
                 return new TestServiceImpl();
             }
 
-
-            public void unget()
-            {}
+            public void unget() {
+            }
         }, TestServiceImpl.class.getClassLoader());
 
         InvocationHandler handler = client.getProxy(server.getConnectAddress(), "service-id", TestServiceImpl.class.getClassLoader(),FastBinProvider.PROTOCOL_VERSION);
         testService = (TestService)Proxy.newProxyInstance(HelloImpl.class.getClassLoader(), new Class[]{TestService.class}, handler);
     }
 
-
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         server.stop();
         client.stop();
     }
 
-
-
     @Test
     public void testInvokeCompletableFuture() throws Exception {
-        assertEquals("Hello",testService.helloAsync().get(5, TimeUnit.SECONDS));
+        assertEquals("Hello", testService.helloAsync().get(5, TimeUnit.SECONDS));
     }
 
     @Test
@@ -110,17 +99,14 @@ public class FutureInvocationTest
             results.add(executor.submit(single));
         }
         assertEquals(threadCount, results.size());
-        for (Future<String> future : results)
-        {
-            assertEquals("Hello",future.get());
+        for (Future<String> future : results) {
+            assertEquals("Hello", future.get());
         }
     }
 
-
-
     @Test
     public void testInvokeFuture() throws Exception {
-        assertEquals("Hello",testService.helloAsyncStandardFuture().get(500, TimeUnit.SECONDS));
+        assertEquals("Hello", testService.helloAsyncStandardFuture().get(500, TimeUnit.SECONDS));
     }
 
     @Test
@@ -131,14 +117,12 @@ public class FutureInvocationTest
         List<Callable<String>> tasks = new ArrayList<>();
         tasks.addAll(Collections.nCopies(threadCount, task));
         List<Future<String>> results = new ArrayList<>();
-        for (Callable<String> single : tasks)
-        {
+        for (Callable<String> single : tasks) {
             results.add(executor.submit(single));
         }
         assertEquals(threadCount, results.size());
-        for (Future<String> future : results)
-        {
-            assertEquals("Hello",future.get());
+        for (Future<String> future : results) {
+            assertEquals("Hello", future.get());
         }
     }
 
@@ -154,9 +138,7 @@ public class FutureInvocationTest
         }
     }
 
-
-    public interface TestService
-    {
+    public interface TestService {
         CompletableFuture<String> helloAsync();
 
         Future<String> helloAsyncStandardFuture();
@@ -173,12 +155,12 @@ public class FutureInvocationTest
 
         @Override
         public CompletableFuture<String> exceptionAsync() throws IOException {
-             CompletableFuture f = CompletableFuture.supplyAsync(() -> {
-                 sleep(500);
-                 return  "Hello";
-             });
-             f.completeExceptionally(new IOException("test"));
-             return f;
+            CompletableFuture f = CompletableFuture.supplyAsync(() -> {
+                sleep(500);
+                return "Hello";
+            });
+            f.completeExceptionally(new IOException("test"));
+            return f;
         }
 
         private void sleep(long time) {
@@ -194,7 +176,7 @@ public class FutureInvocationTest
         public Future<String> helloAsyncStandardFuture() {
             return Executors.newSingleThreadExecutor().submit(() -> {
                 sleep(500);
-                return  "Hello";
+                return "Hello";
             });
         }
     }

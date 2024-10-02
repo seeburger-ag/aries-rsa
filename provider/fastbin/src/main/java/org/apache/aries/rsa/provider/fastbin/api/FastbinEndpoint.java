@@ -15,7 +15,6 @@
  */
 package org.apache.aries.rsa.provider.fastbin.api;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +22,6 @@ import java.util.UUID;
 import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker;
 import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker.ServiceFactory;
-import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransportServer;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;

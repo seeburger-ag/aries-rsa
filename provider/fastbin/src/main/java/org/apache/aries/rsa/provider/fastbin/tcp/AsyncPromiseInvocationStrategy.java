@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -32,6 +32,7 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
+@SuppressWarnings("rawtypes")
 public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
 
     @SuppressWarnings("unchecked")
@@ -57,7 +58,6 @@ public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-
     @Override
     protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
         return new AsyncResponseFuture(loader, method, serializationStrategy, Dispatch.getCurrentQueue());
@@ -74,7 +74,6 @@ public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-    @SuppressWarnings({"rawtypes"})
     private class AsyncResponseFuture implements ResponseFuture, AsyncCallback {
 
         private final ClassLoader loader;
@@ -128,12 +127,8 @@ public class AsyncPromiseInvocationStrategy extends AbstractInvocationStrategy {
         }
 
         @Override
-        public Object get(long timeout, TimeUnit unit) throws Exception
-        {
+        public Object get(long timeout, TimeUnit unit) throws Exception {
             return deferred.getPromise();
         }
     }
 }
-
-
-

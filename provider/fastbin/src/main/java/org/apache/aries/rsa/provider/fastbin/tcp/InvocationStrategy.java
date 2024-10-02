@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,11 +18,11 @@
  */
 package org.apache.aries.rsa.provider.fastbin.tcp;
 
+import java.lang.reflect.Method;
+
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
 import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
-
-import java.lang.reflect.Method;
 
 /**
  * <p>
@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
  */
 public interface InvocationStrategy {
 
-    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception;
+    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream,int protocolVersion) throws Exception;
 
     /**
      * handles the actual remote call.

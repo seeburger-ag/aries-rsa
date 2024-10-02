@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.aries.rsa.discovery.config;
 
 import org.hamcrest.core.Is;
@@ -32,9 +31,9 @@ import java.util.Vector;
 
 import static java.util.Collections.singletonList;
 import static org.apache.aries.rsa.discovery.config.PropertyValidator.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author dpishchukhin
@@ -42,12 +41,12 @@ import static org.junit.Assert.assertThat;
 public class PropertyValidatorTest {
     @Test
     public void testToMap() throws Exception {
-        Dictionary<String, String> dic = new Hashtable<String, String>();
+        Dictionary<String, String> dic = new Hashtable<>();
         dic.put("key", "value");
 
         assertThat(toMap(dic).size(), is(1));
-        assertThat(toMap(dic).keySet().contains("key"), is(true));
-        assertThat(toMap(dic).get("key"), Is.<Object>is("value"));
+        assertThat(toMap(dic).containsKey("key"), is(true));
+        assertThat(toMap(dic).get("key"), Is.is("value"));
 
         assertThat(toMap(null), notNullValue());
         assertThat(toMap(null).size(), is(0));
@@ -55,7 +54,7 @@ public class PropertyValidatorTest {
 
     @Test
     public void testFilterConfigAdminProperties() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put(Constants.SERVICE_PID, "testPid");
         map.put(ConfigurationAdmin.SERVICE_FACTORYPID, "factoryPid");
         map.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, "bundleLocation");
@@ -73,21 +72,21 @@ public class PropertyValidatorTest {
 
     @Test
     public void testValidatePropertyTypes_objectClass() throws Exception {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, "test");
         Map<String, Object> config = validatePropertyTypes(map);
         assertThat(config.containsKey(Constants.OBJECTCLASS), is(true));
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>();
+        map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, new String[]{"test"});
         config = validatePropertyTypes(map);
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
 
-        map = new HashMap<String, Object>();
+        map = new HashMap<>();
         map.put(Constants.OBJECTCLASS, singletonList("test"));
         config = validatePropertyTypes(map);
-        assertThat(config.get(Constants.OBJECTCLASS), Is.<Object>is(new String[]{"test"}));
+        assertThat(config.get(Constants.OBJECTCLASS), Is.is(new String[]{"test"}));
     }
 
     @Test

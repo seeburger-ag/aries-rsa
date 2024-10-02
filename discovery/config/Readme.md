@@ -11,6 +11,7 @@ the remote endpoints.
 Configuration properties in org.apache.aries.rsa.discovery.config-test.cfg file
 
 ```
+endpoint.id = fooservice
 service.imported = true
 service.imported.configs = org.apache.cxf.rs
 objectClass = org.acme.foo.rest.api.FooService

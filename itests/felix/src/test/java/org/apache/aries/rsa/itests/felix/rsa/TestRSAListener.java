@@ -1,5 +1,4 @@
-package org.apache.aries.rsa.itests.felix.rsa;
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -17,7 +16,7 @@ package org.apache.aries.rsa.itests.felix.rsa;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.aries.rsa.itests.felix.rsa;
 
 import static org.junit.Assert.assertEquals;
 
@@ -43,21 +42,20 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
     private static final int EVENT_TIMEOUT = 2000;
     private RemoteServiceAdminEvent lastEvent;
     private Bundle serviceBundle;
-    
+
     @Inject
     EchoService echoService;
-    
+
     @Inject
     RemoteServiceAdmin rsa;
-    
+
     @Configuration
     public static Option[] configure() throws Exception {
-        return new Option[] //
-        {
-         rsaCore(), //
-         rsaProviderFastBin(), //
-         echoTcpService(), //
-         configFastBinPort("2545"),
+        return new Option[] {
+            rsaCore(), //
+            rsaProviderTcp(), //
+            echoTcpService(), //
+            configFastBinFreePort()
         };
     }
 
@@ -67,10 +65,12 @@ public class TestRSAListener extends RsaTestBase implements RemoteServiceAdminLi
 
         serviceBundle.stop();
         ServiceRegistration<RemoteServiceAdminListener> sreg = bundleContext.registerService(RemoteServiceAdminListener.class, this, null);
-        
+
         serviceBundle.start();
         assertEvent(RemoteServiceAdminEvent.EXPORT_REGISTRATION);
-        
+
+        Thread.sleep(1000);
+
         serviceBundle.stop();
         assertEvent(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION);
 

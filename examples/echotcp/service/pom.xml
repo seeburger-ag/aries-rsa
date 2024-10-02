@@ -22,28 +22,18 @@
     <parent>
         <groupId>org.apache.aries.rsa.examples</groupId>
         <artifactId>org.apache.aries.rsa.examples.echotcp</artifactId>
-        <version>1.10.0.SEE13-SNAPSHOT</version>
+        <version>1.17.1.SEE1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
     <artifactId>org.apache.aries.rsa.examples.echotcp.service</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.aries.rsa.examples.echotcp</groupId>
             <artifactId>org.apache.aries.rsa.examples.echotcp.api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <version>4.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
         </dependency>
     </dependencies>
 </project>
