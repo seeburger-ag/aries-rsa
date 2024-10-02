@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -31,7 +31,7 @@ public class EndpointDescriptionParserTest {
     @Test
     public void testEndpointDescriptionsFromURL() throws IOException {
         URL ed1URL = getClass().getResource("/ed1.xml");
-        List<EndpointDescription> edElements = new EndpointDescriptionParser().
+        List<EndpointDescription> edElements = new EndpointDescriptionParserImpl().
             readEndpoints(ed1URL.openStream());
         Assert.assertEquals(4, edElements.size());
     }

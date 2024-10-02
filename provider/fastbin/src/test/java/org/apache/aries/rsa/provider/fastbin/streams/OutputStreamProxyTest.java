@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -48,12 +48,12 @@ public class OutputStreamProxyTest {
         assertEquals(0, out.size());
         fixture.close();
         assertEquals(10, out.size());
-        assertEquals("xxxxxxxxxx", new String(out.toByteArray()));
+        assertEquals("xxxxxxxxxx", out.toString());
     }
 
     @Test
     public void testWriteMixed() throws IOException {
-        int charSize = StreamProviderImpl.CHUNK_SIZE*2;
+        int charSize = StreamProviderImpl.CHUNK_SIZE * 2;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int id = streamProvider.registerStream(out);
         OutputStreamProxy fixture = new OutputStreamProxy(id, "", 1);
@@ -68,14 +68,11 @@ public class OutputStreamProxyTest {
         }
         fixture.write(temp.toByteArray());
         fixture.close();
-        assertEquals(10+charSize, out.size());
+        assertEquals(10 + charSize, out.size());
         byte[] byteArray = out.toByteArray();
-        for (int i = 0; i < byteArray.length; i++) {
-            assertEquals('x',byteArray[i]);
+        for (byte b : byteArray) {
+            assertEquals('x', b);
         }
     }
 
 }
-
-
-

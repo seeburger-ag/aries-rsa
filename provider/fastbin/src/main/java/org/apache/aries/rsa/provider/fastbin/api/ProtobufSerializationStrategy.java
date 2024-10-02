@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -33,10 +33,10 @@ import org.fusesource.hawtbuf.proto.PBMessageFactory;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class ProtobufSerializationStrategy implements SerializationStrategy {
 
     public static final ProtobufSerializationStrategy INSTANCE = new ProtobufSerializationStrategy();
-
 
     public String name() {
         return "protobuf";
@@ -104,6 +104,7 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void decodeResponse(ClassLoader loader, Class<?> type, DataByteArrayInputStream source, AsyncCallback result) throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         if( source.readBoolean() ) {
             String className = source.readUTF();
@@ -112,10 +113,10 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
             Throwable error;
             try {
                 // try to build the exception...
-                Constructor<?> ctr = loader.loadClass(className).getConstructor(new Class[]{String.class});
+                Constructor<?> ctr = loader.loadClass(className).getConstructor(String.class);
                 error = (Throwable) ctr.newInstance(message);
             } catch (Throwable e) {
-                // fallback to something simple..
+                // fallback to something simple...
                 error = new RuntimeException(className+": "+message);
             }
             result.onFailure(error);
@@ -123,7 +124,6 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
         } else {
             result.onSuccess(decodeProtobuf(type, source));
         }
-
     }
 
     @Override
@@ -136,8 +136,5 @@ public class ProtobufSerializationStrategy implements SerializationStrategy {
     {
         return INSTANCE;
     }
-
-
-
 
 }

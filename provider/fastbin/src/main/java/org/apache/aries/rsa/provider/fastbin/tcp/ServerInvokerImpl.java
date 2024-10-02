@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -51,10 +51,11 @@ import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServerInvokerImpl.class);
-    static private final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<String, Class>(8, 1.0F);
+    private static final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
     static {
         PRIMITIVE_TO_CLASS.put("Z", boolean.class);
         PRIMITIVE_TO_CLASS.put("B", byte.class);
@@ -70,7 +71,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     protected final DispatchQueue queue;
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
-    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<UTF8Buffer, ServiceFactoryHolder>();
+    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<>();
     private StreamProviderImpl streamProvider;
 
     static class MethodData {
@@ -91,7 +92,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private final ServiceFactory factory;
         private final ClassLoader loader;
         private final Class clazz;
-        private HashMap<Buffer, MethodData> method_cache = new HashMap<Buffer, MethodData>();
+        private HashMap<Buffer, MethodData> method_cache = new HashMap<>();
 
         public ServiceFactoryHolder(ServiceFactory factory, ClassLoader loader) {
             this.factory = factory;
@@ -106,12 +107,11 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             if( rc == null ) {
                 String[] parts = data.utf8().toString().split(",");
                 String name = parts[0];
-                Class params[] = new Class[parts.length-1];
-                for( int  i=0; i < params.length; i++) {
-                    params[i] = decodeClass(parts[i+1]);
+                Class[] params = new Class[parts.length - 1];
+                for( int i = 0; i < params.length; i++) {
+                    params[i] = decodeClass(parts[i + 1]);
                 }
                 Method method = clazz.getMethod(name, params);
-
 
                 Serialization annotation = method.getAnnotation(Serialization.class);
                 SerializationStrategy serializationStrategy;
@@ -124,7 +124,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                     serializationStrategy = ObjectSerializationStrategy.INSTANCE;
                 }
 
-
                 final InvocationStrategy invocationStrategy = InvocationType.forMethod(method);
 
                 rc = new MethodData(invocationStrategy, serializationStrategy, method);
@@ -136,9 +135,9 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private Class<?> decodeClass(String s) throws ClassNotFoundException {
             if( s.startsWith("[")) {
                 Class<?> nested = decodeClass(s.substring(1));
-                return Array.newInstance(nested,0).getClass();
+                return Array.newInstance(nested, 0).getClass();
             }
-            String c = s.substring(0,1);
+            String c = s.substring(0, 1);
             if( c.equals("L") ) {
                 return loader.loadClass(s.substring(1));
             } else {
@@ -147,7 +146,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         }
 
     }
-
 
     public ServerInvokerImpl(String address, DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies) throws Exception {
         this.queue = queue;
@@ -160,7 +158,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     public InetSocketAddress getSocketAddress() {
         return this.server.getSocketAddress();
     }
-
 
     public DispatchQueue queue() {
         return queue;
@@ -234,7 +231,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         });
     }
 
-
     protected void onCommand(final Transport transport, Object data) {
         try {
             final DataByteArrayInputStream bais = new DataByteArrayInputStream((Buffer) data);
@@ -281,7 +277,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     }
 
     private Buffer readBuffer(DataByteArrayInputStream bais) throws IOException {
-        byte b[] = new byte[bais.readVarInt()];
+        byte[] b = new byte[bais.readVarInt()];
         bais.readFully(b);
         return new Buffer(b);
     }
@@ -311,7 +307,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
         public void onTransportFailure(Transport transport, IOException error) {
             if (!transport.isDisposed() && !(error instanceof EOFException)) {
-                LOGGER.info("Transport failure", error);
+                LOGGER.error("Transport failure", error);
             }
         }
 
@@ -331,7 +327,6 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private MethodData methodData;
         private Transport transport;
 
-
         private SendTask(Object svc, DataByteArrayInputStream bais, ServiceFactoryHolder holder, long correlation, MethodData methodData, Transport transport) {
             this.svc = svc;
             this.bais = bais;
@@ -342,7 +337,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         }
 
         private SendTask(DataByteArrayInputStream bais, long correlation, Transport transport, String errorMessage) {
-            this(new ServiceException(errorMessage), bais, null, correlation, new MethodData(new BlockingInvocationStrategy(), ObjectSerializationStrategy.INSTANCE, null),transport);
+            this(new ServiceException(errorMessage), bais, null, correlation, new MethodData(new BlockingInvocationStrategy(), ObjectSerializationStrategy.INSTANCE, null), transport);
         }
 
         public void run() {
@@ -352,11 +347,11 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 baos.writeInt(0); // make space for the size field.
                 baos.writeVarLong(correlation);
             } catch (IOException e) { // should not happen
-                LOGGER.error("Failed to write to buffer",e);
+                LOGGER.error("Failed to write to buffer", e);
                 throw new RuntimeException(e);
             }
 
-            // Lets decode the remaining args on the target's executor
+            // Let's decode the remaining args on the target's executor
             // to take cpu load off the
 
             ClassLoader loader = holder==null ? getClass().getClassLoader() : holder.loader;

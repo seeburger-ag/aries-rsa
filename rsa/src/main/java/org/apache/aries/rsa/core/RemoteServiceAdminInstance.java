@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
 
+    // Context of the bundle requesting the RemoteServiceAdmin
     private final BundleContext bctx;
     private final RemoteServiceAdminCore rsaCore;
 
@@ -54,12 +56,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
     @Override
     @SuppressWarnings("rawtypes")
     public List<ExportRegistration> exportService(final ServiceReference ref, final Map properties) {
-        checkPermission(new EndpointPermission("*", EndpointPermission.EXPORT));
-        return AccessController.doPrivileged(new PrivilegedAction<List<ExportRegistration>>() {
-            public List<ExportRegistration> run() {
-                return closed ? Collections.<ExportRegistration>emptyList() : rsaCore.exportService(ref, properties);
-            }
-        });
+        return closed ? Collections.emptyList() : rsaCore.exportService(ref, properties);
     }
 
     @Override
@@ -85,7 +82,7 @@ public class RemoteServiceAdminInstance implements RemoteServiceAdmin {
         });
     }
 
-    public void close(boolean closeAll) {
+    public void close(Bundle bundle, boolean closeAll) {
         closed = true;
         try {
             rsaCore.removeExportRegistrations(bctx.getBundle());

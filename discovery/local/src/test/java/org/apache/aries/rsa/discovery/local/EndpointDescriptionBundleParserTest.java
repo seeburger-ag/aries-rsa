@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -36,14 +36,13 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
 
-public class EndpointDescriptionBundleParserTest extends TestCase {
+public class EndpointDescriptionBundleParserTest {
 
     private Bundle createBundleContaining(URL ed1URL) {
         Bundle b = EasyMock.createNiceMock(Bundle.class);
@@ -54,16 +53,17 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
         EasyMock.replay(b);
         return b;
     }
-    
+
     @Test
     public void testNoRemoteServicesXMLFiles() {
         Bundle b = EasyMock.createNiceMock(Bundle.class);
         EasyMock.replay(b);
 
         List<EndpointDescription> rsElements = new EndpointDescriptionBundleParser().getAllEndpointDescriptions(b);
-        Assert.assertEquals(0, rsElements.size());
+        assertEquals(0, rsElements.size());
     }
 
+    @Test
     public void testAllEndpoints1() {
         URL ed1URL = getClass().getResource("/ed1.xml");
 
@@ -91,6 +91,7 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
         assertEquals(Arrays.asList("SomeOtherService", "WithSomeSecondInterface"), endpoint3.getInterfaces());
     }
 
+    @Test
     public void testAllEndpoints2() throws Exception {
         URL ed2URL = getClass().getResource("/ed2.xml");
 
@@ -134,14 +135,14 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
         assertEquals('X', props.get("Character2"));
 
         int[] intArray = (int[]) props.get("int-array");
-        assertTrue(Arrays.equals(new int[] {1, 2}, intArray));
+        assertArrayEquals(new int[]{1, 2}, intArray);
 
         Integer[] integerArray = (Integer[]) props.get("Integer-array");
-        assertTrue(Arrays.equals(new Integer[] {2, 1}, integerArray));
+        assertArrayEquals(new Integer[]{2, 1}, integerArray);
 
         assertEquals(Arrays.asList(true, false), props.get("bool-list"));
-        assertEquals(new HashSet<Object>(), props.get("long-set"));
-        Set<String> stringSet = new HashSet<String>();
+        assertEquals(new HashSet<>(), props.get("long-set"));
+        Set<String> stringSet = new HashSet<>();
         stringSet.add("Hello there");
         stringSet.add("How are you?");
         assertEquals(stringSet, props.get("string-set"));
@@ -149,7 +150,7 @@ public class EndpointDescriptionBundleParserTest extends TestCase {
 
         List<?> l = (List<?>) props.get("other2");
         assertEquals(1, l.size());
-        assertEquals(EndpointDescriptionBundleParserTest.normXML("<other:t2 xmlns:other='http://www.acme.org/xmlns/other/v1.0.0' " 
+        assertEquals(EndpointDescriptionBundleParserTest.normXML("<other:t2 xmlns:other='http://www.acme.org/xmlns/other/v1.0.0' "
                                    + "xmlns='http://www.osgi.org/xmlns/rsa/v1.0.0'/>"),
                                    EndpointDescriptionBundleParserTest.normXML((String) l.get(0)));
     }

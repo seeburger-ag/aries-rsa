@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(BlockingInvocationStrategy.class);
@@ -81,7 +82,6 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
         }
     }
 
-
     @Override
     protected ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception {
         return new BlockingResponseFuture(loader, method, serializationStrategy);
@@ -101,7 +101,7 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
                 serializationStrategy.decodeRequest(loader, types, requestStream, args);
                 value = method.invoke(target, args);
                 if(isStream(method.getReturnType())) {
-                    value = replaceStream(value, serializationStrategy.getProtocolVersion());
+                    value = replaceStream(value,serializationStrategy.getProtocolVersion());
                 }
             } catch (Throwable t) {
                 if (t instanceof InvocationTargetException) {
@@ -115,13 +115,13 @@ public class BlockingInvocationStrategy extends AbstractInvocationStrategy {
 
         } catch(Exception e) {
 
-            LOGGER.warn("Initial Encoding response for method "+method+" failed. Retrying",e);
-            // we failed to encode the response.. reposition and write that error.
+            LOGGER.warn("Initial Encoding response for method {} failed. Retrying", method, e);
+            // we failed to encode the response... reposition and write that error.
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, method.getReturnType(), null, new RemoteException(e.toString()), responseStream);
             } catch (Exception unexpected) {
-                LOGGER.error("Error while servicing "+method,unexpected);
+                LOGGER.error("Error while servicing {}", method, unexpected);
             }
 
         } finally {

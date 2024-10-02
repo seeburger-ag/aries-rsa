@@ -1,9 +1,9 @@
 # Zookeeper Discovery
 
-Manages endpoint descriptions as zookeeper nodes. 
+Manages endpoint descriptions as zookeeper nodes.
 
 * Local endpoints are published to zookeeper
-* Interests for services in the form of EndpointListener scopes are looked up in zookeper and the listeners are informed about any changes
+* Interests for services in the form of EndpointListener scopes are looked up in zookeeper and the listeners are informed about any changes
 on the matching endpoints
 
 ## Discovery Configuration
@@ -22,11 +22,11 @@ At least an empty config must be present to start the zookeeper discovery. The k
 
 PID: org.apache.aries.rsa.discovery.zookeeper.server
 
-| Key               | Default       | Description                                  
-| ------------------| -------------:| -------------------------------------------- 
-| clientPort        | 2181          | Port to listen on for client connections     
-| tickTime          | 2000          |                                              
-| initLimit         | 10            | 
+| Key               | Default       | Description
+| ------------------| -------------:| --------------------------------------------
+| clientPort        | 2181          | Port to listen on for client connections
+| tickTime          | 2000          |
+| initLimit         | 10            |
 | syncLimit         | 5             |
 | dataDir           | zkdata        |
 

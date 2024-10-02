@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.aries.rsa.core;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
+import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -35,20 +37,16 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 
-import junit.framework.TestCase;
+public class ClientServiceFactoryTest {
 
-
-public class ClientServiceFactoryTest extends TestCase {
-
-    @SuppressWarnings({
-     "rawtypes"
-    })
+    @Test
+    @SuppressWarnings("rawtypes")
     public void testGetService() throws ClassNotFoundException {
         final Object myTestProxyObject = new Object();
 
         IMocksControl control = EasyMock.createControl();
         EndpointDescription endpoint = createTestEndpointDesc();
-        ImportRegistrationImpl iri = new ImportRegistrationImpl(endpoint, null);
+        ImportRegistrationImpl iri = new ImportRegistrationImpl(endpoint, null, null);
 
         BundleContext consumerContext = control.createMock(BundleContext.class);
         Bundle consumerBundle = control.createMock(Bundle.class);
@@ -57,7 +55,6 @@ public class ClientServiceFactoryTest extends TestCase {
         EasyMock.expect(consumerBundle.adapt(BundleWiring.class)).andReturn(bundleWiring);
         EasyMock.expect(consumerBundle.getBundleContext()).andReturn(consumerContext);
         ServiceRegistration sreg = control.createMock(ServiceRegistration.class);
-
 
         DistributionProvider handler = mockDistributionProvider(myTestProxyObject);
         control.replay();
@@ -68,25 +65,24 @@ public class ClientServiceFactoryTest extends TestCase {
 
     /**
      * Creating dummy class as I was not able to really mock it
-     * @param myTestProxyObject
+     * @param proxy
      * @return
      */
     private DistributionProvider mockDistributionProvider(final Object proxy) {
         DistributionProvider handler = EasyMock.createMock(DistributionProvider.class);
-        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class), 
-                                               anyObject(BundleContext.class), 
-                                               isA(Class[].class), 
+        EasyMock.expect(handler.importEndpoint(anyObject(ClassLoader.class),
+                                               anyObject(BundleContext.class),
+                                               isA(Class[].class),
                                                anyObject(EndpointDescription.class))).andReturn(proxy);
         EasyMock.replay(handler);
         return handler;
     }
 
     private EndpointDescription createTestEndpointDesc() {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put(RemoteConstants.ENDPOINT_ID, "http://google.de");
         map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "myGreatConfiguration");
         map.put(Constants.OBJECTCLASS, new String[]{String.class.getName()});
-        EndpointDescription endpoint = new EndpointDescription(map);
-        return endpoint;
+        return new EndpointDescription(map);
     }
 }

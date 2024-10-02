@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,6 @@ package org.apache.aries.rsa.provider.fastbin.tcp;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.text.MessageFormat;
@@ -37,19 +36,18 @@ import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractInvocationStrategy implements InvocationStrategy
-{
+@SuppressWarnings("rawtypes")
+public abstract class AbstractInvocationStrategy implements InvocationStrategy {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractInvocationStrategy.class);
 
     @Override
-    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
+    public ResponseFuture request(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream,int protocolVersion) throws Exception {
         serializationStrategy = serializationStrategy.forProtocolVersion(protocolVersion);
         requestStream.writeShort(protocolVersion);
         replaceStreamParameters(method, args, protocolVersion);
-
         encodeRequest(serializationStrategy, loader, method, args, requestStream, protocolVersion);
-        return createResponse(serializationStrategy, loader,method, args);
+        return createResponse(serializationStrategy, loader, method, args);
     }
 
     protected void replaceStreamParameters(Method method, Object[] args, int protocolVersion) {
@@ -88,10 +86,9 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
      * @param method
      * @param args
      * @param requestStream
-     * @param protocolVersion
      * @throws Exception
      */
-    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream, int protocolVersion) throws Exception {
+    protected void encodeRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args, DataByteArrayOutputStream requestStream,int protocolVersion) throws Exception {
         serializationStrategy.encodeRequest(loader, method.getParameterTypes(), args, requestStream);
     }
 
@@ -106,13 +103,11 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
      */
     protected abstract ResponseFuture createResponse(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object[] args) throws Exception;
 
-
     @Override
     public final void service(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete) {
-        // first see which version the client requested
+     // first see which version the client requested
         serializationStrategy = serializationStrategy.forProtocolVersion(checkVersion(requestStream));
-        if(method==null && target instanceof ServiceException)
-        {
+        if(method==null && target instanceof ServiceException) {
             handleInvalidRequest(serializationStrategy, loader, method, target, responseStream, onComplete);
             return;
         }
@@ -120,25 +115,23 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
 
     }
 
-    protected void handleInvalidRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayOutputStream responseStream, Runnable onComplete)
-    {
+    protected void handleInvalidRequest(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayOutputStream responseStream, Runnable onComplete) {
         //client made an invalid request
         int pos = responseStream.position();
         try {
 
-            Object value = null;
             Throwable error = (Throwable)target;
-            serializationStrategy.encodeResponse(loader, null, value, error, responseStream);
+            serializationStrategy.encodeResponse(loader, null, null, error, responseStream);
 
         } catch(Exception e) {
 
-            LOGGER.warn("Initial Encoding response for method "+method+" failed. Retrying",e);
-            // we failed to encode the response.. reposition and write that error.
+            LOGGER.warn("Initial Encoding response for method {} failed. Retrying", method, e);
+            // we failed to encode the response... reposition and write that error
             try {
                 responseStream.position(pos);
                 serializationStrategy.encodeResponse(loader, null, null, new RemoteException(e.toString()), responseStream);
             } catch (Exception unexpected) {
-                LOGGER.error("Error while servicing "+method,unexpected);
+                LOGGER.error("Error while servicing {}", method, unexpected);
             }
 
         } finally {
@@ -157,7 +150,6 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
      * @param onComplete to be executed after the call has finished
      */
     protected abstract void doService(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, DataByteArrayOutputStream responseStream, Runnable onComplete);
-
 
     protected int checkVersion(DataByteArrayInputStream source)
     {
@@ -197,12 +189,12 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
                 try {
                     serializationStrategy.encodeResponse(loader, resultType, value, error, responseStream);
                 } catch (Exception e) {
-                    // we failed to encode the response.. reposition and write that error.
+                    // we failed to encode the response... reposition and write that error
                     try {
                         responseStream.position(pos);
                         serializationStrategy.encodeResponse(loader, resultType, value, new ServiceException(e.toString()), responseStream);
                     } catch (Exception unexpected) {
-                        LOGGER.error("Error while servicing "+method,unexpected);
+                        LOGGER.error("Error while servicing {}", method, unexpected);
                     }
                 } finally {
                     onComplete.run();
@@ -211,6 +203,3 @@ public abstract class AbstractInvocationStrategy implements InvocationStrategy
         }
     }
 }
-
-
-

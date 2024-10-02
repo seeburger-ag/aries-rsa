@@ -22,13 +22,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.karaf.shell.table.ShellTable;
+import org.apache.karaf.shell.support.table.ShellTable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
 @Component(//
     property = {
@@ -36,17 +37,16 @@ import org.osgi.service.remoteserviceadmin.EndpointListener;
                 "osgi.command.function=endpoints",
                 "osgi.command.function=endpoint",
                 "endpoint.listener.scope=(endpoint.framework.uuid=*)"
-                
     })
-public class EndpointsCommand implements EndpointListener {
+public class EndpointsCommand implements EndpointEventListener {
     Set<EndpointDescription> endpoints = new HashSet<>();
     private String frameworkId;
-    
+
     @Activate
     public void activate(BundleContext context) {
         this.frameworkId = context.getProperty(Constants.FRAMEWORK_UUID);
     }
-    
+
     public void endpoint(String id) {
         EndpointDescription epd = getEndpoint(id);
         ShellTable table = new ShellTable();
@@ -103,13 +103,23 @@ public class EndpointsCommand implements EndpointListener {
     }
 
     @Override
-    public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
-        endpoints.add(endpoint);
+    public void endpointChanged(EndpointEvent event, String matchedFilter) {
+        EndpointDescription endpoint = event.getEndpoint();
+        switch (event.getType()) {
+        case EndpointEvent.ADDED:
+            endpoints.add(endpoint);
+            break;
+
+        case EndpointEvent.REMOVED:
+        case EndpointEvent.MODIFIED_ENDMATCH:
+            endpoints.remove(endpoint);
+            break;
+
+        case EndpointEvent.MODIFIED:
+            endpoints.remove(endpoint);
+            endpoints.add(endpoint);
+            break;
+        }
     }
 
-    @Override
-    public void endpointRemoved(EndpointDescription endpoint, String matchedFilter) {
-        endpoints.remove(endpoint);
-    }
-    
 }

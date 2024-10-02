@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,25 +18,18 @@
  */
 package org.apache.aries.rsa.topologymanager.importer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.hooks.service.FindHook;
-import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
@@ -46,313 +39,152 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Listens for remote endpoints using the EndpointListener interface and the EndpointListenerManager.
- * Listens for local service interests using the ListenerHookImpl that calls back through the
- * ServiceInterestListener interface.
+ * Listens for remote endpoints using the EndpointListener. The scope of this listener is managed by
+ * the EndpointListenerManager.
  * Manages local creation and destruction of service imports using the available RemoteServiceAdmin services.
  */
-public class TopologyManagerImport implements EndpointListener, RemoteServiceAdminListener, ServiceInterestListener {
+public class TopologyManagerImport implements EndpointEventListener, RemoteServiceAdminListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerImport.class);
-    private ExecutorService execService;
 
-    private final EndpointListenerManager endpointListenerManager;
+    private final ExecutorService execService;
     private final BundleContext bctx;
-    private Set<RemoteServiceAdmin> rsaSet;
-    private final ListenerHookImpl listenerHook;
-    private RSFindHook findHook;
-
-    /**
-     * If set to false only one service is imported for each import interest even it multiple services are
-     * available. If set to true, all available services are imported.
-     *
-     * TODO: Make this available as a configuration option
-     */
-    private boolean importAllAvailable = true;
-
-    /**
-     * Contains an instance of the Class Import Interest for each distinct import request. If the same filter
-     * is requested multiple times the existing instance of the Object increments an internal reference
-     * counter. If an interest is removed, the related ServiceInterest object is used to reduce the reference
-     * counter until it reaches zero. in this case the interest is removed.
-     */
-    private final ReferenceCounter<String> importInterestsCounter = new ReferenceCounter<String>();
+    private final Set<RemoteServiceAdmin> rsaSet;
+    private volatile boolean stopped;
 
     /**
      * List of Endpoints by matched filter that were reported by the EndpointListener and can be imported
      */
-    private final Map<String /* filter */, List<EndpointDescription>> importPossibilities
-        = new HashMap<String, List<EndpointDescription>>();
+    private final MultiMap<String, EndpointDescription> importPossibilities = new MultiMap<>();
 
     /**
      * List of already imported Endpoints by their matched filter
      */
-    private final Map<String /* filter */, List<ImportRegistration>> importedServices
-        = new HashMap<String, List<ImportRegistration>>();
-
+    private final MultiMap<String, ImportRegistration> importedServices = new MultiMap<>();
 
     public TopologyManagerImport(BundleContext bc) {
-        this.rsaSet = new HashSet<RemoteServiceAdmin>();
+        this.rsaSet = new CopyOnWriteArraySet<>();
         bctx = bc;
-        endpointListenerManager = new EndpointListenerManager(bctx, this);
-        execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-        listenerHook = new ListenerHookImpl(bc, this);
-        findHook = new RSFindHook(bc, this);
+        execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory(getClass()));
     }
 
     public void start() {
-        bctx.registerService(RemoteServiceAdminListener.class.getName(), this, null);
-        bctx.registerService(ListenerHook.class.getName(), listenerHook, null);
-        bctx.registerService(FindHook.class.getName(), findHook, null);
-        endpointListenerManager.start();
+        stopped = false;
+        bctx.registerService(RemoteServiceAdminListener.class, this, null);
     }
 
     public void stop() {
-        endpointListenerManager.stop();
+        stopped = true;
         execService.shutdown();
-        // this is called from Activator.stop(), which implicitly unregisters our registered services
-    }
-
-    /* (non-Javadoc)
-     * @see org.apache.cxf.dosgi.topologymanager.ServiceInterestListener#addServiceInterest(java.lang.String)
-     */
-    public void addServiceInterest(String filter) {
-        if (importInterestsCounter.add(filter) == 1) {
-            endpointListenerManager.extendScope(filter);
+        try {
+            execService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            LOG.info("Interrupted while waiting for {} to terminate", execService);
+            Thread.currentThread().interrupt();
         }
-    }
-
-    /* (non-Javadoc)
-     * @see org.apache.cxf.dosgi.topologymanager.ServiceInterestListener#removeServiceInterest(java.lang.String)
-     */
-    public void removeServiceInterest(String filter) {
-        if (importInterestsCounter.remove(filter) == 0) {
-            LOG.debug("last reference to import interest is gone -> removing interest filter: {}", filter);
-            endpointListenerManager.reduceScope(filter);
-                List<ImportRegistration> irs = remove(filter, importedServices);
-                if (irs != null) {
-                    for (ImportRegistration ir : irs) {
-                        ir.close();
-                    }
-                }
-        }
-    }
-
-    public void endpointAdded(EndpointDescription endpoint, String filter) {
-        if (filter == null) {
-            LOG.error("Endpoint is not handled because no matching filter was provided!");
-            return;
-        }
-        LOG.debug("importable service added for filter {}, endpoint {}", filter, endpoint);
-        addImportPossibility(endpoint, filter);
-        triggerImport(filter);
-    }
-
-    public void endpointRemoved(EndpointDescription endpoint, String filter) {
-        LOG.debug("EndpointRemoved {}", endpoint);
-        removeImportPossibility(endpoint, filter);
-        triggerImport(filter);
-    }
-
-    private void addImportPossibility(EndpointDescription endpoint, String filter) {
-        put(filter, importPossibilities, endpoint);
-    }
-
-    private void removeImportPossibility(EndpointDescription endpoint, String filter) {
-        List<EndpointDescription> endpoints = get(filter, importPossibilities);
-        remove(filter, importPossibilities, endpoint);
-        if (endpoints.isEmpty()) {
-            remove(filter,importPossibilities,null);
-        }
+        // close all imports
+        importPossibilities.clear();
+        importedServices.allValues().forEach(this::unimportRegistration);
     }
 
     public void add(RemoteServiceAdmin rsa) {
         rsaSet.add(rsa);
-
-        for (String filter : keySet(importPossibilities)) {
-            triggerImport(filter);
-        }
-
+        importPossibilities.keySet().forEach(this::synchronizeImportsAsync);
     }
 
     public void remove(RemoteServiceAdmin rsa) {
         rsaSet.remove(rsa);
     }
 
+    @Override
+    public void remoteAdminEvent(RemoteServiceAdminEvent event) {
+        ImportReference ref = event.getImportReference();
+        if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION && ref != null) {
+            importedServices.allValues().stream()
+                .filter(ir -> ref.equals(ir.getImportReference()))
+                .forEach(this::unimportRegistration);
+        }
+    }
 
-    private void triggerImport(final String filter) {
+    private void synchronizeImportsAsync(final String filter) {
         LOG.debug("Import of a service for filter {} was queued", filter);
-
-        execService.execute(new Runnable() {
-            public void run() {
-                try {
-                    unexportNotAvailableServices(filter);
-                    importServices(filter);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-                // Notify EndpointListeners? NO!
-            }
-        });
-    }
-
-    private void unexportNotAvailableServices(String filter) {
-        List<ImportRegistration> importRegistrations = get(filter, importedServices);
-        for (ImportRegistration ir : importRegistrations) {
-            EndpointDescription endpoint = ir.getImportReference().getImportedEndpoint();
-            if (!isImportPossibilityAvailable(endpoint, filter)) {
-                removeImport(ir, null); // also unexports the service
-            }
+        if (!rsaSet.isEmpty()) {
+            execService.execute(() -> synchronizeImports(filter));
         }
-    }
-
-    private boolean isImportPossibilityAvailable(EndpointDescription endpoint, String filter) {
-        List<EndpointDescription> endpoints = get(filter, importPossibilities);
-        return endpoints != null && endpoints.contains(endpoint);
-
-    }
-
-    private void importServices(String filter) {
-        List<ImportRegistration> importRegistrations = get(filter, importedServices);
-        for (EndpointDescription endpoint : get(filter, importPossibilities)) {
-            // TODO but optional: if the service is already imported and the endpoint is still
-            // in the list of possible imports check if a "better" endpoint is now in the list
-            if (!alreadyImported(endpoint, importRegistrations)) {
-                // service not imported yet -> import it now
-                ImportRegistration ir = importService(endpoint);
-                if (ir != null) {
-                    // import was successful
-                    put(filter, importedServices, ir);
-                    if (!importAllAvailable) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean alreadyImported(EndpointDescription endpoint, List<ImportRegistration> importRegistrations) {
-        if (importRegistrations != null) {
-            for (ImportRegistration ir : importRegistrations) {
-                if (endpoint.equals(ir.getImportReference().getImportedEndpoint())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
-     * Tries to import the service with each rsa until one import is successful
+     * Synchronizes the actual imports with the possible imports for the given filter,
+     * i.e. unimports previously imported endpoints that are no longer possible,
+     * and imports new possible endpoints that are not already imported.
+     * 
+     * TODO but optional: if the service is already imported and the endpoint is still
+     * in the list of possible imports check if a "better" endpoint is now in the list
      *
-     * @param endpoint endpoint to import
-     * @return import registration of the first successful import
+     * @param filter the filter whose endpoints are synchronized
      */
-    private ImportRegistration importService(EndpointDescription endpoint) {
+    private void synchronizeImports(final String filter) {
+        try {
+            ImportDiff diff = new ImportDiff(importPossibilities.get(filter), importedServices.get(filter));
+            diff.getRemoved()
+                .forEach(this::unimportRegistration);
+            diff.getAdded()
+                .flatMap(this::importService)
+                .forEach(ir -> importedServices.put(filter, ir));
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        // Notify EndpointListeners? NO!
+    }
+
+    /**
+     * Tries to import the service with each rsa until one import is successful.
+     *
+     * @param filter the filter that matched the endpoint
+     * @param endpoint endpoint to import
+     * @return 
+     */
+    private Stream<ImportRegistration> importService(EndpointDescription endpoint) {
         for (RemoteServiceAdmin rsa : rsaSet) {
             ImportRegistration ir = rsa.importService(endpoint);
             if (ir != null) {
                 if (ir.getException() == null) {
                     LOG.debug("Service import was successful {}", ir);
-                    return ir;
+                    return Stream.of(ir);
                 } else {
-                    LOG.info("Error importing service " + endpoint, ir.getException());
+                    LOG.info("Error importing service {}", endpoint, ir.getException());
                 }
             }
         }
-        return null;
+        return Stream.empty();
+    }
+    
+    private void unimportRegistration(ImportRegistration reg) {
+        importedServices.remove(reg);
+        reg.close();
+    }
+    
+    @Override
+    public void endpointChanged(EndpointEvent event, String filter) {
+        if (stopped) {
+            return;
+        }
+        EndpointDescription endpoint = event.getEndpoint();
+        LOG.debug("Endpoint event received type {}, filter {}, endpoint {}", event.getType(), filter, endpoint);
+        switch (event.getType()) {
+            case EndpointEvent.ADDED:
+                importPossibilities.put(filter, endpoint);
+                break;
+            case EndpointEvent.REMOVED:
+            case EndpointEvent.MODIFIED_ENDMATCH:
+                importPossibilities.remove(filter, endpoint);
+                break;
+            case EndpointEvent.MODIFIED:
+                importPossibilities.remove(filter, endpoint);
+                importPossibilities.put(filter, endpoint);
+                break;
+        }
+        synchronizeImportsAsync(filter);
     }
 
-    /**
-     * Remove and close (unexport) the given import. The import is specified either
-     * by its ImportRegistration or by its ImportReference (only one of them must
-     * be specified).
-     * <p>
-     * If this method is called from within iterations on the underlying data structure,
-     * the iterations must be made on copies of the structures rather than the original
-     * references in order to prevent ConcurrentModificationExceptions.
-     *
-     * @param reg the import registration to remove
-     * @param ref the import reference to remove
-     */
-    private void removeImport(ImportRegistration reg, ImportReference ref) {
-        // this method may be called recursively by calling ImportRegistration.close()
-        // and receiving a RemoteServiceAdminEvent for its unregistration, which results
-        // in a ConcurrentModificationException. We avoid this by closing the registrations
-        // only after data structure manipulation is done, and being re-entrant.
-        List<ImportRegistration> removed = new ArrayList<ImportRegistration>();
-        Set<Entry<String, List<ImportRegistration>>> entries = entrySet(importedServices);
-        for (Entry<String, List<ImportRegistration>> entry : entries) {
-            for (ImportRegistration ir : entry.getValue()) {
-                if (ir.equals(reg) || ir.getImportReference().equals(ref)) {
-                    removed.add(ir);
-                    remove(entry.getKey(), importedServices, ir);
-                }
-            }
-        }
-        for (ImportRegistration ir : removed) {
-            ir.close();
-        }
-    }
-
-    public void remoteAdminEvent(RemoteServiceAdminEvent event) {
-        if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION) {
-            removeImport(null, event.getImportReference());
-        }
-    }
-
-    private <T> void put(String key, Map<String, List<T>> map, T value) {
-        synchronized (map) {
-            List<T> list = map.get(key);
-            if(list == null) {
-                list = new CopyOnWriteArrayList<T>();
-                map.put(key, list);
-            }
-            //make sure there is no duplicates
-            if(!list.contains(value)) {
-                list.add(value);
-            }
-        }
-    }
-
-    private <T> List<T> get(String key, Map<String, List<T>> map) {
-        synchronized (map) {
-            List<T> list = map.get(key);
-            if(list == null)
-                return Collections.emptyList();
-            return list;
-        }
-    }
-
-    private <T> List<T> remove(String key, Map<String, List<T>> map) {
-        synchronized (map) {
-            return map.remove(key);
-        }
-    }
-
-    private <T> void remove(String key, Map<String, List<T>> map, T value) {
-        synchronized (map) {
-            List<T> list = map.get(key);
-            if (list != null) {
-                list.remove(value);
-                if(list.isEmpty()) {
-                    map.remove(key);
-                }
-            }
-        }
-    }
-
-    private <T> Set<Entry<String, List<T>>> entrySet(Map<String, List<T>> map) {
-        synchronized (map) {
-            Set<Entry<String, List<T>>> entries = map.entrySet();
-            return new HashSet<Entry<String, List<T>>>(entries);
-        }
-    }
-
-    private <T> Set<String> keySet(Map<String, List<T>> map) {
-        synchronized (map) {
-            Set<String> keySet = map.keySet();
-            return new HashSet<String>(keySet);
-        }
-    }
 }

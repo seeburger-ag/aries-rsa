@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -20,9 +20,18 @@ package org.apache.aries.rsa.core;
 
 import java.util.UUID;
 
+import org.osgi.annotation.bundle.Header;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
+@org.osgi.annotation.bundle.Capability( //
+        namespace = "osgi.service", //
+        attribute = {"objectClass:List<String>=org.osgi.service.remoteserviceadmin.RemoteServiceAdmin"}, //
+        uses = { RemoteServiceAdmin.class}
+)
+@Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
 public class Activator implements BundleActivator {
 
     private DistributionProviderTracker tracker;
@@ -30,9 +39,9 @@ public class Activator implements BundleActivator {
 
     public void start(BundleContext bundlecontext) throws Exception {
         String uuid = bundlecontext.getProperty("org.osgi.framework.uuid");
-        if(uuid==null)
+        if (uuid == null)
         {
-            uuid = System.getProperty("org.osgi.framework.uuid",UUID.randomUUID().toString());
+            uuid = System.getProperty("org.osgi.framework.uuid", UUID.randomUUID().toString());
             System.setProperty("org.osgi.framework.uuid", uuid);
         }
         frameworkUUID = uuid;

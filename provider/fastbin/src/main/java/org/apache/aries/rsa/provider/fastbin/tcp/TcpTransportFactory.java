@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -30,9 +30,9 @@ import org.apache.aries.rsa.provider.fastbin.util.URISupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  */
+@SuppressWarnings("rawtypes")
 public class TcpTransportFactory {
     private static final Logger LOG = LoggerFactory.getLogger(TcpTransportFactory.class);
 
@@ -42,20 +42,19 @@ public class TcpTransportFactory {
         TcpTransportServer server = createTcpTransportServer(uri);
         if (server == null) return null;
 
-        Map<String, String> options = new HashMap<String, String>(URISupport.parseParameters(uri));
+        Map<String, String> options = new HashMap<>(URISupport.parseParameters(uri));
         IntrospectionSupport.setProperties(server, options);
         Map<String, Object> transportOptions = IntrospectionSupport.extractProperties(options, "transport.");
         server.setTransportOption(transportOptions);
         return server;
     }
 
-
     public TcpTransport connect(String location) throws Exception {
         URI uri = new URI(location);
         TcpTransport transport = createTransport(uri);
         if (transport == null) return null;
 
-        Map<String, String> options = new HashMap<String, String>(URISupport.parseParameters(uri));
+        Map<String, String> options = new HashMap<>(URISupport.parseParameters(uri));
         URI localLocation = getLocalLocation(uri);
 
         transport.connecting(uri, localLocation);
@@ -91,11 +90,7 @@ public class TcpTransportFactory {
      * TcpTransport.
      */
     protected TcpTransport createTransport(URI uri) throws NoSuchAlgorithmException, Exception {
-        if( !uri.getScheme().equals("tcp") ) {
-            return null;
-        }
-        TcpTransport transport = new TcpTransport();
-        return transport;
+        return uri.getScheme().equals("tcp") ? new TcpTransport() : null;
     }
 
     protected URI getLocalLocation(URI location) {
@@ -105,7 +100,7 @@ public class TcpTransportFactory {
         if (path != null && path.length() > 0) {
             int localPortIndex = path.indexOf(':');
             try {
-                Integer.parseInt(path.substring(localPortIndex + 1, path.length()));
+                Integer.parseInt(path.substring(localPortIndex + 1));
                 String localString = location.getScheme() + ":/" + path;
                 localLocation = new URI(localString);
             } catch (Exception e) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,28 @@
  */
 package org.apache.aries.rsa.provider.tcp.myservice;
 
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+
 import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
+
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
 
 public class MyServiceImpl implements MyService {
+
+    String id;
+
+    public MyServiceImpl(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String echo(String msg) {
@@ -28,19 +47,72 @@ public class MyServiceImpl implements MyService {
     }
 
     @Override
-    public void call(String msg) {
-        if ("throw exception".equals(msg)) {
-            throw new IllegalArgumentException("Throwing expected exception");
-        }
+    public void callSlow(int delay) {
+        sleep(delay);
     }
 
     @Override
-    public void callOneWay(String msg) {
+    public void callException() {
+        throw new ExpectedTestException();
     }
 
     @Override
     public void callWithList(List<String> msg) {
 
+    }
+
+    @Override
+    public Future<String> callAsyncFuture(final int delay) {
+        return supplyAsync(new Supplier<String>() {
+            public String get() {
+                if (delay == -1) {
+                    throw new ExpectedTestException();
+                }
+                sleep(delay);
+                return "Finished";
+            }
+
+        });
+    }
+
+    @Override
+    public CompletionStage<String> callAsyncCompletionStage(final int delay) {
+        return supplyAsync(new Supplier<String>() {
+            public String get() {
+                if (delay == -1) {
+                    throw new ExpectedTestException();
+                }
+                sleep(delay);
+                return "Finished";
+            }
+
+        });
+    }
+
+    @Override
+    public Promise<String> callAsyncPromise(final int delay) {
+        final Deferred<String> deferred = new Deferred<>();
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                if (delay == -1) {
+                    deferred.fail(new ExpectedTestException());
+                    return;
+                }
+                sleep(delay);
+                deferred.resolve("Finished");
+            }
+        }).start();
+
+        return deferred.getPromise();
+    }
+
+    private void sleep(int delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+        }
     }
 
 }

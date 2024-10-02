@@ -23,10 +23,10 @@
     <parent>
       <groupId>org.apache.aries.rsa</groupId>
       <artifactId>org.apache.aries.rsa.parent</artifactId>
-      <version>1.10.0.SEE12-SNAPSHOT</version>
+      <version>1.17.1.SEE1</version>
       <relativePath>../parent/pom.xml</relativePath>
     </parent>
-    
+
     <artifactId>org.apache.aries.rsa.discovery</artifactId>
     <packaging>pom</packaging>
     <name>Aries Remote Service Admin Discovery</name>
@@ -36,5 +36,6 @@
       <module>zookeeper</module>
       <module>config</module>
       <module>command</module>
+      <module>mdns</module>
     </modules>
 </project>

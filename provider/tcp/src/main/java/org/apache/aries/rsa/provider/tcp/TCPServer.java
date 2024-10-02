@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -23,115 +23,140 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectOutputStream;
+import org.apache.aries.rsa.provider.tcp.ser.BasicObjectInputStream;
+import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TCPServer implements Closeable, Runnable {
-    private Logger log = LoggerFactory.getLogger(TCPServer.class);
+/**
+ * A server listening on a single TCP port, which accepts connections
+ * and dispatches method invocation requests to one or more MethodInvokers
+ * (according to the target endpoint ID).
+ */
+public class TcpServer implements Closeable, Runnable {
+    private Logger log = LoggerFactory.getLogger(TcpServer.class);
     private ServerSocket serverSocket;
-    private Object service;
-    private boolean running;
-    private ExecutorService executor;
+    private Map<String, MethodInvoker> invokers = new ConcurrentHashMap<>();
+    private volatile boolean running;
+    private ThreadPoolExecutor executor;
 
-    public TCPServer(Object service, String localip, Integer port, int numThreads) {
-        this.service = service;
+    public TcpServer(String localip, int port, int numThreads) {
         try {
             this.serverSocket = new ServerSocket(port);
+            this.serverSocket.setReuseAddress(true);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         this.running = true;
-        this.executor = Executors.newCachedThreadPool();
-        for (int c = 0; c < numThreads; c++) {
-            this.executor.execute(this);
-        }
+        numThreads++; // plus one for server socket accepting thread
+        this.executor = new ThreadPoolExecutor(numThreads, numThreads,
+            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        this.executor.execute(this); // server socket thread
     }
-    
+
     int getPort() {
         return this.serverSocket.getLocalPort();
     }
 
+    public void addService(String endpointId, Object service) {
+        invokers.put(endpointId, new MethodInvoker(service));
+    }
+
+    public void removeService(String endpointId) {
+        invokers.remove(endpointId);
+    }
+
+    public boolean isEmpty() {
+        return invokers.isEmpty();
+    }
+
+    public void setNumThreads(int numThreads) {
+        numThreads++; // plus one for server socket accepting thread
+        executor.setCorePoolSize(numThreads);
+        executor.setMaximumPoolSize(numThreads);
+    }
+
+    public int getNumThreads() {
+        return executor.getMaximumPoolSize() - 1; // excluding socket accepting thread
+    }
+
     public void run() {
-        ClassLoader serviceCL = service.getClass().getClassLoader();
         while (running) {
-            try (
-                Socket socket = this.serverSocket.accept();
-                ObjectInputStream ois = new LoaderObjectInputStream(socket.getInputStream(), serviceCL);
-                ObjectOutputStream objectOutput = new ObjectOutputStream(socket.getOutputStream())
-                ) {
-                String methodName = (String)ois.readObject();
-                Object[] args = (Object[])ois.readObject();
-                Object result = invoke(methodName, args);
-                objectOutput.writeObject(result);
-            } catch (SocketException e) {
+            try {
+                Socket socket = serverSocket.accept();
+                executor.execute(() -> handleConnection(socket));
+            } catch (SocketException e) { // server socket is closed
                 running = false;
             } catch (Exception e) {
-                log.warn("Error processing service call.", e);
+                log.warn("Error processing connection", e);
             }
         }
     }
 
-    private Object invoke(String methodName, Object[] args)
-        throws IllegalAccessException, InvocationTargetException, SecurityException {
-        Class<?>[] parameterTypesAr = getTypes(args);
-        Method method = null;
+    private void handleConnection(Socket socket) {
+        try (Socket sock = socket;
+             BasicObjectInputStream in = new BasicObjectInputStream(socket.getInputStream());
+             ObjectOutputStream out = new BasicObjectOutputStream(socket.getOutputStream())) {
+            String endpointId = in.readUTF();
+            MethodInvoker invoker = invokers.get(endpointId);
+            if (invoker == null)
+                throw new IllegalArgumentException("invalid endpoint: " + endpointId);
+            in.addClassLoader(invoker.getService().getClass().getClassLoader());
+            handleCall(invoker, in, out);
+        } catch (SocketException se) {
+            return; // e.g. connection closed by client
+        } catch (Exception e) {
+            log.warn("Error processing service call", e);
+        }
+    }
+
+    private void handleCall(MethodInvoker invoker, ObjectInputStream in, ObjectOutputStream out) throws Exception {
+        String methodName = (String)in.readObject();
+        Object[] args = (Object[])in.readObject();
+        Throwable error = null;
+        Object result = null;
         try {
-            method = getMethod(methodName, parameterTypesAr);
-            return method.invoke(service, args);
-        } catch (Throwable e) {
-            return e;
+            result = resolveAsync(invoker.invoke(methodName, args));
+        } catch (Throwable t) {
+            error = t;
         }
+        out.writeObject(error);
+        out.writeObject(result);
     }
 
-    private Method getMethod(String methodName, Class<?>[] parameterTypesAr) {
-        try {
-            return service.getClass().getMethod(methodName, parameterTypesAr);
-        } catch (NoSuchMethodException e) {
-            Method[] methods = service.getClass().getMethods();
-            for (Method method : methods) {
-                if (!method.getName().equals(methodName)) {
-                    continue;
-                }
-                if (allParamsMatch(method.getParameterTypes(), parameterTypesAr)) {
-                    return method;
-                }
+    @SuppressWarnings("unchecked")
+    private Object resolveAsync(Object result) throws InterruptedException, Throwable {
+        // exceptions are wrapped in an InvocationTargetException just like in a sync invoke
+        if (result instanceof Future) {
+            Future<Object> fu = (Future<Object>) result;
+            try {
+                result = fu.get();
+            } catch (ExecutionException e) {
+                throw new InvocationTargetException(e.getCause());
             }
-            throw new IllegalArgumentException(String.format("No method found that matches name %s, types %s", 
-                                                             methodName, Arrays.toString(parameterTypesAr)));
-        }
-    }
-
-    private boolean allParamsMatch(Class<?>[] methodParamTypes, Class<?>[] parameterTypesAr) {
-        int c = 0;
-        for (Class<?> type : methodParamTypes) {
-            if (!type.isAssignableFrom(parameterTypesAr[c])) {
-                return false;
+        } else if (result instanceof CompletionStage) {
+            CompletionStage<Object> fu = (CompletionStage<Object>) result;
+            try {
+                result = fu.toCompletableFuture().get();
+            } catch (ExecutionException e) {
+                throw new InvocationTargetException(e.getCause());
             }
-            c++;
-        }
-        return true;
-    }
-
-    private Class<?>[] getTypes(Object[] args) {
-        List<Class<?>> parameterTypes = new ArrayList<>();
-        if (args != null) {
-            for (Object arg : args) {
-                parameterTypes.add(arg.getClass());
+        } else if (result instanceof Promise) {
+            Promise<Object> fu = (Promise<Object>) result;
+            try {
+                result = fu.getValue();
+            } catch (InvocationTargetException e) {
+                throw e;
             }
         }
-        Class<?>[] parameterTypesAr = parameterTypes.toArray(new Class[]{});
-        return parameterTypesAr;
+        return result;
     }
 
     @Override

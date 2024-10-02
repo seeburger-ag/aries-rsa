@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -38,14 +37,14 @@ import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public class BaseActivator implements BundleActivator, Runnable {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected BundleContext bundleContext;
 
     protected ExecutorService executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>());
-    private AtomicBoolean scheduled = new AtomicBoolean();
+        new LinkedBlockingQueue<>());
 
     private long schedulerStopTimeout = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
@@ -64,28 +63,26 @@ public class BaseActivator implements BundleActivator, Runnable {
     @Override
     public void start(BundleContext context) throws Exception {
         bundleContext = context;
-        scheduled.set(true);
-        doOpen();
-        scheduled.set(false);
+        synchronized (this) {
+            doOpen();
+        }
+        // if it's a managed service we'll get a configuration update
+        // that will start it, otherwise we do it here manually
         if (managedServiceRegistration == null) {
-            try {
-                doStart();
-            } catch (Exception e) {
-                logger.warn("Error starting activator", e);
-                doStop();
-            }
-        } else {
             reconfigure();
         }
     }
 
     @Override
     public void stop(BundleContext context) throws Exception {
-        scheduled.set(true);
-        doClose();
+        synchronized (this) {
+            doClose();
+        }
         executor.shutdown();
         executor.awaitTermination(schedulerStopTimeout, TimeUnit.MILLISECONDS);
-        doStop();
+        synchronized (this) {
+            doStop();
+        }
     }
 
     protected void doOpen() throws Exception {
@@ -217,20 +214,19 @@ public class BaseActivator implements BundleActivator, Runnable {
     }
 
     protected void reconfigure() {
-        if (scheduled.compareAndSet(false, true)) {
-            executor.submit(this);
-        }
+        executor.submit(this);
     }
 
     @Override
     public void run() {
-        scheduled.set(false);
-        doStop();
-        try {
-            doStart();
-        } catch (Exception e) {
-            logger.warn("Error starting activator", e);
+        synchronized (this) {
             doStop();
+            try {
+                doStart();
+            } catch (Throwable t) {
+                logger.warn("Error (re)starting activator", t);
+                doStop();
+            }
         }
     }
 

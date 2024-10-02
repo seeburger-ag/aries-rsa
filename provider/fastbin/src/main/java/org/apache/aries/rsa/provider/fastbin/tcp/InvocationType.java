@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -24,17 +24,12 @@ import java.util.concurrent.Future;
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
 import org.osgi.util.promise.Promise;
 
-public enum InvocationType
-{
+public enum InvocationType {
     ASYNC_FUTURE(new AsyncFutureInvocationStrategy()){
 
         @Override
         protected boolean applies(Method method) {
-            Class<?> returnType = method.getReturnType();
-            if(returnType != null) {
-                return Future.class.isAssignableFrom(returnType);
-            }
-            return false;
+            return Future.class.isAssignableFrom(method.getReturnType());
         }
 
     }, ASYNC_CALLBACK(new AsyncInvocationStrategy()){
@@ -49,13 +44,7 @@ public enum InvocationType
 
         @Override
         protected boolean applies(Method method) {
-            if(!promiseAvailable)
-                return false;
-            Class<?> returnType = method.getReturnType();
-            if(returnType != null) {
-                return Promise.class.isAssignableFrom(returnType);
-            }
-            return false;
+            return promiseAvailable && Promise.class.isAssignableFrom(method.getReturnType());
         }
 
     }, BLOCKING(new BlockingInvocationStrategy()){
@@ -66,17 +55,16 @@ public enum InvocationType
         }
     };
 
-    private InvocationStrategy strategy;
+    private final InvocationStrategy strategy;
     /**
      * the dependency to OSGi promise is optional. This flag
      * tracks if the class is visible or not
      */
     private static boolean promiseAvailable;
 
-    private InvocationType(InvocationStrategy strategy) {
+    InvocationType(InvocationStrategy strategy) {
         this.strategy = strategy;
     }
-
 
     public static InvocationStrategy forMethod(Method method) {
         InvocationType[] values = values();
@@ -87,7 +75,6 @@ public enum InvocationType
         }
         return null;
     }
-
 
     protected abstract boolean applies(Method method);
 
@@ -103,6 +90,3 @@ public enum InvocationType
         }
     }
 }
-
-
-

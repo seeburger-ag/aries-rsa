@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -21,14 +21,17 @@ package org.apache.aries.rsa.core;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.Endpoint;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportReference;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +40,8 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExportRegistrationImpl.class);
 
-    private final RemoteServiceAdminCore rsaCore;
-    private final ExportReferenceImpl exportReference;
+    private final CloseHandler closeHandler;
+    private ExportReferenceImpl exportReference;
     private final Closeable server;
     private final Throwable exception;
 
@@ -46,11 +49,18 @@ public class ExportRegistrationImpl implements ExportRegistration {
     private int instanceCount;
     private volatile boolean closed;
 
-    private ExportRegistrationImpl(ExportRegistrationImpl parent, RemoteServiceAdminCore rsaCore,
-            ExportReferenceImpl exportReference, Closeable server, Throwable exception) {
+    private EventProducer sender;
+
+    private ExportRegistrationImpl(ExportRegistrationImpl parent,
+            CloseHandler rsaCore,
+            EventProducer sender,
+            ExportReferenceImpl exportReference,
+            Closeable server,
+            Throwable exception) {
+        this.sender = sender;
         this.parent = parent != null ? parent.parent : this; // a parent points to itself
         this.parent.addInstance();
-        this.rsaCore = rsaCore;
+        this.closeHandler = rsaCore;
         this.exportReference = exportReference;
         this.server = server;
         this.exception = exception;
@@ -58,18 +68,18 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
     // create a clone of the provided ExportRegistrationImpl that is linked to it
     public ExportRegistrationImpl(ExportRegistrationImpl parent) {
-        this(parent, parent.rsaCore, new ExportReferenceImpl(parent.exportReference),
+        this(parent, parent.closeHandler, parent.sender, new ExportReferenceImpl(parent.exportReference),
             parent.server, parent.exception);
     }
 
     // create a new (parent) instance which was exported successfully with the given server
-    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, RemoteServiceAdminCore rsaCore) {
-        this(null, rsaCore, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
+    public ExportRegistrationImpl(ServiceReference sref, Endpoint endpoint, CloseHandler closeHandler, EventProducer sender) {
+        this(null, closeHandler, sender, new ExportReferenceImpl(sref, endpoint.description()), endpoint, null);
     }
 
     // create a new (parent) instance which failed to be exported with the given exception
-    public ExportRegistrationImpl(RemoteServiceAdminCore rsaCore, Throwable exception) {
-        this(null, rsaCore, null, null, exception);
+    public ExportRegistrationImpl(Throwable exception, CloseHandler closeHandler, EventProducer sender) {
+        this(null, closeHandler, sender, null, null, exception);
     }
 
     private void ensureParent() {
@@ -89,10 +99,15 @@ public class ExportRegistrationImpl implements ExportRegistration {
     }
 
     public ExportReference getExportReference() {
-        if (exportReference == null) {
-            throw new IllegalStateException(getException());
+        if (closed) {
+            return null;
+        } else {
+            if (exportReference == null) {
+                throw new IllegalStateException(getException());
+            } else {
+                return exportReference;
+            }
         }
-        return closed ? null : exportReference;
     }
 
     public Throwable getException() {
@@ -100,6 +115,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
     }
 
     public final void close() {
+        closeHandler.onClose(this);
         synchronized (this) {
             if (closed) {
                 return;
@@ -107,7 +123,6 @@ public class ExportRegistrationImpl implements ExportRegistration {
             closed = true;
         }
 
-        rsaCore.removeExportRegistration(this);
         if (exportReference != null) {
             exportReference.close();
         }
@@ -127,14 +142,17 @@ public class ExportRegistrationImpl implements ExportRegistration {
             instanceCount--;
             if (instanceCount <= 0) {
                 LOG.debug("really closing ExportRegistration now!");
+                closeServer();
+            }
+        }
+    }
 
-                if (server != null) {
-                    try {
-                        server.close();
-                    } catch (IOException e) {
-                        LOG.warn("Error closing ExportRegistration", e);
-                    }
-                }
+    private void closeServer() {
+        if (server != null) {
+            try {
+                server.close();
+            } catch (IOException e) {
+                LOG.warn("Error closing ExportRegistration", e);
             }
         }
     }
@@ -160,5 +178,29 @@ public class ExportRegistrationImpl implements ExportRegistration {
             }
         }
         return r;
+    }
+
+    @Override
+    public EndpointDescription update(Map<String, ?> properties) {
+        if (getExportReference() == null) {
+            return null;
+        }
+        ServiceReference<?> sref = getExportReference().getExportedService();
+
+        HashMap<String, Object> props = new HashMap<>(properties);
+        EndpointDescription oldEpd = getExportReference().getExportedEndpoint();
+        copyIfNull(props, oldEpd, RemoteConstants.ENDPOINT_ID);
+        copyIfNull(props, oldEpd, RemoteConstants.SERVICE_IMPORTED_CONFIGS);
+
+        EndpointDescription epd = new EndpointDescription(sref, props);
+        exportReference = new ExportReferenceImpl(sref, epd);
+        this.sender.notifyUpdate(this.getExportReference());
+        return epd;
+    }
+
+    private void copyIfNull(HashMap<String, Object> props, EndpointDescription oldEpd, String key) {
+        if (props.get(key) == null) {
+            props.put(key, oldEpd.getProperties().get(key));
+        }
     }
 }

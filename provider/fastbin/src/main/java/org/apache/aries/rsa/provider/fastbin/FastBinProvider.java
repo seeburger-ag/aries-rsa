@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -18,13 +18,17 @@
  */
 package org.apache.aries.rsa.provider.fastbin;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.Inet4Address;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.provider.fastbin.api.FastbinEndpoint;
@@ -34,8 +38,10 @@ import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker;
 import org.apache.aries.rsa.provider.fastbin.tcp.ClientInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.ServerInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransportServer;
+import org.apache.aries.rsa.provider.fastbin.util.UuidGenerator;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
+import org.apache.aries.rsa.spi.IntentUnsatisfiedException;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.framework.BundleContext;
@@ -45,7 +51,10 @@ import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("rawtypes")
 public class FastBinProvider implements DistributionProvider {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FastBinProvider.class);
 
     /**
      * the name of the configuration type (service.exported.configs)
@@ -73,7 +82,6 @@ public class FastBinProvider implements DistributionProvider {
      */
     public static final String TIMEOUT = "fastbin.timeout";
 
-    private static final Logger LOG = LoggerFactory.getLogger(FastBinProvider.class);
 
     public static final int PROTOCOL_VERSION = 1;
     public static final String PROTOCOL_VERSION_PROPERTY = "fastbin.protocol.version";
@@ -83,19 +91,20 @@ public class FastBinProvider implements DistributionProvider {
     private ClientInvoker client;
     private DispatchQueue queue;
     private ConcurrentHashMap<String, SerializationStrategy> serializationStrategies;
+
     private BundleContext bundleContext;
     private volatile AtomicBoolean started = new AtomicBoolean(false);
     private ServiceRegistration registration;
 
-//    @Activate
+
     public void activate(BundleContext context, Map<String, ?> dictionary) {
         this.bundleContext = context;
-        Map<String, Object> config = new HashMap<String, Object>();
+        Map<String, Object> config = new HashMap<>();
         config.putAll(dictionary);
 
         started.set(false);
         this.queue = Dispatch.createQueue();
-        this.serializationStrategies = new ConcurrentHashMap<String, SerializationStrategy>();
+        this.serializationStrategies = new ConcurrentHashMap<>();
         int port = Integer.parseInt(config.getOrDefault(PORT, System.getProperty(PORT,"4000")).toString());
         long timeout = Long.parseLong(config.getOrDefault(TIMEOUT, System.getProperty(TIMEOUT,String.valueOf(ClientInvokerImpl.DEFAULT_TIMEOUT))).toString());
         String publicHost = (String)config.getOrDefault(SERVER_ADDRESS, System.getProperty(SERVER_ADDRESS, null));
@@ -120,7 +129,7 @@ public class FastBinProvider implements DistributionProvider {
         registration = context.registerService(DistributionProvider.class.getName(), this, new Hashtable<>(dictionary));
     }
 
-//    @Deactivate
+
     public void deactivate() {
         if(registration!=null)
             registration.unregister();
@@ -138,9 +147,8 @@ public class FastBinProvider implements DistributionProvider {
 
     @Override
     public String[] getSupportedTypes() {
-        return new String[] { CONFIG_NAME };
+        return new String[] {CONFIG_NAME};
     }
-
 
     @Override
     public Endpoint exportService(Object serviceO, BundleContext serviceContext, Map<String, Object> effectiveProperties, Class[] exportedInterfaces)
@@ -172,6 +180,4 @@ public class FastBinProvider implements DistributionProvider {
         return Proxy.newProxyInstance(cl, interfaces,invocationHandler);
     }
 
-
 }
-

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -50,7 +50,7 @@ class PropertiesMapper {
     private static final Logger LOG = LoggerFactory.getLogger(PropertiesMapper.class);
 
     public Map<String, Object> toProps(List<PropertyType> properties) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         for (PropertyType prop : properties) {
             map.put(prop.getName(), getValue(prop));
         }
@@ -69,9 +69,9 @@ class PropertiesMapper {
                 if ("array".equals(elName)) {
                     value = getArray(inValue, type);
                 } else if ("set".equals(elName)) {
-                    value = handleCollection(inValue, new HashSet<Object>(), type);
+                    value = handleCollection(inValue, new HashSet<>(), type);
                 } else if ("list".equals(elName)) {
-                    value = handleCollection(inValue, new ArrayList<Object>(), type);
+                    value = handleCollection(inValue, new ArrayList<>(), type);
                 }
             } else if (el.getDeclaredType() == XmlType.class) {
                 value = readXML((XmlType)el.getValue(), type);
@@ -148,7 +148,7 @@ class PropertiesMapper {
         }
         return value;
     }
-    
+
     private Object getValue(ValueType value, String type) {
         if (value.getContent().size() == 1 && value.getContent().get(0) instanceof String) {
             return handleValue((String)value.getContent().get(0), type);
@@ -165,7 +165,7 @@ class PropertiesMapper {
             return null;
         }
         if (!"String".equals(type)) {
-            LOG.warn("Embedded XML must be of type String, found: " + type);
+            LOG.warn("Embedded XML must be of type String, found: {}", type);
             return null;
         }
         Node xmlContent = (Node)el.getAny();
@@ -218,20 +218,20 @@ class PropertiesMapper {
 
         try {
             if ("Character".equals(boxedType)) {
-                return new Character(value.charAt(0));
+                return value.charAt(0);
             } else {
                 Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(javaType);
                 Constructor<?> ctor = cls.getConstructor(String.class);
                 return ctor.newInstance(value);
             }
         } catch (Exception e) {
-            LOG.warn("Could not create Endpoint Property of type " + type + " and value " + value);
+            LOG.warn("Could not create Endpoint Property of type {} and value {}", type, value);
             return null;
         }
     }
-    
+
     public List<PropertyType> fromProps(Map<String, Object> m) {
-        List<PropertyType> props = new ArrayList<PropertyType>();
+        List<PropertyType> props = new ArrayList<>();
         for (Map.Entry<String, Object> entry : m.entrySet()) {
             String key = entry.getKey();
             Object val = entry.getValue();
@@ -244,7 +244,7 @@ class PropertiesMapper {
                 propEl.getContent().add(factory.createArray(arrayEl));
                 for (Object o : normalizeArray(val)) {
                     setValueType(propEl, o);
-                    ValueType valueType =  new ValueType();
+                    ValueType valueType = new ValueType();
                     valueType.getContent().add(o.toString());
                     arrayEl.getValue().add(valueType);
                 }
@@ -267,7 +267,7 @@ class PropertiesMapper {
                     || val instanceof Float
                     || val instanceof Integer
                     || val instanceof Short) {
-                // various numbers..   maybe "val instanceof Number"?
+                // various numbers...   maybe "val instanceof Number"?
                 setValueType(propEl, val);
                 propEl.setValue(val.toString());
             } else {
@@ -280,7 +280,7 @@ class PropertiesMapper {
     }
 
     private static Object[] normalizeArray(Object val) {
-        List<Object> l = new ArrayList<Object>();
+        List<Object> l = new ArrayList<>();
         if (val instanceof int[]) {
             int[] ia = (int[]) val;
             for (int i : ia) {

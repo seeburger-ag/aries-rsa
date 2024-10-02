@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -26,6 +26,7 @@ import org.fusesource.hawtbuf.DataByteArrayOutputStream;
  * </p>
  *
  */
+@SuppressWarnings("rawtypes")
 public interface SerializationStrategy {
 
     String name();
@@ -41,5 +42,4 @@ public interface SerializationStrategy {
     SerializationStrategy forProtocolVersion(int protocolVersion);
 
     int getProtocolVersion();
-
 }

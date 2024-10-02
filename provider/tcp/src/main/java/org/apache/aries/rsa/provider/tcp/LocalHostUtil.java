@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -66,7 +66,7 @@ public final class LocalHostUtil {
      */
     private static InetAddress[] getAllLocalUsingNetworkInterface() throws UnknownHostException {
         try {
-            List<InetAddress> addresses = new ArrayList<InetAddress>();
+            List<InetAddress> addresses = new ArrayList<>();
             Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
             while (e.hasMoreElements()) {
                 NetworkInterface ni = e.nextElement();

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -31,24 +31,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.aries.rsa.util.StringPlus;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
+import org.osgi.service.remoteserviceadmin.EndpointEvent;
+import org.osgi.service.remoteserviceadmin.EndpointEventListener;
 
+@Component(immediate = true)
 public class LocalDiscovery implements BundleListener {
 
     // this is effectively a set which allows for multiple service descriptions with the
     // same interface name but different properties and takes care of itself with respect to concurrency
-    Map<EndpointDescription, Bundle> endpointDescriptions =
-        new ConcurrentHashMap<EndpointDescription, Bundle>();
-    Map<EndpointListener, Collection<String>> listenerToFilters =
-        new HashMap<EndpointListener, Collection<String>>();
-    Map<String, Collection<EndpointListener>> filterToListeners =
-        new HashMap<String, Collection<EndpointListener>>();
+    final Map<EndpointDescription, Bundle> endpointDescriptions = new ConcurrentHashMap<>();
+    final Map<EndpointEventListener, Collection<String>> listenerToFilters = new HashMap<>();
+    final Map<String, Collection<EndpointEventListener>> filterToListeners = new HashMap<>();
 
     EndpointDescriptionBundleParser bundleParser;
 
@@ -56,20 +62,32 @@ public class LocalDiscovery implements BundleListener {
         this.bundleParser = new EndpointDescriptionBundleParser();
     }
 
-    public void processExistingBundles(Bundle[] bundles) {
+    @Activate
+    public void activate(BundleContext context) {
+        context.addBundleListener(this);
+        processExistingBundles(context.getBundles());
+    }
+
+    @Deactivate
+    public void deactivate(BundleContext context) {
+        context.removeBundleListener(this);
+    }
+
+    protected void processExistingBundles(Bundle[] bundles) {
         if (bundles == null) {
             return;
         }
 
         for (Bundle b : bundles) {
             if (b.getState() == Bundle.ACTIVE) {
-                findDeclaredRemoteServices(b);
+                addDeclaredRemoteServices(b);
             }
         }
     }
 
-    void addListener(ServiceReference endpointListenerRef, EndpointListener endpointListener) {
-        List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointListener.ENDPOINT_LISTENER_SCOPE));
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    void bindListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
+        List<String> filters = StringPlus.normalize(endpointListenerRef.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE));
         if (filters.isEmpty()) {
             return;
         }
@@ -77,12 +95,7 @@ public class LocalDiscovery implements BundleListener {
         synchronized (listenerToFilters) {
             listenerToFilters.put(endpointListener, filters);
             for (String filter : filters) {
-                Collection<EndpointListener> listeners = filterToListeners.get(filter);
-                if (listeners == null) {
-                    listeners = new ArrayList<EndpointListener>();
-                    filterToListeners.put(filter, listeners);
-                }
-                listeners.add(endpointListener);
+                filterToListeners.computeIfAbsent(filter, k -> new ArrayList<>()).add(endpointListener);
             }
         }
 
@@ -91,11 +104,11 @@ public class LocalDiscovery implements BundleListener {
 
     /**
      * If the tracker was removed or the scope was changed this doesn't require
-     * additional callbacks on the tracker. Its the responsibility of the tracker
+     * additional callbacks on the tracker. It's the responsibility of the tracker
      * itself to clean up any orphans. See Remote Service Admin spec 122.6.3
      * @param endpointListener
      */
-    void removeListener(EndpointListener endpointListener) {
+    void unbindListener(EndpointEventListener endpointListener) {
         synchronized (listenerToFilters) {
             Collection<String> filters = listenerToFilters.remove(endpointListener);
             if (filters == null) {
@@ -103,7 +116,7 @@ public class LocalDiscovery implements BundleListener {
             }
 
             for (String filter : filters) {
-                Collection<EndpointListener> listeners = filterToListeners.get(filter);
+                Collection<EndpointEventListener> listeners = filterToListeners.get(filter);
                 if (listeners != null) {
                     listeners.remove(endpointListener);
                     if (listeners.isEmpty()) {
@@ -114,14 +127,27 @@ public class LocalDiscovery implements BundleListener {
         }
     }
 
-    private Map<String, Collection<EndpointListener>> getMatchingListeners(EndpointDescription endpoint) {
-        // return a copy of matched filters/listeners so that caller doesn't need to hold locks while triggering events
-        Map<String, Collection<EndpointListener>> matched = new HashMap<String, Collection<EndpointListener>>();
+    void updatedListener(ServiceReference<EndpointEventListener> endpointListenerRef, EndpointEventListener endpointListener) {
+        // if service properties have been updated, the filter (scope)
+        // might have changed so we remove and re-add the listener
+        // TODO fix this so that we don't:
+        // 1. remove and add when there is no change
+        // 2. remove and add instead of modifying
+        // 3. remove instead of modified end match
         synchronized (listenerToFilters) {
-            for (Entry<String, Collection<EndpointListener>> entry : filterToListeners.entrySet()) {
+            unbindListener(endpointListener);
+            bindListener(endpointListenerRef, endpointListener);
+        }
+    }
+
+    private Map<String, Collection<EndpointEventListener>> getMatchingListeners(EndpointDescription endpoint) {
+        // return a copy of matched filters/listeners so that caller doesn't need to hold locks while triggering events
+        Map<String, Collection<EndpointEventListener>> matched = new HashMap<>();
+        synchronized (listenerToFilters) {
+            for (Entry<String, Collection<EndpointEventListener>> entry : filterToListeners.entrySet()) {
                 String filter = entry.getKey();
                 if (LocalDiscovery.matchFilter(filter, endpoint)) {
-                    matched.put(filter, new ArrayList<EndpointListener>(entry.getValue()));
+                    matched.put(filter, new ArrayList<>(entry.getValue()));
                 }
             }
         }
@@ -129,72 +155,61 @@ public class LocalDiscovery implements BundleListener {
     }
 
     // BundleListener method
+    @Override
     public void bundleChanged(BundleEvent be) {
         switch (be.getType()) {
         case BundleEvent.STARTED:
-            findDeclaredRemoteServices(be.getBundle());
+            addDeclaredRemoteServices(be.getBundle());
             break;
         case BundleEvent.STOPPED:
-            removeServicesDeclaredInBundle(be.getBundle());
+            removeDeclaredRemoteServices(be.getBundle());
             break;
         default:
         }
     }
 
-    private void findDeclaredRemoteServices(Bundle bundle) {
+    private void addDeclaredRemoteServices(Bundle bundle) {
         List<EndpointDescription> endpoints = bundleParser.getAllEndpointDescriptions(bundle);
         for (EndpointDescription endpoint : endpoints) {
             endpointDescriptions.put(endpoint, bundle);
-            addedEndpointDescription(endpoint);
+            EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+            triggerCallbacks(event);
         }
     }
 
-    private void removeServicesDeclaredInBundle(Bundle bundle) {
+    private void removeDeclaredRemoteServices(Bundle bundle) {
         for (Iterator<Entry<EndpointDescription, Bundle>> i = endpointDescriptions.entrySet().iterator();
             i.hasNext();) {
             Entry<EndpointDescription, Bundle> entry = i.next();
             if (bundle.equals(entry.getValue())) {
-                removedEndpointDescription(entry.getKey());
+                EndpointEvent event = new EndpointEvent(EndpointEvent.REMOVED, entry.getKey());
+                triggerCallbacks(event);
                 i.remove();
             }
         }
     }
 
-    private void addedEndpointDescription(EndpointDescription endpoint) {
-        triggerCallbacks(endpoint, true);
-    }
-
-    private void removedEndpointDescription(EndpointDescription endpoint) {
-        triggerCallbacks(endpoint, false);
-    }
-
-    private void triggerCallbacks(EndpointDescription endpoint, boolean added) {
-        for (Map.Entry<String, Collection<EndpointListener>> entry : getMatchingListeners(endpoint).entrySet()) {
-            String filter = entry.getKey();
-            for (EndpointListener listener : entry.getValue()) {
-                triggerCallbacks(listener, filter, endpoint, added);
+    private void triggerCallbacks(EndpointEvent event) {
+        Map<String, Collection<EndpointEventListener>> matched = getMatchingListeners(event.getEndpoint());
+        for (Map.Entry<String, Collection<EndpointEventListener>> entry : matched.entrySet()) {
+            for (EndpointEventListener listener : entry.getValue()) {
+                triggerCallbacks(listener, entry.getKey(), event);
             }
         }
     }
 
-    private void triggerCallbacks(EndpointListener endpointListener, String filter,
-            EndpointDescription endpoint, boolean added) {
-        if (!LocalDiscovery.matchFilter(filter, endpoint)) {
-            return;
-        }
-
-        if (added) {
-            endpointListener.endpointAdded(endpoint, filter);
-        } else {
-            endpointListener.endpointRemoved(endpoint, filter);
-        }
-    }
-
-    private void triggerCallbacks(Collection<String> filters, EndpointListener endpointListener) {
+    private void triggerCallbacks(Collection<String> filters, EndpointEventListener endpointListener) {
         for (String filter : filters) {
             for (EndpointDescription endpoint : endpointDescriptions.keySet()) {
-                triggerCallbacks(endpointListener, filter, endpoint, true);
+                EndpointEvent event = new EndpointEvent(EndpointEvent.ADDED, endpoint);
+                triggerCallbacks(endpointListener, filter, event);
             }
+        }
+    }
+
+    private void triggerCallbacks(EndpointEventListener endpointListener, String filter, EndpointEvent event) {
+        if (LocalDiscovery.matchFilter(filter, event.getEndpoint())) {
+            endpointListener.endpointChanged(event, filter);
         }
     }
 
@@ -205,7 +220,7 @@ public class LocalDiscovery implements BundleListener {
 
         try {
             Filter f = FrameworkUtil.createFilter(filter);
-            Dictionary<String, Object> dict = new Hashtable<String, Object>(endpoint.getProperties());
+            Dictionary<String, Object> dict = new Hashtable<>(endpoint.getProperties());
             return f.match(dict);
         } catch (Exception e) {
             return false;

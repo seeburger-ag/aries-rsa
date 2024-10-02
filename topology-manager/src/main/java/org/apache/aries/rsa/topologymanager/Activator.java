@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -28,17 +28,22 @@ import java.util.concurrent.TimeUnit;
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
-import org.apache.aries.rsa.topologymanager.exporter.EndpointRepository;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
+import org.apache.aries.rsa.topologymanager.importer.NamedThreadFactory;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
+import org.apache.aries.rsa.topologymanager.importer.local.EndpointListenerManager;
+import org.osgi.annotation.bundle.Capability;
+import org.osgi.annotation.bundle.Header;
+import org.osgi.annotation.bundle.Requirement;
+import org.osgi.annotation.bundle.Requirements;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.remoteserviceadmin.EndpointListener;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import org.osgi.util.tracker.ServiceTracker;
@@ -46,6 +51,22 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Capability( //
+        namespace = "osgi.remoteserviceadmin.topology", //
+        attribute = {"policy:List<String>=promiscuous"}, //
+        version = "1.1.0"
+)
+@Requirements({
+@Requirement(
+        namespace = "osgi.remoteserviceadmin.discovery",
+        filter = "(&(version>=1.0)(!(version>=2.0)))"
+        ),
+@Requirement(
+        namespace = "osgi.remoteserviceadmin.distribution",
+        filter = "(&(version>=1.0)(!(version>=2.0)))"
+        )
+})
+@Header(name = Constants.BUNDLE_ACTIVATOR, value = "${@class}")
 public class Activator implements BundleActivator {
     public static final String RSA_EXPORT_POLICY_FILTER = "rsa.export.policy.filter";
     static final String DOSGI_SERVICES = "(" + RemoteConstants.SERVICE_EXPORTED_INTERFACES + "=*)";
@@ -53,11 +74,13 @@ public class Activator implements BundleActivator {
 
     private TopologyManagerExport exportManager;
     private TopologyManagerImport importManager;
-    private EndpointListenerNotifier notifier;
-    private ServiceTracker rsaTracker;
+    EndpointListenerNotifier notifier;
+    private ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> rsaTracker;
     private ThreadPoolExecutor exportExecutor;
-    private ServiceTracker epListenerTracker;
-    private ServiceTracker policyTracker;
+
+    private ServiceTracker<ExportPolicy, ExportPolicy> policyTracker;
+    private EndpointListenerManager endpointListenerManager;
+    private EndpointEventListenerTracker epeListenerTracker;
     public static String frameworkUUID;
 
     public void start(final BundleContext bc) throws Exception {
@@ -68,16 +91,16 @@ public class Activator implements BundleActivator {
             System.setProperty("org.osgi.framework.uuid", uuid);
         }
         frameworkUUID = uuid;
-        Dictionary<String, String> props = new Hashtable<String, String>();
+        Dictionary<String, String> props = new Hashtable<>();
         props.put("name", "default");
-        bc.registerService(ExportPolicy.class.getName(), new DefaultExportPolicy(), props);
+        bc.registerService(ExportPolicy.class, new DefaultExportPolicy(), props);
 
         Filter policyFilter = exportPolicyFilter(bc);
-        policyTracker = new ServiceTracker(bc, policyFilter, null) {
+        policyTracker = new ServiceTracker<ExportPolicy, ExportPolicy>(bc, policyFilter, null) {
 
             @Override
-            public ExportPolicy addingService(ServiceReference reference) {
-                ExportPolicy policy = (ExportPolicy)super.addingService(reference);
+            public ExportPolicy addingService(ServiceReference<ExportPolicy> reference) {
+                ExportPolicy policy = super.addingService(reference);
                 if (exportManager == null) {
                     doStart(bc, policy);
                 }
@@ -85,7 +108,7 @@ public class Activator implements BundleActivator {
             }
 
             @Override
-            public void removedService(ServiceReference reference, Object service) {
+            public void removedService(ServiceReference<ExportPolicy> reference, ExportPolicy service) {
                 if (exportManager != null) {
                     doStop(bc);
                 }
@@ -105,17 +128,17 @@ public class Activator implements BundleActivator {
 
     public void doStart(final BundleContext bc, ExportPolicy policy) {
         LOG.debug("TopologyManager: start()");
-        EndpointRepository endpointRepo = new EndpointRepository();
-        notifier = new EndpointListenerNotifier(endpointRepo);
-        epListenerTracker = new EndpointListenerTracker(bc);
-        endpointRepo.setNotifier(notifier);
-        exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-        exportManager = new TopologyManagerExport(endpointRepo, exportExecutor, policy);
+        notifier = new EndpointListenerNotifier();
+        exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory(TopologyManagerExport.class));
+        exportManager = new TopologyManagerExport(notifier, exportExecutor, policy);
+        epeListenerTracker = new EndpointEventListenerTracker(bc, exportManager);
         importManager = new TopologyManagerImport(bc);
+        endpointListenerManager = new EndpointListenerManager(bc, importManager);
+        endpointListenerManager.start();
         rsaTracker = new RSATracker(bc, RemoteServiceAdmin.class, null);
         bc.addServiceListener(exportManager);
         rsaTracker.open();
-        epListenerTracker.open();
+        epeListenerTracker.open();
         exportExistingServices(bc);
         importManager.start();
     }
@@ -126,10 +149,10 @@ public class Activator implements BundleActivator {
 
     public void doStop(BundleContext bc) {
         LOG.debug("TopologyManager: stop()");
-        epListenerTracker.close();
         bc.removeServiceListener(exportManager);
         exportExecutor.shutdown();
         importManager.stop();
+        endpointListenerManager.stop();
         rsaTracker.close();
         exportManager = null;
     }
@@ -137,9 +160,9 @@ public class Activator implements BundleActivator {
     public void exportExistingServices(BundleContext context) {
         try {
             // cast to String is necessary for compiling against OSGi core version >= 4.3
-            ServiceReference[] references = context.getServiceReferences((String)null, DOSGI_SERVICES);
+            ServiceReference<?>[] references = context.getServiceReferences((String)null, DOSGI_SERVICES);
             if (references != null) {
-                for (ServiceReference sref : references) {
+                for (ServiceReference<?> sref : references) {
                     exportManager.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, sref));
                 }
             }
@@ -148,42 +171,16 @@ public class Activator implements BundleActivator {
         }
     }
 
-    private final class EndpointListenerTracker extends ServiceTracker {
-        private EndpointListenerTracker(BundleContext context) {
-            super(context, EndpointListener.class.getName(), null);
+
+    private final class RSATracker extends ServiceTracker<RemoteServiceAdmin, RemoteServiceAdmin> {
+        private RSATracker(BundleContext context, Class<RemoteServiceAdmin> clazz,
+                           ServiceTrackerCustomizer<RemoteServiceAdmin, RemoteServiceAdmin> customizer) {
+            super(context, clazz, customizer);
         }
 
         @Override
-        public EndpointListener addingService(ServiceReference reference) {
-            EndpointListener listener = (EndpointListener)super.addingService(reference);
-            notifier.add(listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
-            return listener;
-        }
-
-        @Override
-        public void modifiedService(ServiceReference reference,
-                                    Object listener) {
-            super.modifiedService(reference, listener);
-            notifier.add((EndpointListener)listener, EndpointListenerNotifier.getFiltersFromEndpointListenerScope(reference));
-        }
-
-        @Override
-        public void removedService(ServiceReference reference,
-                                   Object listener) {
-            notifier.remove((EndpointListener)listener);
-            super.removedService(reference, listener);
-        }
-    }
-
-    private final class RSATracker extends ServiceTracker {
-        private RSATracker(BundleContext context, Class clazz,
-                           ServiceTrackerCustomizer customizer) {
-            super(context, clazz.getName(), customizer);
-        }
-
-        @Override
-        public RemoteServiceAdmin addingService(ServiceReference reference) {
-            RemoteServiceAdmin rsa = (RemoteServiceAdmin)super.addingService(reference);
+        public RemoteServiceAdmin addingService(ServiceReference<RemoteServiceAdmin> reference) {
+            RemoteServiceAdmin rsa = super.addingService(reference);
             LOG.debug("New RemoteServiceAdmin {} detected, trying to import and export services with it", rsa);
             importManager.add(rsa);
             exportManager.add(rsa);
@@ -191,10 +188,10 @@ public class Activator implements BundleActivator {
         }
 
         @Override
-        public void removedService(ServiceReference reference,
-                                   Object rsa) {
-            exportManager.remove((RemoteServiceAdmin)rsa);
-            importManager.remove((RemoteServiceAdmin)rsa);
+        public void removedService(ServiceReference<RemoteServiceAdmin> reference,
+                                   RemoteServiceAdmin rsa) {
+            exportManager.remove(rsa);
+            importManager.remove(rsa);
             super.removedService(reference, rsa);
         }
     }
