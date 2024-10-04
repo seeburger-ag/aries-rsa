@@ -46,6 +46,9 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
 
     private static final Set<String> ALLOWEDCLASSES;
     private static final FilteredClassLoaderObjectInputStream.AllowlistPackagesPredicate ALLOWED_PACKAGES;
+    private static final String ADDITIONAL_ALLOWED_PACKAGE = System.getProperty( "org.apache.aries.rsa.provider.fastbin.api.DESERIALIZATION_PACKAGE_ALLOW_LIST", "");
+    private static final String ADDITIONAL_ALLOWED_CLASSES = System.getProperty( "org.apache.aries.rsa.provider.fastbin.api.DESERIALIZATION_CLASS_ALLOW_LIST", "");
+
     static
     {
         Set<String> classes = new HashSet<>();
@@ -60,7 +63,11 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
                         "Z",  // boolean
                         "L"   // Object type (LClassName;)
                         ));
-
+        final String[] customClasses = ADDITIONAL_ALLOWED_CLASSES.split(",");
+        if (customClasses.length > 0)
+        {
+            classes.addAll(Arrays.asList(customClasses));
+        }
         ALLOWEDCLASSES = classes;
 
 
@@ -73,7 +80,14 @@ public class ObjectSerializationStrategy implements SerializationStrategy {
                         "org.osgi.framework",
                         "com.seeburger"));
 
+        final String[] customPackages = ADDITIONAL_ALLOWED_PACKAGE.split(",");
+        if (customPackages.length > 0)
+        {
+            packages.addAll(Arrays.asList(customPackages));
+        }
+
         ALLOWED_PACKAGES = new FilteredClassLoaderObjectInputStream.AllowlistPackagesPredicate(packages);
+
     }
 
 
