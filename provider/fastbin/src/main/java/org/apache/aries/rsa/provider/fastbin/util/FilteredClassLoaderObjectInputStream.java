@@ -30,22 +30,25 @@ public class FilteredClassLoaderObjectInputStream extends ClassLoaderObjectInput
     static final String PROPERTY_USE_INSECURE_DESERIALIZATION = "org.apache.aries.rsa.provider.fastbin.util.useInsecureDeserialization";
     static boolean useInsecureDeserialization = Boolean.getBoolean(PROPERTY_USE_INSECURE_DESERIALIZATION);
 
+    private final Set<String> deniedClasses;
     private final Set<String> allowedClasses;
-    private Predicate<String> allowedPackages;
+    private final Predicate<String> allowedPackages;
 
-    public FilteredClassLoaderObjectInputStream(InputStream s, Set<String> allowedClasses)
+    public FilteredClassLoaderObjectInputStream(InputStream inArg, Set<String> allowedClasses)
                     throws IOException
     {
-        super(s);
+        super(inArg);
         if (allowedClasses == null)
         {
             throw new IllegalArgumentException("allowedClasses must not be null");
         }
 
+        this.deniedClasses = null;
         this.allowedClasses = allowedClasses;
+        this.allowedPackages = null;
     }
 
-    public FilteredClassLoaderObjectInputStream(InputStream inArg, Set<String> allowedClasses, Predicate<String> allowedPackages)
+    public FilteredClassLoaderObjectInputStream(InputStream inArg, Set<String> deniedClasses, Set<String> allowedClasses, Predicate<String> allowedPackages)
                     throws IOException
     {
         super(inArg);
@@ -55,6 +58,7 @@ public class FilteredClassLoaderObjectInputStream extends ClassLoaderObjectInput
             throw new IllegalArgumentException("allowedClasses must not be null");
         }
 
+        this.deniedClasses = deniedClasses;
         this.allowedClasses = allowedClasses;
         this.allowedPackages = allowedPackages;
     }
@@ -67,6 +71,10 @@ public class FilteredClassLoaderObjectInputStream extends ClassLoaderObjectInput
 
         if (!useInsecureDeserialization)
         {
+            if (deniedClasses != null && deniedClasses.contains(className))
+            {
+                throw new InvalidClassException(className, "Invalid de-serialization data. POSSIBLE ATTACK. Invalid class=" + className);
+            }
             if (allowedClasses.contains(className))
             {
                 return super.resolveClass(clsDescriptor);
@@ -75,7 +83,7 @@ public class FilteredClassLoaderObjectInputStream extends ClassLoaderObjectInput
             {
                 return super.resolveClass(clsDescriptor);
             }
-            throw new InvalidClassException(className, "Invalid de-serialisation data. POSSIBLE ATTACK. Invalid class=" + className);
+            throw new InvalidClassException(className, "Invalid de-serialization data. POSSIBLE ATTACK. Invalid class=" + className);
         }
 
         return super.resolveClass(clsDescriptor);
