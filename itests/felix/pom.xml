@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.itests</artifactId>
-        <version>1.17.1.SEE1</version>
+        <version>1.17.1.SEE2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
