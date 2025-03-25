@@ -21,11 +21,10 @@ package org.apache.aries.rsa.topologymanager.exporter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.apache.aries.rsa.spi.ExportPolicy;
@@ -58,34 +57,31 @@ import org.slf4j.LoggerFactory;
 public class TopologyManagerExport implements ServiceListener {
     private static final Logger LOG = LoggerFactory.getLogger(TopologyManagerExport.class);
 
-    private final Executor execService;
-    private final Map<RemoteServiceAdmin, ServiceExportsRepository> endpointRepo;
-    private ExportPolicy policy;
-    private Map<Integer, String> typeNames;
     private final EndpointListenerNotifier notifier;
-    private Set<ServiceReference<?>> toBeExported;
+    private final Executor executor;
+    private final ExportPolicy policy;
+    private final Map<RemoteServiceAdmin, ServiceExportsRepository> endpointRepo;
+    private final Set<ServiceReference<?>> toBeExported;
 
-    public TopologyManagerExport(
-            EndpointListenerNotifier notifier,
-            Executor executor,
-            ExportPolicy policy) {
+    public TopologyManagerExport(EndpointListenerNotifier notifier, Executor executor, ExportPolicy policy) {
         this.notifier = notifier;
-        this.execService = executor;
+        this.executor = executor;
         this.policy = policy;
-        this.endpointRepo = new HashMap<>();
-        this.toBeExported = new HashSet<>();
-        createTypeNames();
+        this.endpointRepo = new ConcurrentHashMap<>();
+        this.toBeExported = Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
-    private void createTypeNames() {
-        this.typeNames = new HashMap<>();
-        this.typeNames.put(ServiceEvent.MODIFIED, "modified");
-        this.typeNames.put(ServiceEvent.MODIFIED_ENDMATCH, "modified endmatch");
-        this.typeNames.put(ServiceEvent.REGISTERED, "registered");
-        this.typeNames.put(ServiceEvent.UNREGISTERING, "unregistering");
+    private String getTypeName(ServiceEvent event) {
+        switch (event.getType()) {
+            case ServiceEvent.MODIFIED: return "modified";
+            case ServiceEvent.MODIFIED_ENDMATCH: return "modified endmatch";
+            case ServiceEvent.REGISTERED: return "registered";
+            case ServiceEvent.UNREGISTERING: return "unregistering";
+            default: return null;
+        }
     }
 
-    // track all service registrations so we can export any services that are configured to be exported
+    // track all service registrations, so we can export any services that are configured to be exported
     // ServiceListener events may be delivered out of order, concurrently, re-entrant, etc. (see spec or docs)
     public void serviceChanged(ServiceEvent event) {
         ServiceReference<?> sref = event.getServiceReference();
@@ -95,47 +91,38 @@ public class TopologyManagerExport implements ServiceListener {
         }
         LOG.info("Received ServiceEvent type: {}, sref: {}", getTypeName(event), sref);
         switch (event.getType()) {
-        case ServiceEvent.REGISTERED:
-            doExport(sref);
-            break;
+            case ServiceEvent.REGISTERED:
+                doExport(sref);
+                break;
 
-        case ServiceEvent.MODIFIED:
-            modified(sref);
-            break;
+            case ServiceEvent.MODIFIED:
+                modified(sref);
+                break;
 
-        case ServiceEvent.MODIFIED_ENDMATCH:
-            remove(sref);
-            break;
-
-        case ServiceEvent.UNREGISTERING:
-            remove(sref);
-            break;
+            case ServiceEvent.UNREGISTERING:
+            case ServiceEvent.MODIFIED_ENDMATCH:
+                remove(sref);
+                break;
         }
     }
 
     private void modified(ServiceReference<?> sref) {
-        for (RemoteServiceAdmin rsa : endpointRepo.keySet()) {
-            ServiceExportsRepository repo = endpointRepo.get(rsa);
+        for (ServiceExportsRepository repo : endpointRepo.values()) {
             repo.modifyService(sref);
         }
     }
 
     private void remove(ServiceReference<?> sref) {
         toBeExported.remove(sref);
-        for (RemoteServiceAdmin rsa : endpointRepo.keySet()) {
-            ServiceExportsRepository repo = endpointRepo.get(rsa);
+        for (ServiceExportsRepository repo : endpointRepo.values()) {
             repo.removeService(sref);
         }
     }
 
-    public String getTypeName(ServiceEvent event) {
-        return typeNames.get(event.getType());
-    }
-
     public void add(RemoteServiceAdmin rsa) {
-        endpointRepo.put(rsa,  new ServiceExportsRepository(rsa, notifier));
-        for (ServiceReference<?> serviceRef : toBeExported) {
-            exportInBackground(serviceRef);
+        endpointRepo.put(rsa, new ServiceExportsRepository(rsa, notifier));
+        for (ServiceReference<?> sref : toBeExported) {
+            exportInBackground(sref);
         }
     }
 
@@ -147,46 +134,27 @@ public class TopologyManagerExport implements ServiceListener {
     }
 
     private void exportInBackground(final ServiceReference<?> sref) {
-        execService.execute(new Runnable() {
-            public void run() {
-                if (!shouldExport(sref)) {
-                    LOG.debug("Skipping service {}", sref);
-                    return;
-                }
-                doExport(sref);
-            }
-        });
+        executor.execute(() -> doExport(sref));
     }
 
     private void doExport(final ServiceReference<?> sref) {
-        Bundle bundle = sref.getBundle();
-        if(bundle == null) {
-            LOG.warn("Service Reference {} had no bundle reference. Skipping",sref);
-            return;
-        }
-        if(bundle.getState()==Bundle.STOPPING || bundle.getState()==Bundle.RESOLVED || bundle.getState()==Bundle.INSTALLED) {
-            LOG.warn("Trying to export a service from bundle {} which has been stopped in the meantime. Skipping",bundle.getSymbolicName());
-            return;
-        }
         LOG.debug("Exporting service {}", sref);
         toBeExported.add(sref);
-        if (endpointRepo.size() == 0) {
+        if (endpointRepo.isEmpty()) {
+            Bundle bundle = sref.getBundle();
+            String bundleName = bundle == null ? null : bundle.getSymbolicName();
             LOG.error("Unable to export service from bundle {}, interfaces: {} as no RemoteServiceAdmin is available. Marked for later export.",
-                    getSymbolicName(sref.getBundle()),
-                    sref.getProperty(org.osgi.framework.Constants.OBJECTCLASS));
+                      bundleName, sref.getProperty(org.osgi.framework.Constants.OBJECTCLASS));
             return;
         }
 
-        for (RemoteServiceAdmin remoteServiceAdmin : endpointRepo.keySet()) {
-            ServiceExportsRepository repo = endpointRepo.get(remoteServiceAdmin);
-            Collection<ExportRegistration> regs = exportService(remoteServiceAdmin, sref);
-            repo.addService(sref, regs);
+        for (Map.Entry<RemoteServiceAdmin, ServiceExportsRepository> entry : endpointRepo.entrySet()) {
+            Collection<ExportRegistration> regs = exportService(entry.getKey(), sref);
+            entry.getValue().addService(sref, regs);
         }
     }
 
-    private Collection<ExportRegistration> exportService(
-            final RemoteServiceAdmin rsa,
-            final ServiceReference<?> sref) {
+    private Collection<ExportRegistration> exportService(final RemoteServiceAdmin rsa, final ServiceReference<?> sref) {
         // abort if the service was unregistered by the time we got here
         // (we check again at the end, but this optimization saves unnecessary heavy processing)
         if (sref.getBundle() == null) {
@@ -196,10 +164,10 @@ public class TopologyManagerExport implements ServiceListener {
 
         LOG.debug("exporting Service {} using RemoteServiceAdmin {}", sref, rsa.getClass().getName());
         Map<String, ?> addProps = policy.additionalParameters(sref);
-        Collection<ExportRegistration> exportRegs = rsa.exportService(sref, addProps);
+        Collection<ExportRegistration> regs = rsa.exportService(sref, addProps);
 
         // process successful/failed registrations
-        for (ExportRegistration reg : exportRegs) {
+        for (ExportRegistration reg : regs) {
             if (reg.getException() == null) {
                 EndpointDescription endpoint = reg.getExportReference().getExportedEndpoint();
                 LOG.info("TopologyManager: export succeeded for {}, endpoint {}, rsa {}", sref, endpoint, rsa.getClass().getName());
@@ -213,36 +181,27 @@ public class TopologyManagerExport implements ServiceListener {
         // with the unregister event which may have already been handled, so we'll miss it)
         if (sref.getBundle() == null) {
             LOG.info("TopologyManager: export reverted for {} since service was unregistered", sref);
-            for (ExportRegistration reg : exportRegs) {
+            for (ExportRegistration reg : regs) {
                 reg.close();
             }
         }
 
-        return exportRegs;
+        return regs;
     }
 
     private boolean shouldExport(ServiceReference<?> sref) {
         Map<String, ?> addProps = policy.additionalParameters(sref);
-        List<String> exported= StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
+        List<String> exported = StringPlus.normalize(sref.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
         List<String> addExported = StringPlus.normalize(addProps.get(RemoteConstants.SERVICE_EXPORTED_INTERFACES));
-        return sizeOf(exported) + sizeOf(addExported) > 0;
+        return exported != null && !exported.isEmpty() || addExported != null && !addExported.isEmpty();
     }
 
-    private int sizeOf(List<String> list) {
-        return list == null ? 0 : list.size();
-    }
-
-    private Object getSymbolicName(Bundle bundle) {
-        return bundle == null ? null : bundle.getSymbolicName();
-    }
-
-    public void addEPListener(EndpointEventListener epListener, Set<Filter> filters) {
+    public void addEPListener(EndpointEventListener listener, Set<Filter> filters) {
         Collection<EndpointDescription> endpoints = new ArrayList<>();
-        for (RemoteServiceAdmin rsa : endpointRepo.keySet()) {
-            ServiceExportsRepository repo = endpointRepo.get(rsa);
+        for (ServiceExportsRepository repo : endpointRepo.values()) {
             endpoints.addAll(repo.getAllEndpoints());
         }
-        notifier.add(epListener, filters, endpoints);
+        notifier.add(listener, filters, endpoints);
     }
 
     public void removeEPListener(EndpointEventListener listener) {
