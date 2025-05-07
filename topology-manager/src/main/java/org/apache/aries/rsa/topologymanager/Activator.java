@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.aries.rsa.spi.ExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.DefaultExportPolicy;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifier;
+import org.apache.aries.rsa.topologymanager.exporter.EndpointListenerNotifierDummy;
 import org.apache.aries.rsa.topologymanager.exporter.EndpointRepository;
 import org.apache.aries.rsa.topologymanager.exporter.TopologyManagerExport;
 import org.apache.aries.rsa.topologymanager.importer.TopologyManagerImport;
@@ -50,6 +51,7 @@ public class Activator implements BundleActivator {
     public static final String RSA_EXPORT_POLICY_FILTER = "rsa.export.policy.filter";
     static final String DOSGI_SERVICES = "(" + RemoteConstants.SERVICE_EXPORTED_INTERFACES + "=*)";
     private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+    private static final boolean ENABLE_ENDPOINT_LISTENER = Boolean.getBoolean("org.apache.aries.rsa.endpoint.listener.notifier.enable");
 
     private TopologyManagerExport exportManager;
     private TopologyManagerImport importManager;
@@ -106,7 +108,18 @@ public class Activator implements BundleActivator {
     public void doStart(final BundleContext bc, ExportPolicy policy) {
         LOG.debug("TopologyManager: start()");
         EndpointRepository endpointRepo = new EndpointRepository();
-        notifier = new EndpointListenerNotifier(endpointRepo);
+
+        if (ENABLE_ENDPOINT_LISTENER)
+        {
+            notifier = new EndpointListenerNotifier(endpointRepo);
+            LOG.info("TopologyManager: EndpointListenerNotifier enabled");
+        }
+        else
+        {
+            notifier = new EndpointListenerNotifierDummy(endpointRepo);
+            LOG.info("TopologyManager: EndpointListenerNotifier disabled");
+        }
+
         epListenerTracker = new EndpointListenerTracker(bc);
         endpointRepo.setNotifier(notifier);
         exportExecutor = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
