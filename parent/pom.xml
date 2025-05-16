@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8' ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
   or more contributor license agreements. See the NOTICE file
@@ -34,7 +34,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <bnd.version>6.4.0</bnd.version>
-        <zookeeper.version>3.9.1_1</zookeeper.version>
+        <zookeeper.version>3.9.3_1</zookeeper.version>
         <netty.version>4.1.101.Final</netty.version>
         <slf4j.version>2.0.13</slf4j.version>
         <hawtdispatch.version>1.22</hawtdispatch.version>
