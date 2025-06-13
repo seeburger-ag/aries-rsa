@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.examples</artifactId>
-        <version>1.17.1.SEE3-SNAPSHOT</version>
+        <version>1.17.1.SEE3</version>
     </parent>
     <groupId>org.apache.aries.rsa.examples</groupId>
     <artifactId>org.apache.aries.rsa.examples.echotcp</artifactId>
