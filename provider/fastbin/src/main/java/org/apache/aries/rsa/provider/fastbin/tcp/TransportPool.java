@@ -114,7 +114,7 @@ public abstract class TransportPool implements Service {
             try {
                 startNewTransport();
             } catch (Exception e) {
-                LOGGER.info("Unable to start new transport", e);
+                LOGGER.info("Unable to start new transport for uri {}", this.uri, e);
             }
         }
         return null;
