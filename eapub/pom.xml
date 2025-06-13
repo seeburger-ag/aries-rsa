@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.aries.rsa</groupId>
         <artifactId>org.apache.aries.rsa.parent</artifactId>
-        <version>1.17.1.SEE3</version>
+        <version>1.17.1.SEE4-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <artifactId>org.apache.aries.rsa.eapub</artifactId>
