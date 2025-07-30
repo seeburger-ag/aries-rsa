@@ -18,24 +18,39 @@
  */
 package org.apache.aries.rsa.provider.fastbin.tcp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import org.apache.aries.rsa.provider.fastbin.io.ProtocolCodec;
 import org.fusesource.hawtbuf.Buffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class LengthPrefixedCodec implements ProtocolCodec {
 
+    protected static final Logger LOG = LoggerFactory.getLogger(LengthPrefixedCodec.class);
+
     /** prevent DOS attacks in case a very large size field is sent. Default is 10MB */
     private static final int MAX_PACKET_SIZE = Integer.getInteger("aries.fastbin.max.packet.bytes", 1024 * 1024 * 10) <= 0 ? Integer.MAX_VALUE : Integer.getInteger("aries.fastbin.max.packet.bytes", 1024 * 1024 * 10);
+    // System property to control dumping behavior for packets exceeding the maximum size
+    private static final boolean DUMP_EXCEEDING_PACKETS = Boolean.getBoolean("aries.fastbin.dump.exceeding.packets");
+    /** prevent DOS attacks in case a very large dump is requested. Default is 1MB */
+    private static final long DUMP_MAX_SIZE = Long.getLong("aries.fastbin.dump.max.bytes", 1024 * 1024) <= 0 ? Long.MAX_VALUE : Long.getLong("aries.fastbin.dump.max.bytes", 1024 * 1024);
 
     final int write_buffer_size = 1024 * 64;
     long write_counter = 0L;
@@ -151,7 +166,12 @@ public class LengthPrefixedCodec implements ProtocolCodec {
                         throw new ProtocolException("Expecting a size greater than 3");
                     }
                     else if( size > MAX_PACKET_SIZE ) {
-                        throw new ProtocolException("Packet length was declared as " + size + " but at most " + MAX_PACKET_SIZE + "is allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes");
+                        // Get first 1kB for logging
+                        byte[] firstBytes = getFirstKiloByteForLogging();
+                        dumpExceedingPacket(size, firstBytes);
+                        throw new ProtocolException("Packet length was declared as " + size + " but at most " + MAX_PACKET_SIZE
+                                                    + " bytes are allowed. You can configure this limit with the system property aries.fastbin.max.packet.bytes"
+                                                    + "\n First 1kB of the packet:\n" + new String(firstBytes, StandardCharsets.UTF_8));
                     }
                     if( size == 4 ) {
                         // weird... empty frame... guess it could happen.
@@ -173,6 +193,75 @@ public class LengthPrefixedCodec implements ProtocolCodec {
             }
         }
     }
+
+
+    private byte[] getFirstKiloByteForLogging() throws IOException {
+        ByteArrayOutputStream baOs = new ByteArrayOutputStream(1024);
+        int readBytes;
+        try (WritableByteChannel channel = Channels.newChannel(baOs))
+        {
+            ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+            // Read the first 1kB of data - ignoring that it might read less
+            readBytes = read_channel.read(buffer);
+            // Prepare the buffer to be drained
+            buffer.flip();
+            // Make sure that the buffer was fully drained
+            while (buffer.hasRemaining())
+            {
+                channel.write(buffer);
+            }
+            // Make the buffer empty, ready for filling
+            buffer.clear();
+        }
+        catch (IOException ioEx) {
+            return ("No details available - " + ioEx).getBytes(StandardCharsets.UTF_8);
+        }
+        return baOs.toByteArray();
+    }
+
+
+    private void dumpExceedingPacket(int size, byte[] firstBytes) {
+        if (!DUMP_EXCEEDING_PACKETS) {
+            return;
+        }
+
+        Path dumpPath = Paths.get(System.currentTimeMillis() + "_aries-rsa-dump.bin");
+        boolean truncated = false;
+        try (WritableByteChannel channel = Channels.newChannel(Files.newOutputStream(dumpPath))) {
+            // write the already read bytes to the file
+            channel.write(ByteBuffer.wrap(firstBytes));
+            ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+            long totalReadBytes = 0;
+            while (true)
+            {
+                int readBytes = read_channel.read(buffer);
+                if (readBytes == -1) break;
+                totalReadBytes += readBytes;
+                // Prepare the buffer to be drained
+                buffer.flip();
+                // Make sure that the buffer was fully drained
+                while (buffer.hasRemaining())
+                {
+                    channel.write(buffer);
+                }
+                // Make the buffer empty, ready for filling
+                buffer.clear();
+
+                if (totalReadBytes > DUMP_MAX_SIZE) {
+                    // If we read more than the max dump size, stop dumping
+                    channel.write(StandardCharsets.UTF_8.encode("\n\nDumping truncated after " + DUMP_MAX_SIZE + " bytes"));
+                    truncated = true;
+                    break;
+                }
+            }
+            LOG.warn("Request with exceeded packet length of {} bytes was dumped {} to {}",
+                     size, (truncated ? ("truncated to " + DUMP_MAX_SIZE + " bytes") : "completely"), dumpPath.toAbsolutePath());
+        }
+        catch (IOException ioEx) {
+            LOG.warn("Request with exceeded packet length of {} bytes could not be dumped!", size, ioEx);
+        }
+    }
+
 
     public long getReadCounter() {
         return read_counter;
