@@ -19,6 +19,8 @@
 package org.apache.aries.rsa.topologymanager.importer;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -58,14 +60,30 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     private final MultiMap<String, EndpointDescription> importPossibilities = new MultiMap<>();
 
     /**
+     * Provides an easier access to the ImportRegistration for a given EndpointDescription and filter, e.g. when an endpoint is removed or modified.
+     */
+    private final ConcurrentMap<EndpointDescriptionFilter, ImportRegistration> importedRegistrations = new ConcurrentHashMap<>();
+
+    /**
      * List of already imported Endpoints by their matched filter
      */
     private final MultiMap<String, ImportRegistration> importedServices = new MultiMap<>();
 
+    private final Set<ImportReference> inProgressUnimports = ConcurrentHashMap.newKeySet();
+
     public TopologyManagerImport(BundleContext bc) {
         this.rsaSet = new CopyOnWriteArraySet<>();
         bctx = bc;
-        execService = new ThreadPoolExecutor(5, 10, 50, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory(getClass()));
+
+        // max 20, default=CPU-1, but minimum 2
+        int poolSize = Math.max(2, Math.min(20, Runtime.getRuntime().availableProcessors() - 1));
+        execService = new ThreadPoolExecutor(
+                        poolSize,
+                        poolSize,
+                        10L, TimeUnit.SECONDS,
+                        new LinkedBlockingQueue<>(),
+                        new NamedThreadFactory(getClass())
+        );
     }
 
     public void start() {
@@ -100,6 +118,10 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
     public void remoteAdminEvent(RemoteServiceAdminEvent event) {
         ImportReference ref = event.getImportReference();
         if (event.getType() == RemoteServiceAdminEvent.IMPORT_UNREGISTRATION && ref != null) {
+            if (inProgressUnimports.contains(ref))
+            {
+                return;// no need to iterate over the imports
+            }
             importedServices.allValues().stream()
                 .filter(ir -> ref.equals(ir.getImportReference()))
                 .forEach(this::unimportRegistration);
@@ -110,6 +132,35 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         LOG.debug("Import of a service for filter {} was queued", filter);
         if (!rsaSet.isEmpty()) {
             execService.execute(() -> synchronizeImports(filter));
+        }
+    }
+
+    private void synchronizeAddedImport(String filter, EndpointDescription endpoint)
+    {
+        if (!rsaSet.isEmpty())
+        {
+            execService.execute(() -> {
+                ImportRegistration importRegistration = importService(filter, endpoint);
+                if (importRegistration != null)
+                {
+                    importedServices.put(filter, importRegistration);
+                    importedRegistrations.put(new EndpointDescriptionFilter(filter, endpoint), importRegistration);
+                }
+            });
+        }
+    }
+
+    private void synchronizeRemovedImport(String filter, EndpointDescription endpoint)
+    {
+        if (!rsaSet.isEmpty())
+        {
+            execService.execute(() -> {
+                ImportRegistration importRegistration = importedRegistrations.remove(new EndpointDescriptionFilter(filter, endpoint));
+                if (importRegistration != null)
+                {
+                    unimportRegistration(filter, importRegistration);
+                }
+            });
         }
     }
 
@@ -127,7 +178,7 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         try {
             ImportDiff diff = new ImportDiff(importPossibilities.get(filter), importedServices.get(filter));
             diff.getRemoved()
-                .forEach(this::unimportRegistration);
+                .forEach(importRegistration -> unimportRegistration(filter, importRegistration));
             diff.getAdded()
                 .flatMap(this::importService)
                 .forEach(ir -> importedServices.put(filter, ir));
@@ -137,10 +188,24 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         // Notify EndpointListeners? NO!
     }
 
+    private ImportRegistration importService(String filter, EndpointDescription endpoint) {
+        for (RemoteServiceAdmin rsa : rsaSet) {
+            ImportRegistration ir = rsa.importService(endpoint);
+            if (ir != null) {
+                if (ir.getException() == null) {
+                    LOG.debug("Service import was successful for filter {}: {}", filter, ir);
+                    return ir;
+                } else {
+                    LOG.info("Error importing service for filter {}: {}", filter, endpoint, ir.getException());
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Tries to import the service with each rsa until one import is successful.
      *
-     * @param filter the filter that matched the endpoint
      * @param endpoint endpoint to import
      * @return 
      */
@@ -158,12 +223,23 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         }
         return Stream.empty();
     }
+
+    private void unimportRegistration(String filter, ImportRegistration reg) {
+        importedServices.remove(filter, reg);
+        // spares unnecessary iteration when the unimport event is received
+        inProgressUnimports.add(reg.getImportReference());
+        reg.close();
+        inProgressUnimports.remove(reg.getImportReference());
+    }
     
     private void unimportRegistration(ImportRegistration reg) {
         importedServices.remove(reg);
+        // spares unnecessary iteration when the unimport event is received
+        inProgressUnimports.add(reg.getImportReference());
         reg.close();
+        inProgressUnimports.remove(reg.getImportReference());
     }
-    
+
     @Override
     public void endpointChanged(EndpointEvent event, String filter) {
         if (stopped) {
@@ -174,17 +250,20 @@ public class TopologyManagerImport implements EndpointEventListener, RemoteServi
         switch (event.getType()) {
             case EndpointEvent.ADDED:
                 importPossibilities.put(filter, endpoint);
+                synchronizeAddedImport(filter, endpoint);
                 break;
             case EndpointEvent.REMOVED:
             case EndpointEvent.MODIFIED_ENDMATCH:
                 importPossibilities.remove(filter, endpoint);
+                 synchronizeRemovedImport(filter, endpoint);
                 break;
             case EndpointEvent.MODIFIED:
                 importPossibilities.remove(filter, endpoint);
+                synchronizeRemovedImport(filter, endpoint);
                 importPossibilities.put(filter, endpoint);
+                synchronizeAddedImport(filter, endpoint);
                 break;
         }
-        synchronizeImportsAsync(filter);
     }
 
 }
