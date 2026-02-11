@@ -164,7 +164,7 @@ public class RemoteServiceAdminCoreTest {
         assertNotNull(ireg2);
         assertEquals(2, rsaCore.getImportedEndpoints().size());
 
-        assertEquals(ireg.getImportReference(), (rsaCore.getImportedEndpoints().toArray())[0]);
+        assertTrue(rsaCore.getImportedEndpoints().stream().anyMatch(importReference -> ireg.getImportReference().equals(importReference)));
 
         assertEquals(ireg.getImportReference().getImportedEndpoint(), ireg2.getImportReference()
             .getImportedEndpoint());
@@ -207,7 +207,7 @@ public class RemoteServiceAdminCoreTest {
         assertNotNull(ireg2);
         assertEquals(2, rsaCore.getImportedEndpoints().size());
 
-        assertEquals(ireg.getImportReference(), (rsaCore.getImportedEndpoints().toArray())[0]);
+        assertTrue(rsaCore.getImportedEndpoints().stream().anyMatch(importReference -> ireg.getImportReference().equals(importReference)));
 
         assertEquals(ireg.getImportReference().getImportedEndpoint(), ireg2.getImportReference()
             .getImportedEndpoint());

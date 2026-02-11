@@ -33,6 +33,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.aries.rsa.core.event.EventProducer;
 import org.apache.aries.rsa.spi.DistributionProvider;
@@ -61,7 +64,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminCore.class);
 
     private final Map<Map<String, Object>, Collection<ExportRegistration>> exportedServices = new LinkedHashMap<>();
-    private final Map<EndpointDescription, Collection<ImportRegistration>> importedServices = new LinkedHashMap<>();
+    private final ConcurrentMap<EndpointDescription, ConcurrentHashSet<ImportRegistration>> importedServices = new ConcurrentHashMap<>();
 
     // Is stored in exportedServices while the export is in progress as a marker
     private final List<ExportRegistration> exportInProgress = Collections.emptyList();
@@ -407,15 +410,15 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
 
     @Override
     public Collection<ImportReference> getImportedEndpoints() {
-        synchronized (importedServices) {
-            List<ImportReference> irs = new ArrayList<>();
-            for (Collection<ImportRegistration> irl : importedServices.values()) {
-                for (ImportRegistration impl : irl) {
-                    irs.add(impl.getImportReference());
-                }
+        List<ImportReference> irs = new ArrayList<>();
+        for (Collection<ImportRegistration> irl : importedServices.values())
+        {
+            for (ImportRegistration impl : irl)
+            {
+                irs.add(impl.getImportReference());
             }
-            return Collections.unmodifiableCollection(irs);
         }
+            return Collections.unmodifiableCollection(irs);
     }
 
     /**
@@ -425,42 +428,49 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     public ImportRegistration importService(EndpointDescription endpoint) {
         LOG.debug("importService() Endpoint: {}", endpoint.getProperties());
 
-        synchronized (importedServices) {
-            Collection<ImportRegistration> imRegs = importedServices.get(endpoint);
-            if (imRegs != null && !imRegs.isEmpty()) {
-                LOG.debug("creating copy of existing import registrations");
-                ImportRegistration irParent = imRegs.iterator().next();
-                ImportRegistration ir = new ImportRegistrationImpl(irParent);
-                imRegs.add(ir);
-                eventProducer.publishNotification(ir);
-                return ir;
-            }
+        AtomicReference<ImportRegistration> result = new AtomicReference<>();
 
-            if (determineConfigTypesForImport(endpoint).size() == 0) {
-                LOG.info("No matching handler can be found for remote endpoint {}.", endpoint.getId());
-                return null;
-            }
+        importedServices.compute(endpoint,
+                                 (endpointDescription, imRegs) -> {
+                                     if (imRegs != null && !imRegs.isEmpty())
+                                     {
+                                         LOG.debug("creating copy of existing import registrations");
+                                         ImportRegistration irParent = imRegs.getParentImportRegistration();
+                                         ImportRegistration ir = new ImportRegistrationImpl(irParent);
+                                         imRegs.add(ir);
+                                         eventProducer.publishNotification(ir);
+                                         result.set(ir);
+                                         return imRegs;
+                                     }
 
-            // TODO: somehow select the interfaces that should be imported ---> job of the TopologyManager?
-            List<String> matchingInterfaces = endpoint.getInterfaces();
+                                     if (determineConfigTypesForImport(endpoint).isEmpty()) {
+                                         LOG.info("No matching handler can be found for remote endpoint {}.", endpoint.getId());
+                                         return null;
+                                     }
 
-            if (matchingInterfaces.size() == 0) {
-                LOG.info("No matching interfaces found for remote endpoint {}.", endpoint.getId());
-                return null;
-            }
+                                     // TODO: somehow select the interfaces that should be imported ---> job of the TopologyManager?
+                                     List<String> matchingInterfaces = endpoint.getInterfaces();
 
-            LOG.info("Importing service {} with interfaces {} using handler {}.",
-                endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
+                                     if (matchingInterfaces.isEmpty()) {
+                                         LOG.info("No matching interfaces found for remote endpoint {}.", endpoint.getId());
+                                         return null;
+                                     }
 
-            ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
-            if (imRegs == null) {
-                imRegs = new ArrayList<>();
-                importedServices.put(endpoint, imRegs);
-            }
-            imRegs.add(imReg);
-            eventProducer.publishNotification(imReg);
-            return imReg;
-        }
+                                     LOG.info("Importing service {} with interfaces {} using handler {}.",
+                                              endpoint.getId(), endpoint.getInterfaces(), provider.getClass());
+
+                                     ImportRegistrationImpl imReg = exposeServiceFactory(matchingInterfaces.toArray(new String[matchingInterfaces.size()]), endpoint, provider);
+                                     if (imRegs == null) {
+                                         imRegs = new ConcurrentHashSet<>();
+                                         imRegs.setParentImportRegistration(imReg);
+                                     }
+                                     imRegs.add(imReg);
+                                     eventProducer.publishNotification(imReg);
+                                     result.set(imReg);
+                                     return imRegs;
+                                 });
+
+        return result.get();
     }
 
     private List<String> determineConfigTypesForImport(EndpointDescription endpoint) {
@@ -575,10 +585,8 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     // remove all import registrations
     protected void closeImportRegistrations() {
         Collection<ImportRegistration> copy = new ArrayList<>();
-        synchronized (importedServices) {
-            for (Collection<ImportRegistration> irs : importedServices.values()) {
-                copy.addAll(irs);
-            }
+        for (Collection<ImportRegistration> irs : importedServices.values()) {
+            copy.addAll(irs);
         }
         for (ImportRegistration ir : copy) {
             ir.close();
@@ -604,24 +612,27 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     protected void removeImportRegistration(ImportRegistration iri) {
-        synchronized (importedServices) {
-            LOG.debug("Removing importRegistration {}", iri);
-
-            ImportReference importRef = iri.getImportReference();
-            if (importRef == null) {
-                return;
-            }
-
-            EndpointDescription endpoint = importRef.getImportedEndpoint();
-            Collection<ImportRegistration> imRegs = importedServices.get(endpoint);
-            if (imRegs != null && imRegs.contains(iri)) {
-                imRegs.remove(iri);
-                eventProducer.notifyRemoval(iri);
-            }
-            if (imRegs == null || imRegs.isEmpty()) {
-                importedServices.remove(endpoint);
-            }
+        ImportReference importRef = iri.getImportReference();
+        if (importRef == null)
+        {
+            return;
         }
+
+        EndpointDescription endpoint = importRef.getImportedEndpoint();
+
+        importedServices.compute(endpoint,
+                                 (endpointDescription, imRegs) -> {
+                                      if (imRegs != null && imRegs.contains(iri))
+                                      {
+                                          imRegs.remove(iri);
+                                          eventProducer.notifyRemoval(iri);
+                                      }
+                                      if (imRegs == null || imRegs.isEmpty())
+                                      {
+                                          return null;
+                                      }
+                                      return imRegs;
+                                  });
     }
 
     public void close() {
