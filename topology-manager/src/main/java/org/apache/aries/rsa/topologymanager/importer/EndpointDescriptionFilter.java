@@ -19,7 +19,7 @@ class EndpointDescriptionFilter
     private final EndpointDescription endpointDescription;
 
 
-    public EndpointDescriptionFilter(String filter, EndpointDescription endpointDescription)
+    EndpointDescriptionFilter(String filter, EndpointDescription endpointDescription)
     {
         this.filter = filter;
         this.endpointDescription = endpointDescription;
@@ -48,4 +48,15 @@ class EndpointDescriptionFilter
         return Objects.hash(filter, endpointDescription);
     }
 
+
+    String getFilter()
+    {
+        return filter;
+    }
+
+
+    EndpointDescription getEndpoint()
+    {
+        return endpointDescription;
+    }
 }
