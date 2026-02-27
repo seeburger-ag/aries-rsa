@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.aries.rsa.provider.fastbin.FastBinProvider;
 import org.apache.aries.rsa.provider.fastbin.api.Dispatched;
@@ -67,7 +69,20 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         PRIMITIVE_TO_CLASS.put("D", double.class);
     }
 
-    protected final ExecutorService blockingExecutor = Executors.newFixedThreadPool(8);
+    protected final ExecutorService blockingExecutor = Executors.newFixedThreadPool(
+                    Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcp.executors", 24),
+                    new ThreadFactory()
+                    {
+                        private final AtomicInteger poolNumber = new AtomicInteger(1);
+
+                        @Override
+                        public Thread newThread(Runnable r)
+                        {
+                            Thread t = new Thread(r);
+                            t.setName("aries-rsa-fastbin-executor-" + poolNumber.getAndIncrement());
+                            return t;
+                        }
+                    });
     protected final DispatchQueue queue;
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
@@ -92,7 +107,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         private final ServiceFactory factory;
         private final ClassLoader loader;
         private final Class clazz;
-        private HashMap<Buffer, MethodData> method_cache = new HashMap<>();
+        private final HashMap<Buffer, MethodData> method_cache = new HashMap<>();
 
         public ServiceFactoryHolder(ServiceFactory factory, ClassLoader loader) {
             this.factory = factory;
