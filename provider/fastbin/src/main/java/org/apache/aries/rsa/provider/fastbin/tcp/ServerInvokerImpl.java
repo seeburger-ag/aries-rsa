@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -86,7 +87,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     protected final DispatchQueue queue;
     private final Map<String, SerializationStrategy> serializationStrategies;
     protected final TransportServer server;
-    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new HashMap<>();
+    protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new ConcurrentHashMap<>();
     private StreamProviderImpl streamProvider;
 
     static class MethodData {
