@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServerInvokerImpl.class);
+    private static final long WARN_THRESHOLD_MS = Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcp.warnThresholdMs", 10000);
     private static final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
     static {
         PRIMITIVE_TO_CLASS.put("Z", boolean.class);
@@ -371,8 +372,16 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             // to take cpu load off the
 
             ClassLoader loader = holder==null ? getClass().getClassLoader() : holder.loader;
+            final long startTime = System.currentTimeMillis();
             methodData.invocationStrategy.service(methodData.serializationStrategy, loader, methodData.method, svc, bais, baos, new Runnable() {
                 public void run() {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    if (elapsed > WARN_THRESHOLD_MS) {
+                        LOGGER.warn("Remote call execution took {}ms (threshold: {}ms), method: {}.{}!",
+                                elapsed, WARN_THRESHOLD_MS,
+                                methodData.method != null ? methodData.method.getDeclaringClass().getSimpleName() : "unknown",
+                                methodData.method != null ? methodData.method.getName() : "unknown");
+                    }
                     if(holder!=null)
                         holder.factory.unget();
                     final Buffer command = baos.toBuffer();
