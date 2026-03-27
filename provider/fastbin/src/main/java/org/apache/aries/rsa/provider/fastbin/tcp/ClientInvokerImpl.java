@@ -54,6 +54,8 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ClientInvokerImpl.class);
 
+    private static final boolean EXCEPTION_STACK_SUPPRESSED = Boolean.getBoolean("org.apache.aries.rsa.provider.fastbin.tcp.call.exception.stack.suppressed");
+
     @SuppressWarnings("rawtypes")
     private static final Map<Class, String> CLASS_TO_PRIMITIVE = new HashMap<>(8, 1.0F);
 
@@ -279,22 +281,48 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         }
         catch (Exception e)
         {
-            trace(method, address, args, commandSize, future, null, e);
+            logMethodCall(method, address, args, commandSize, future, null, e);
             throw e;
         }
-        trace(method, address, args, commandSize, future, result, null);
+        logMethodCall(method, address, args, commandSize, future, result, null);
         return result;
     }
 
-    private void trace(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex)
+    /**
+     * Traces method calls if trace logging is enabled.
+     * In case an exception is given, method call is logged as warning.
+     * @param method the remote method that was invoked
+     * @param address the remote address the invocation was sent to
+     * @param args the arguments passed to the method invocation
+     * @param commandSize the size in bytes of the serialized request command
+     * @param future the response future associated with this request
+     * @param result the result returned by the remote method, or {@code null} if an exception occurred
+     * @param ex the exception thrown during the invocation, or {@code null} if the call succeeded
+     */
+    private void logMethodCall(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex)
     {
-        if (!isTracing) return;
+        if (!isTracing && ex == null) return;
 
         String methodString = String.valueOf(method).replace("public abstract ", "");
         String message = String.format("Finished call. Address=%s, future=%s, method=%s, args=%s, size=%d, result=%s", address, future, methodString, Arrays.toString(args), commandSize, result);
-        LOGGER.trace(message, ex);
+        if (ex == null) {
+            // just tracing
+            LOGGER.trace(message);
+        }
+        else {
+            // an exception occurred, so warning
+            // with Bernd's comments (see PR), excluding stack traces optionally to be able to shut them off in case this would spam the logs
+            if (EXCEPTION_STACK_SUPPRESSED) {
+                // only append exception class and message
+                message += ", exception=" + ex.getClass().getName() + ": " + ex.getMessage();
+                LOGGER.warn(message);
+            }
+            else {
+                // this is default - including stack trace
+                LOGGER.warn(message, ex);
+            }
+        }
     }
-
 
     private void writeBuffer(DataByteArrayOutputStream baos, Buffer value) throws IOException {
         baos.writeVarInt(value.length);
