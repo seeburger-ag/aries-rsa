@@ -58,6 +58,19 @@ import org.slf4j.LoggerFactory;
 public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ServerInvokerImpl.class);
+
+    /**
+     * Duration after which a synchronous call issues a warning.
+     * Default 10,000 milliseconds.
+     */
+    private static final long THRESHOLD_WARNING_MS = Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcpthreshold..warn.ms", 10000);
+    /**
+     * Duration after which a synchronous call issues an error.
+     * Must be greater than @THRESHOLD_WARNING_MS.
+     * Default 20,000 milliseconds.
+     */
+    private static final long THRESHOLD_ERROR_MS = Math.max(THRESHOLD_WARNING_MS, Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcpthreshold..error.ms", 20000));
+
     private static final HashMap<String, Class> PRIMITIVE_TO_CLASS = new HashMap<>(8, 1.0F);
     static {
         PRIMITIVE_TO_CLASS.put("Z", boolean.class);
@@ -371,9 +384,26 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             // to take cpu load off the
 
             ClassLoader loader = holder==null ? getClass().getClassLoader() : holder.loader;
+            final long startTime = System.currentTimeMillis();
             methodData.invocationStrategy.service(methodData.serializationStrategy, loader, methodData.method, svc, bais, baos, new Runnable() {
                 public void run() {
-                    if(holder!=null)
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    if (elapsed > THRESHOLD_WARNING_MS) {
+                        if (elapsed > THRESHOLD_ERROR_MS) {
+                            LOGGER.error("Remote call execution took {}ms (threshold: {}ms), method: {}.{}!",
+                                elapsed, THRESHOLD_ERROR_MS,
+                                methodData.method != null ? methodData.method.getDeclaringClass().getSimpleName() : "unknown",
+                                methodData.method != null ? methodData.method.getName() : "unknown");
+                        }
+                        else
+                        {
+                            LOGGER.warn("Remote call execution took {}ms (threshold: {}ms), method: {}.{}!",
+                                        elapsed, THRESHOLD_WARNING_MS,
+                                        methodData.method != null ? methodData.method.getDeclaringClass().getSimpleName() : "unknown",
+                                        methodData.method != null ? methodData.method.getName() : "unknown");
+                        }
+                    }
+                    if (holder!=null)
                         holder.factory.unget();
                     final Buffer command = baos.toBuffer();
 
