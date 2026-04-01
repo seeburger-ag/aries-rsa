@@ -18,17 +18,13 @@
  */
 package org.apache.aries.rsa.provider.fastbin;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.Inet4Address;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.aries.rsa.provider.fastbin.api.FastbinEndpoint;
@@ -38,10 +34,8 @@ import org.apache.aries.rsa.provider.fastbin.io.ServerInvoker;
 import org.apache.aries.rsa.provider.fastbin.tcp.ClientInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.ServerInvokerImpl;
 import org.apache.aries.rsa.provider.fastbin.tcp.TcpTransportServer;
-import org.apache.aries.rsa.provider.fastbin.util.UuidGenerator;
 import org.apache.aries.rsa.spi.DistributionProvider;
 import org.apache.aries.rsa.spi.Endpoint;
-import org.apache.aries.rsa.spi.IntentUnsatisfiedException;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
 import org.osgi.framework.BundleContext;
@@ -120,7 +114,7 @@ public class FastBinProvider implements DistributionProvider {
             {
                 uri += "?"+TcpTransportServer.BIND_ADDRESS_QUERY_PARAM+"="+bindAddress;
             }
-            server = new ServerInvokerImpl(uri, queue, serializationStrategies);
+            server = new ServerInvokerImpl(uri, queue, serializationStrategies, timeout);
             client = new ClientInvokerImpl(queue, timeout, serializationStrategies);
             client.start();
         } catch (Exception e) {
