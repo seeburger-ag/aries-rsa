@@ -89,6 +89,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     protected final TransportServer server;
     protected final Map<UTF8Buffer, ServiceFactoryHolder> holders = new ConcurrentHashMap<>();
     private StreamProviderImpl streamProvider;
+    private final ServerResponseThresholdTracker responseThresholdTracker;
 
     static class MethodData {
 
@@ -164,11 +165,16 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
     }
 
     public ServerInvokerImpl(String address, DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies) throws Exception {
+        this(address, queue, serializationStrategies, -1);
+    }
+
+    public ServerInvokerImpl(String address, DispatchQueue queue, Map<String, SerializationStrategy> serializationStrategies, long clientTimeout) throws Exception {
         this.queue = queue;
         this.serializationStrategies = serializationStrategies;
         this.server = new TcpTransportFactory().bind(address);
         this.server.setDispatchQueue(queue);
         this.server.setAcceptListener(new InvokerAcceptListener());
+        this.responseThresholdTracker = new ServerResponseThresholdTracker(clientTimeout);
     }
 
     public InetSocketAddress getSocketAddress() {
@@ -240,6 +246,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
         this.server.stop(new Runnable() {
             public void run() {
                 blockingExecutor.shutdown();
+                responseThresholdTracker.close();
                 if (onComplete != null) {
                     onComplete.run();
                 }
@@ -266,14 +273,19 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 task = new SendTask(bais, correlation, transport, message);
             }
             final Object svc = holder==null ? null : holder.factory.get();
+            String trackClass  = "unknown";
+            String trackMethod = encoded_method.utf8().toString();
             if(holder!=null) {
                 try {
                     final MethodData methodData = holder.getMethodData(encoded_method);
                     task = new SendTask(svc, bais, holder, correlation, methodData, transport);
+                    if (methodData.method != null) {
+                        trackClass  = methodData.method.getDeclaringClass().getSimpleName();
+                        trackMethod = methodData.method.getName();
+                    }
                 }
                 catch (ReflectiveOperationException reflectionEx) {
-                    final String methodName = encoded_method.utf8().toString();
-                    String message = "The requested method {"+methodName+"} is not available";
+                    String message = "The requested method {"+trackMethod+"} is not available";
                     LOGGER.warn(message);
                     task = new SendTask(bais, correlation, transport, message);
                 }
@@ -285,6 +297,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             } else {
                 executor = blockingExecutor;
             }
+            responseThresholdTracker.track(correlation, trackClass, trackMethod);
             executor.execute(task);
 
         } catch (Exception e) {
@@ -365,6 +378,8 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             } catch (IOException e) { // should not happen
                 LOGGER.error("Failed to write to buffer", e);
                 throw new RuntimeException(e);
+            }finally {
+                responseThresholdTracker.complete(correlation);
             }
 
             // Let's decode the remaining args on the target's executor
@@ -373,19 +388,25 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             ClassLoader loader = holder==null ? getClass().getClassLoader() : holder.loader;
             methodData.invocationStrategy.service(methodData.serializationStrategy, loader, methodData.method, svc, bais, baos, new Runnable() {
                 public void run() {
-                    if(holder!=null)
-                        holder.factory.unget();
-                    final Buffer command = baos.toBuffer();
+                    try {
+                        if (holder!=null)
+                            holder.factory.unget();
+                        final Buffer command = baos.toBuffer();
 
-                    // Update the size field.
-                    BufferEditor editor = command.buffer().bigEndianEditor();
-                    editor.writeInt(command.length);
+                        // Update the size field.
+                        BufferEditor editor = command.buffer().bigEndianEditor();
+                        editor.writeInt(command.length);
 
-                    queue().execute(new Runnable() {
-                        public void run() {
-                            transport.offer(command);
-                        }
-                    });
+                        queue().execute(new Runnable() {
+                            public void run() {
+                                transport.offer(command);
+                                responseThresholdTracker.complete(correlation);
+                            }
+                        });
+                    } catch (Exception e) {
+                        responseThresholdTracker.complete(correlation);
+                        throw e;
+                    }
                 }
             });
         }
