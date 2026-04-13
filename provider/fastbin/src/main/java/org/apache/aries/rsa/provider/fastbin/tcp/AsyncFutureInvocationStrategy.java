@@ -27,10 +27,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
@@ -43,7 +47,35 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 @SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
 
-    private FutureCompleter completer = new FutureCompleter();
+    private static final boolean REPLY_ASYNC = Boolean.getBoolean("org.apache.aries.rsa.provider.fastbin.tcp.async.reply");
+
+    private final FutureCompleter completer = new FutureCompleter();
+
+    private static final ExecutorService executorReplyAsync;
+
+    static {
+        if (REPLY_ASYNC) {
+            Integer executorSize = Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcp.async.reply.executors", 8);
+            executorReplyAsync = Executors.newFixedThreadPool(
+                            executorSize,
+                            new ThreadFactory()
+                            {
+                                private final AtomicInteger poolNumber = new AtomicInteger(1);
+
+                                @Override
+                                public Thread newThread(Runnable r)
+                                {
+                                    Thread t = new Thread(r);
+                                    t.setName("aries-rsa-fastbin-async-reply-executor-" + poolNumber.getAndIncrement());
+                                    return t;
+                                }
+                            });
+            LOGGER.info("Async reply enabled with {} executors", executorSize);
+        }
+        else {
+            executorReplyAsync = null;
+        }
+    }
 
     @SuppressWarnings("unchecked")
     protected void doService(SerializationStrategy serializationStrategy, ClassLoader loader, Method method, Object target, DataByteArrayInputStream requestStream, final DataByteArrayOutputStream responseStream, final Runnable onComplete) {
@@ -61,11 +93,26 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             else {
                 completable = completer.complete(future);
             }
-            completable.whenComplete(new BiConsumer<Object, Throwable>() {
-                public void accept(Object returnValue, Throwable exception) {
-                    helper.send(exception, returnValue);
-                }
-            });
+
+            if (REPLY_ASYNC) {
+                assert executorReplyAsync != null;
+                // let reply be sent by own executor thread,
+                // not blocking the caller of either #whenComplete (in case Future complete, or later  #complete from #FutureCompleter
+                completable.whenCompleteAsync(new BiConsumer<Object, Throwable>() {
+                    public void accept(Object returnValue, Throwable exception) {
+                        helper.send(exception, returnValue);
+                    }
+                }, executorReplyAsync);
+            }
+            else
+            {
+                assert executorReplyAsync == null : executorReplyAsync;
+                completable.whenComplete(new BiConsumer<Object, Throwable>() {
+                    public void accept(Object returnValue, Throwable exception) {
+                        helper.send(exception, returnValue);
+                    }
+                });
+            }
 
         } catch (Throwable t) {
             helper.send(t, null);
