@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
 import org.apache.aries.rsa.provider.fastbin.api.SerializationStrategy;
@@ -43,6 +43,7 @@ import org.fusesource.hawtbuf.DataByteArrayInputStream;
 import org.fusesource.hawtbuf.DataByteArrayOutputStream;
 import org.fusesource.hawtdispatch.Dispatch;
 import org.fusesource.hawtdispatch.DispatchQueue;
+
 
 @SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
@@ -139,7 +140,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         private final Method method;
         private final SerializationStrategy serializationStrategy;
         private final DispatchQueue queue;
-        private CompletableFuture<Object> future;
+        private final CompletableFuture<Object> future;
 
         public AsyncResponseFuture(ClassLoader loader, Method method, SerializationStrategy serializationStrategy, DispatchQueue queue) {
             this.loader = loader;
@@ -194,65 +195,68 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
     /**
      * Helper class that polls available futures in a background thread for readiness
      * and reports them to a completable future
-     *
      */
     private static class FutureCompleter extends Thread {
 
-        private ConcurrentMap<Future<Object>, CompletableFuture<Object>> futures;
-        private Semaphore counter;
-        private AtomicBoolean started;
+        private static final int SLEEP_ON_EMPTY = Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcp.async.future.completer.sleep.on.empty", 20);
+        private final ConcurrentMap<Future<Object>, CompletableFuture<Object>> futures = new ConcurrentHashMap<>();
+        private final AtomicBoolean started = new AtomicBoolean(false);
+        private final Semaphore available = new Semaphore(0);
 
         public FutureCompleter() {
             setName("Fastbin-Future-Completer");
             setDaemon(true);
-            futures = new ConcurrentHashMap<>();
-            counter = new Semaphore(0);
-            started = new AtomicBoolean(false);
         }
 
         @Override
         public void run() {
-            while(true) {
-                // all currently available entries will be processed
-                int takenPermits = Math.max(1, counter.availablePermits());
-                try {
-                    counter.acquire(takenPermits);
-                }
-                catch (InterruptedException e) {
-                    continue;
-                }
-                Set<Entry<Future<Object>, CompletableFuture<Object >>> entrySet = futures.entrySet();
-                int processed = 0;
-                for (Entry<Future<Object>, CompletableFuture<Object>> entry : entrySet) {
-                    if(processed == takenPermits) {
-                        //we only release as many as we took permits. The remainder will be handled in the next iteration
-                        break;
+            while(true)
+            {
+                try
+                {
+                    // block until at least one future is registered
+                    available.acquire();
+                    available.drainPermits();
+
+                    // stream over current ConcurrentMap and complete all currently available futures.
+                    // We use stream to avoid concurrent modification exceptions, but we still need to remove the completed futures from the map after processing them.
+                    try (Stream<Entry<Future<Object>, CompletableFuture<Object>>> entryStream = futures.entrySet().stream()
+                            .filter(entry -> entry.getKey().isDone()))
+                    {
+                        entryStream.forEach(entry ->
+                                            {
+                                                Future<Object> future = entry.getKey();
+                                                try
+                                                {
+                                                    Object object = future.get(0, TimeUnit.MILLISECONDS);
+                                                    entry.getValue().complete(object);
+                                                }
+                                                catch (ExecutionException e)
+                                                {
+                                                    entry.getValue().completeExceptionally(e.getCause());
+                                                }
+                                                catch (Exception e) // includes TimeoutException
+                                                {
+                                                    entry.getValue().completeExceptionally(e);
+                                                }
+                                                futures.remove(future);
+                                            });
                     }
-                    Future< ? > future = entry.getKey();
-                    if(future.isDone()) {
-                        try {
-                            Object object = future.get();
-                            entry.getValue().complete(object);
-                        }
-                        catch (ExecutionException e) {
-                            entry.getValue().completeExceptionally(e.getCause());
-                        }
-                        catch (Exception e) {
-                            entry.getValue().completeExceptionally(e);
-                        }
-                        futures.remove(future);
-                        processed++;
-                    }
-                    else {
-                        // if the future is complete, the permit is not released
-                        counter.release();
-                    }
-                    try {
-                        Thread.sleep(20);
-                    }
-                    catch (InterruptedException e) {
+
+                    if (futures.isEmpty()) {
                         // sleep a little to wait for additional futures to complete
+                        try {
+                            Thread.sleep(SLEEP_ON_EMPTY);
+                        }
+                        catch (InterruptedException e) {
+                            // ignored
+                        }
                     }
+                }
+                catch (Exception ex) {
+                    // we catch all exceptions to avoid killing the thread,
+                    // but log them to be able to investigate if something goes wrong.
+                    LOGGER.warn("Unexpected exception while completing futures! Will continue.", ex);
                 }
             }
         }
@@ -263,7 +267,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
             }
             CompletableFuture<Object> completable = new CompletableFuture<>();
             futures.put(future, completable);
-            counter.release();
+            available.release();
             return completable;
         }
     }
