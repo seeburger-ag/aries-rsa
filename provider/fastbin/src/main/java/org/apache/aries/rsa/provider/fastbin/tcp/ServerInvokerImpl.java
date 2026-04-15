@@ -376,10 +376,9 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 baos.writeInt(0); // make space for the size field.
                 baos.writeVarLong(correlation);
             } catch (IOException e) { // should not happen
+                responseThresholdTracker.complete(correlation);
                 LOGGER.error("Failed to write to buffer", e);
                 throw new RuntimeException(e);
-            }finally {
-                responseThresholdTracker.complete(correlation);
             }
 
             // Let's decode the remaining args on the target's executor
