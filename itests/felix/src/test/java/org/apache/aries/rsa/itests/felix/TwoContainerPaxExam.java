@@ -50,10 +50,18 @@ public class TwoContainerPaxExam extends PaxExam {
 
             ExamSystem testSystem = PaxExamRuntime.createTestSystem(remoteConfig());
             remoteContainer = PaxExamRuntime.createContainer(testSystem);
+            System.out.println("TwoContainer: starting remote container...");
             remoteContainer.start();
+            System.out.println("TwoContainer: remote container started, waiting for services...");
+            // Give the remote container time to fully activate all components
+            // (e.g. ZooKeeper server needs time to bind to its port)
+            Thread.sleep(3000);
+            System.out.println("TwoContainer: starting local test...");
             super.run(notifier);
 
         } catch (Exception e) {
+            System.out.println("TwoContainer: ERROR: " + e);
+            e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
             if (remoteContainer != null) {

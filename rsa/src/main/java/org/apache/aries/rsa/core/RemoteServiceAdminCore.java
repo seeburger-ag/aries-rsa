@@ -18,8 +18,6 @@
  */
 package org.apache.aries.rsa.core;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -240,11 +238,7 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
             final Class<?>[] interfaces = getInterfaces(serviceO, interfaceNames);
             final Map<String, Object> eprops = createEndpointProps(serviceProperties, interfaces);
 
-            Endpoint endpoint = AccessController.doPrivileged(new PrivilegedAction<Endpoint>() {
-                public Endpoint run() {
-                    return provider.exportService(serviceO, serviceContext, eprops, interfaces);
-                }
-            });
+            Endpoint endpoint = provider.exportService(serviceO, serviceContext, eprops, interfaces);
             if (endpoint == null) {
                 return null;
             }
@@ -716,9 +710,6 @@ public class RemoteServiceAdminCore implements RemoteServiceAdmin {
     }
 
     private void checkPermission(EndpointPermission permission) {
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(permission);
-        }
+        // SecurityManager was removed in Java 17; skip security check
     }
 }

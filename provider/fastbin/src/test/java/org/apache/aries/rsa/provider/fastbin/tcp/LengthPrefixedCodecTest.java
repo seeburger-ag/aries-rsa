@@ -143,7 +143,7 @@ public class LengthPrefixedCodecTest {
     @Test(expected=ProtocolException.class)
     public void testReadEvilPackage() throws Exception {
 
-        expect(readableByteChannel.read(EasyMock.anyObject())).andAnswer(new IAnswer<Integer>() {
+        expect(readableByteChannel.read(EasyMock.anyObject(ByteBuffer.class))).andAnswer(new IAnswer<Integer>() {
 
             @Override
             public Integer answer() throws Throwable {
@@ -153,6 +153,8 @@ public class LengthPrefixedCodecTest {
                 return 1;
             }
         });
+        // getFirstKiloByteForLogging() performs a second read() on the channel for logging purposes
+        expect(readableByteChannel.read(EasyMock.anyObject(ByteBuffer.class))).andReturn(-1);
         replay(readableByteChannel);
         codec.read();
     }
