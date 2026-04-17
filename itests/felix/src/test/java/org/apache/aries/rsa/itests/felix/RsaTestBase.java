@@ -18,12 +18,7 @@
  */
 package org.apache.aries.rsa.itests.felix;
 
-import static org.ops4j.pax.exam.CoreOptions.bundle;
-import static org.ops4j.pax.exam.CoreOptions.composite;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.ops4j.pax.exam.CoreOptions.systemProperty;
-import static org.ops4j.pax.exam.CoreOptions.vmOption;
-import static org.ops4j.pax.exam.CoreOptions.when;
+import static org.ops4j.pax.exam.CoreOptions.*;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.newConfiguration;
 
 import java.io.IOException;
@@ -54,8 +49,9 @@ public class RsaTestBase {
         if (localRepo == null) {
             localRepo = System.getProperty("org.ops4j.pax.url.mvn.localRepository");
         }
-        return when(localRepo != null)
-            .useOptions(vmOption("-Dorg.ops4j.pax.url.mvn.localRepository=" + localRepo));
+        final String repo = localRepo;
+        return when(repo != null)
+            .useOptions(systemProperty("org.ops4j.pax.url.mvn.localRepository").value(repo != null ? repo : ""));
     }
 
     protected static MavenArtifactProvisionOption mvn(String groupId, String artifactId) {
@@ -128,6 +124,25 @@ public class RsaTestBase {
                          systemProperty("pax.exam.osgi.unresolved.fail").value("true"),
                          systemProperty("org.ops4j.pax.logging.DefaultServiceLog.level").value("INFO"),
                          systemProperty("aries.rsa.hostname").value("localhost"),
+                         // Enable the EndpointEventListener notification path used by ZooKeeper discovery
+                         // to publish exported endpoints (requires the PublishingEndpointListener to be called)
+                         systemProperty("org.apache.aries.rsa.endpoint.listener.notifier.enable").value("true"),
+                         // Felix framework logging: 1=error, 2=warn, 3=info, 4=debug
+                         CoreOptions.frameworkProperty("felix.log.level").value("3"),
+                         // Boot delegation: allow OSGi bundles to access JDK internal packages
+                         // needed by ZooKeeper 3.9, Netty, and other libraries on Java 21
+                         CoreOptions.frameworkProperty("org.osgi.framework.bootdelegation").value(
+                             "sun.*,com.sun.*,javax.*,jdk.*"),
+                         // Java 9+ module system: open packages needed by hawtdispatch (NIO internals),
+                         // Felix framework, and OSGi class-loading mechanisms
+                         // NOTE: vmOption() is ignored by native container - these must be in surefire argLine
+                         vmOption("--add-opens=java.base/java.lang=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/java.nio=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/java.lang.reflect=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/java.io=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/java.net=ALL-UNNAMED"),
+                         vmOption("--add-opens=java.base/java.util=ALL-UNNAMED"),
                          mvn("org.osgi", "org.osgi.util.function"),
                          mvn("org.osgi", "org.osgi.util.promise"),
                          mvn("org.osgi", "org.osgi.service.component"),
@@ -143,7 +158,17 @@ public class RsaTestBase {
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.core"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.spi"),
                          mvn("org.apache.aries.rsa", "org.apache.aries.rsa.topology-manager"),
-                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local")
+                         mvn("org.apache.aries.rsa.discovery", "org.apache.aries.rsa.discovery.local"),
+                         // JAXB API and runtime - removed from JDK since Java 11, must be provisioned explicitly
+                         mvn("jakarta.xml.bind", "jakarta.xml.bind-api"),
+                         //mvn("org.glassfish.jaxb", "jaxb-runtime"),
+                         //mvn("com.sun.istack", "istack-commons-runtime"),
+                         //wrappedBundle(mvn("org.glassfish.jaxb", "txw2")),
+                         // version must be hardcoded: depends-maven-plugin fails to record it in
+                         // dependencies.properties due to a conflict with the transitive
+                         // com.sun.activation:jakarta.activation dependency, causing versionAsInProject() to fail
+                         mavenBundle().groupId("com.sun.xml.bind").artifactId("jaxb-osgi").version("2.3.9"),
+                         mvn("org.apache.servicemix.specs","org.apache.servicemix.specs.activation-api-1.2.1")
         );
     }
 

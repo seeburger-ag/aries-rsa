@@ -47,7 +47,7 @@ public class EndpointDescriptionParserImpl implements EndpointDescriptionParser 
 
     public EndpointDescriptionParserImpl() {
         try {
-            jaxbContext = JAXBContext.newInstance(EndpointDescriptionsType.class);
+            jaxbContext = JAXBContext.newInstance(EndpointDescriptionsType.class.getPackageName(), EndpointDescriptionsType.class.getClassLoader());
         } catch (JAXBException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

@@ -18,8 +18,6 @@
  */
 package org.apache.aries.rsa.core;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,12 +61,8 @@ public class ClientServiceFactory implements ServiceFactory {
             for (String ifaceName : interfaceNames) {
                 interfaces.add(consumerLoader.loadClass(ifaceName));
             }
-            Object proxy = AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                public Object run() {
-                    Class<?>[] ifAr = interfaces.toArray(new Class[]{});
-                    return handler.importEndpoint(consumerLoader, consumerContext, ifAr, endpoint);
-                }
-            });
+            Class<?>[] ifAr = interfaces.toArray(new Class[]{});
+            Object proxy = handler.importEndpoint(consumerLoader, consumerContext, ifAr, endpoint);
 
             synchronized (this) {
                 serviceCounter++;
