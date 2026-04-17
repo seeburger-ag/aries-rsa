@@ -23,6 +23,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,6 +37,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
 import org.apache.aries.rsa.provider.fastbin.api.AsyncCallback;
@@ -46,6 +49,12 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 
 @SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
+
+    private static final boolean REPLY_ASYNC_METRICS = Boolean.getBoolean("org.apache.aries.rsa.provider.fastbin.tcp.async.metrics");
+
+    private static final long REPLY_ASYNC_METRICS_DELAY = Long.getLong("org.apache.aries.rsa.provider.fastbin.tcp.async.metrics.delay", 10000);
+
+    private static final Timer timerMetrics;
 
     private static final boolean REPLY_ASYNC = Boolean.getBoolean("org.apache.aries.rsa.provider.fastbin.tcp.async.reply");
 
@@ -74,6 +83,32 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         }
         else {
             executorReplyAsync = null;
+        }
+
+        if (REPLY_ASYNC_METRICS) {
+            timerMetrics = new Timer("rsa-async-metrics-timer", true);
+            LOGGER.info("Async metrics enabled with delay {} ms", REPLY_ASYNC_METRICS_DELAY);
+        }
+        else {
+            timerMetrics = null;
+            LOGGER.debug("Async metrics disabled");
+        }
+    }
+
+    public AsyncFutureInvocationStrategy() {
+        if (REPLY_ASYNC_METRICS) {
+            TimerTask timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    if (completer != null) // never null, just to be very safe
+                    {
+                        LOGGER.info("AsyncFutureInvocationStrategy: {} pending futures. Permits: {}. Processed: {} in {} ms",
+                                    completer.futures.size(), (completer.counter != null ? completer.counter.availablePermits() : 0), completer.processedFutures,
+                                    completer.processedFuturesDuration);
+                    }
+                }
+            };
+            timerMetrics.schedule(timerTask, REPLY_ASYNC_METRICS_DELAY, REPLY_ASYNC_METRICS_DELAY);
         }
     }
 
@@ -141,7 +176,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
         private final Method method;
         private final SerializationStrategy serializationStrategy;
         private final DispatchQueue queue;
-        private CompletableFuture<Object> future;
+        private final CompletableFuture<Object> future;
 
         public AsyncResponseFuture(ClassLoader loader, Method method, SerializationStrategy serializationStrategy, DispatchQueue queue) {
             this.loader = loader;
@@ -200,9 +235,11 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
      */
     private static class FutureCompleter extends Thread {
 
-        private ConcurrentMap<Future<Object>, CompletableFuture<Object>> futures;
-        private Semaphore counter;
-        private AtomicBoolean started;
+        private final ConcurrentMap<Future<Object>, CompletableFuture<Object>> futures;
+        private final Semaphore counter;
+        private final AtomicBoolean started;
+        private final AtomicLong processedFutures = new AtomicLong(0);
+        private final AtomicLong processedFuturesDuration = new AtomicLong(0);
 
         public FutureCompleter() {
             setName("Fastbin-Future-Completer");
@@ -223,6 +260,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
                 catch (InterruptedException e) {
                     continue;
                 }
+                final long start = REPLY_ASYNC_METRICS ? System.currentTimeMillis() : 0; // only needed in case metrics are active
                 Set<Entry<Future<Object>, CompletableFuture<Object >>> entrySet = futures.entrySet();
                 int processed = 0;
                 for (Entry<Future<Object>, CompletableFuture<Object>> entry : entrySet) {
@@ -244,6 +282,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
                         }
                         futures.remove(future);
                         processed++;
+                        if (REPLY_ASYNC_METRICS) processedFutures.incrementAndGet();
                     }
                     else {
                         // if the future is complete, the permit is not released
@@ -256,6 +295,7 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
                         // sleep a little to wait for additional futures to complete
                     }
                 }
+                if (REPLY_ASYNC_METRICS) processedFuturesDuration.addAndGet(System.currentTimeMillis() - start);
             }
         }
 
