@@ -50,6 +50,8 @@ import org.fusesource.hawtdispatch.DispatchQueue;
 @SuppressWarnings("rawtypes")
 public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
 
+    private static final int COMPLETER_SLEEP_DURATION = Math.max(0, Integer.getInteger("org.apache.aries.rsa.provider.fastbin.tcp.completer.sleep", 20));
+
     private static final boolean REPLY_ASYNC_METRICS = Boolean.getBoolean("org.apache.aries.rsa.provider.fastbin.tcp.async.metrics");
 
     private static final long REPLY_ASYNC_METRICS_DELAY = Long.getLong("org.apache.aries.rsa.provider.fastbin.tcp.async.metrics.delay", 10000);
@@ -288,13 +290,16 @@ public class AsyncFutureInvocationStrategy extends AbstractInvocationStrategy {
                         // if the future is complete, the permit is not released
                         counter.release();
                     }
-                    try {
-                        Thread.sleep(20);
-                    }
-                    catch (InterruptedException e) {
-                        // sleep a little to wait for additional futures to complete
-                    }
                 }
+
+                // sleep a little to wait for additional futures to complete
+                // doing this after batch processing, not after each entry as it was earlier to avoid lagging of response processing
+                try {
+                    Thread.sleep(COMPLETER_SLEEP_DURATION);
+                }
+                catch (InterruptedException e) {
+                }
+
                 if (REPLY_ASYNC_METRICS) processedFuturesDuration.addAndGet(System.currentTimeMillis() - start);
             }
         }
