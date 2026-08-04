@@ -158,7 +158,7 @@ final class ServerResponseThresholdTracker implements Closeable {
 									+ "Client may have already abandoned the request, method: {}.{}",
 							clientTimeout, className, methodName);
 				} else {
-					LOGGER.warn("Remote async call still running after {}ms - client timeout reached, method: {}.{}",
+					LOGGER.warn("Remote async call still running after {}ms, method: {}.{}",
 							clientTimeout, className, methodName);
 				}
 			}
