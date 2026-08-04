@@ -267,6 +267,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
 
             final ServiceFactoryHolder holder = holders.get(service);
             Runnable task = null;
+            boolean clientAbandonmentLikely = true;
             if(holder==null) {
                 String message = "The requested service {"+service+"} is not available";
                 LOGGER.warn(message);
@@ -279,6 +280,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
                 try {
                     final MethodData methodData = holder.getMethodData(encoded_method);
                     task = new SendTask(svc, bais, holder, correlation, methodData, transport);
+                    clientAbandonmentLikely = methodData.invocationStrategy instanceof BlockingInvocationStrategy;
                     if (methodData.method != null) {
                         trackClass  = methodData.method.getDeclaringClass().getSimpleName();
                         trackMethod = methodData.method.getName();
@@ -297,7 +299,7 @@ public class ServerInvokerImpl implements ServerInvoker, Dispatched {
             } else {
                 executor = blockingExecutor;
             }
-            responseThresholdTracker.track(correlation, trackClass, trackMethod);
+            responseThresholdTracker.track(correlation, trackClass, trackMethod, clientAbandonmentLikely);
             executor.execute(task);
 
         } catch (Exception e) {

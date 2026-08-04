@@ -131,8 +131,12 @@ final class ServerResponseThresholdTracker implements Closeable {
 	 *            unavailable)
 	 * @param methodName
 	 *            name of the invoked method ({@code "unknown"} if unavailable)
+	 * @param clientAbandonmentLikely
+	 *            whether reaching the timeout likely means the client has abandoned
+	 *            waiting (typically true for blocking calls, false for async
+	 *            invocations)
 	 */
-	void track(final long correlationId, final String className, final String methodName) {
+	void track(final long correlationId, final String className, final String methodName, final boolean clientAbandonmentLikely) {
 		if (!turnedOn) {
 			return;
 		}
@@ -148,10 +152,15 @@ final class ServerResponseThresholdTracker implements Closeable {
 		TimerTask errorTask = new TimerTask() {
 			@Override
 			public void run() {
-				LOGGER.error(
-						"Remote call still running after {}ms - client timeout reached. "
-								+ "Client may have already abandoned the request, method: {}.{}",
-						clientTimeout, className, methodName);
+				if (clientAbandonmentLikely) {
+					LOGGER.error(
+							"Remote call still running after {}ms - client timeout reached. "
+									+ "Client may have already abandoned the request, method: {}.{}",
+							clientTimeout, className, methodName);
+				} else {
+					LOGGER.warn("Remote async call still running after {}ms - client timeout reached, method: {}.{}",
+							clientTimeout, className, methodName);
+				}
 			}
 		};
 
