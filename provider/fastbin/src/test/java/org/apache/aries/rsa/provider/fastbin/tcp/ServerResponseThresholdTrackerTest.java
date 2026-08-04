@@ -97,7 +97,7 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void completingBeforeWarningProducesNoLogs() throws Exception {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, false);
 		tracker.complete(CORR_ID);
 
 		// wait past both thresholds to be sure nothing fires
@@ -112,7 +112,7 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void warnIsLoggedWhenWarningThresholdExceeded() {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, false);
 
 		await().atMost(2, TimeUnit.SECONDS).until(() -> !logsAtLevel(Level.WARN).isEmpty());
 
@@ -128,7 +128,7 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void errorIsLoggedWhenClientTimeoutExceeded() {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, true);
 
 		await().atMost(2, TimeUnit.SECONDS).until(() -> !logsAtLevel(Level.ERROR).isEmpty());
 
@@ -144,7 +144,7 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void completingAfterWarnButBeforeErrorCancelsErrorTask() throws Exception {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, true);
 
 		// wait until the warning has fired
 		await().atMost(2, TimeUnit.SECONDS).until(() -> !logsAtLevel(Level.WARN).isEmpty());
@@ -169,11 +169,11 @@ public class ServerResponseThresholdTrackerTest {
 
 	/**
 	 * Calling {@link ServerResponseThresholdTracker#close} must cancel all pending
-	 * timer tasks so that no log entries appear afterwards.
+	 * timer tasks so that no log entries appear afterward.
 	 */
 	@Test
 	public void closePreventsPendingTasksFromFiring() throws Exception {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, true);
 		tracker.close();
 
 		Thread.sleep(TIMEOUT_MS + 100);
@@ -187,11 +187,11 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void logMessagesContainClassAndMethodName() {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, true);
 
 		await().atMost(2, TimeUnit.SECONDS).until(() -> !logsAtLevel(Level.WARN).isEmpty());
 
-		String msg = logsAtLevel(Level.WARN).get(0).getFormattedMessage();
+		String msg = logsAtLevel(Level.WARN).getFirst().getFormattedMessage();
 		assertThat(msg, containsString(CLASS_NAME));
 		assertThat(msg, containsString(METHOD_NAME));
 
@@ -204,11 +204,11 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void multipleTasksTrackedIndependently() throws Exception {
-		tracker.track(1L, "ServiceA", "methodA");
-		tracker.track(2L, "ServiceB", "methodB");
-		tracker.track(3L, "ServiceC", "methodC");
+		tracker.track(1L, "ServiceA", "methodA", true);
+		tracker.track(2L, "ServiceB", "methodB", true);
+		tracker.track(3L, "ServiceC", "methodC", true);
 
-		// complete task 2 immediately – its timers must be cancelled
+		// complete task 2 immediately – its timers must be canceled
 		tracker.complete(2L);
 
 		// wait until warnings fire for tasks 1 and 3
@@ -235,7 +235,7 @@ public class ServerResponseThresholdTrackerTest {
 	 */
 	@Test
 	public void completeIsIdempotent() throws Exception {
-		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME);
+		tracker.track(CORR_ID, CLASS_NAME, METHOD_NAME, true);
 		tracker.complete(CORR_ID);
 		tracker.complete(CORR_ID); // second call must not throw
 
