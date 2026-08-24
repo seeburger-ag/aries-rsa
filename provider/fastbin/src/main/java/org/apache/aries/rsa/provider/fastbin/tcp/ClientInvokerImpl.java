@@ -281,10 +281,10 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
         }
         catch (Exception e)
         {
-            logMethodCall(method, address, args, commandSize, future, null, e);
+            logMethodCall(method, address, args, commandSize, future, null, e, service);
             throw e;
         }
-        logMethodCall(method, address, args, commandSize, future, result, null);
+        logMethodCall(method, address, args, commandSize, future, result, null, service);
         return result;
     }
 
@@ -298,13 +298,14 @@ public class ClientInvokerImpl implements ClientInvoker, Dispatched {
      * @param future the response future associated with this request
      * @param result the result returned by the remote method, or {@code null} if an exception occurred
      * @param ex the exception thrown during the invocation, or {@code null} if the call succeeded
+     * @param service the service being invoked
      */
-    private void logMethodCall(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex)
+    private void logMethodCall(Method method, String address, Object[] args, int commandSize, ResponseFuture future, Object result, Throwable ex, UTF8Buffer service)
     {
         if (!isTracing && ex == null) return;
 
         String methodString = String.valueOf(method).replace("public abstract ", "");
-        String message = String.format("Finished call. Address=%s, future=%s, method=%s, args=%s, size=%d, result=%s", address, future, methodString, Arrays.toString(args), commandSize, result);
+        String message = String.format("Finished call. Address=%s, future=%s, method=%s, args=%s, size=%d, result=%s, service=%s", address, future, methodString, Arrays.toString(args), commandSize, result, service);
         if (ex == null) {
             // just tracing
             LOGGER.trace(message);
